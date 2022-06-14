@@ -15,22 +15,43 @@ namespace IndexerWpf.Classes
     public class IndxElements : INotifyPropertyChanged
     {
         private ObservableCollection<IndxElement> allFiles;
+        private ObservableCollection<IndxElement> visualFolder;
         private string rootFolderPath;
 
         public ObservableCollection<IndxElement> AllFiles { get => allFiles; set { allFiles = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("AllFiles")); } }
+
+        public ObservableCollection<IndxElement> VisualFolder { get => visualFolder; set { visualFolder = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("VisualFolder")); } }
+
         public string RootFolderPath { get => rootFolderPath; set { rootFolderPath = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("RootFolderPath")); } }
+        
         public IndxElements()
         {
-            AllFiles = new ObservableCollection<IndxElement>();
+
             RootFolderPath = string.Empty;
+            Init();
         }
+
+        private void Init()
+        {
+            AllFiles = new ObservableCollection<IndxElement>();
+            VisualFolder = new ObservableCollection<IndxElement>();
+            StaticModel.RemoveItem += StaticModel_RemoveItem;
+        }
+
+        private void StaticModel_RemoveItem(IndxElement db)
+        {
+            VisualFolder.Remove(db);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("VisualFolder"));
+        }
+
         public IndxElements(string path)
         {
             RootFolderPath = path;
-            AllFiles = new ObservableCollection<IndxElement>();
+            Init();
         }
         public int TotalFiles { get => AllFiles.Count(t => t.Tp == IndxElement.Type.file); }
-        public ObservableCollection<string>
+
+        public ObservableCollection<string> Extentions { get => new ObservableCollection<string>(AllFiles.Select(t => t.Extension).Distinct()); }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -101,7 +122,7 @@ namespace IndexerWpf.Classes
         [JsonIgnore]
         public string Name => new FileInfo(FullPath).Name;
         [JsonIgnore]
-        public string Extension => new FileInfo(FullPath).Extension;
+        public string Extension { get { if (Tp == Type.file) return new FileInfo(FullPath).Extension; else return null; } }
         [JsonIgnore]
         public string DirPath => new FileInfo(FullPath).DirectoryName;
 
@@ -186,13 +207,22 @@ namespace IndexerWpf.Classes
             get
             {
                 IList<object> childNodes = new ObservableCollection<object>();
-                foreach (var prd in StaticModel.ElIndx.AllFiles)
+                if (Tp == Type.folder)
                 {
-                    var a = StaticModel.ElIndx.AllFiles.FirstOrDefault(t => t.Prnt == Id);
+                    var a = StaticModel.ElIndx.AllFiles.Where(t => t.Prnt == Id);
                     if (a != null)
-                        childNodes.Add(a);
+                    {
+                        foreach (var item in a)
+                        {
+                            childNodes.Add(item);
+                            if(item.Tp == Type.folder)
+                            StaticModel.InvokeRemoveItem(item);
+                        }
+                    }
+                    return childNodes;
                 }
-                return childNodes;
+                else
+                    return null;
             }
         }
         [JsonIgnore]
