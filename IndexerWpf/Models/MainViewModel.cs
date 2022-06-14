@@ -68,7 +68,10 @@ namespace IndexerWpf.Models
                         {
                             //folder_tree.Nodes.Clear();
                             Indexes = DoScan(fbd.SelectedPath);
-
+                            foreach (var item in Indexes.AllFiles)
+                            {
+                                var b = item.Items;
+                            }
                             was_scanned = true;
                             //folder_tree.Nodes[0].Expand();
                             //select_current_cmb.Items.Add(new FileInfo(fbd.SelectedPath).Name);
