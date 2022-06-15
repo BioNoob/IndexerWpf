@@ -35,7 +35,7 @@ namespace IndexerWpf.Classes
         {
             AllFiles = new ObservableCollection<IndxElement>();
             VisualFolder = new ObservableCollection<IndxElement>();
-            StaticModel.RemoveItem += StaticModel_RemoveItem;
+            //StaticModel.RemoveItemEvent += StaticModel_RemoveItem;
         }
 
         private void StaticModel_RemoveItem(IndxElement db)
@@ -122,7 +122,7 @@ namespace IndexerWpf.Classes
         [JsonIgnore]
         public string Name => new FileInfo(FullPath).Name;
         [JsonIgnore]
-        public string Extension { get { if (Tp == Type.file) return new FileInfo(FullPath).Extension; else return null; } }
+        public string Extension { get { if (Tp == Type.file) return new FileInfo(FullPath).Extension; else return "*"; } }
         [JsonIgnore]
         public string DirPath => new FileInfo(FullPath).DirectoryName;
 
@@ -215,8 +215,8 @@ namespace IndexerWpf.Classes
                         foreach (var item in a)
                         {
                             childNodes.Add(item);
-                            if(item.Tp == Type.folder)
-                            StaticModel.InvokeRemoveItem(item);
+                            //if(item.Tp == Type.folder)
+                            //StaticModel.InvokeRemoveItemEvent(item);
                         }
                     }
                     return childNodes;

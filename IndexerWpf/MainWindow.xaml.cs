@@ -26,6 +26,30 @@ namespace IndexerWpf
         public MainWindow()
         {
             InitializeComponent();
+            StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
+        }
+
+        private void StaticModel_LoadEndEvent()
+        {
+            //foreach (var item in treeView1.Items)
+            //{
+            //    TreeViewItem treeItem = this.treeView1.ItemContainerGenerator.ContainerFromItem(item) as TreeViewItem;
+            //    var t = treeItem.Header as IndxElement;
+            //    if (t.Prnt == null)
+            //    {
+            //        //treeItem.IsExpanded = true;
+            //        return;
+            //    }
+                    
+            //}
+           
+           
+        }
+
+        private void treeView1_Expanded(object sender, RoutedEventArgs e)
+        {
+            //var q = e.OriginalSource;
+
         }
     }
 }

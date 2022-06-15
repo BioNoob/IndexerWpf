@@ -15,12 +15,15 @@ namespace IndexerWpf.Models
     public class MainViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
-        public IndxElements Indexes { get => indexes; set { StaticModel.ElIndx = value; SetProperty(ref indexes, value);  } }
+        public IndxElements Indexes { get => indexes; set { StaticModel.ElIndx = value; SetProperty(ref indexes, value); } }
         public IndxElement Selectedfile { get => selectedfile; set => SetProperty(ref selectedfile, value); }
-        public int Prog_value { get => prog_val; set => SetProperty(ref prog_val, value); }
-        public int Prog_value_max { get => prog_val; set => SetProperty(ref prog_val_max, value); }// { prog_val = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Prog_value_max")); } }
+        public double Prog_value { get => prog_val; set => SetProperty(ref prog_val, value); }
+        public double Prog_value_max { get => prog_val_max; set => SetProperty(ref prog_val_max, value); }// { prog_val = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Prog_value_max")); } }
         string Def_path { get => def_path; set { def_path = value; /*curr_catalog_txt.Text = value;*/ } }
-        
+
+        public string Search_text { get => search_text; set { SetProperty(ref search_text, value); DoSearch(value); } }
+        public ObservableCollection<IndxElement> Searched { get => searched; set => SetProperty(ref searched, value); }
+        public string SelectedFilter { get => selectedFilter; set { SetProperty(ref selectedFilter, value); DoSearch(Search_text); } }
 
         private bool was_scanned = false;
         private bool is_scanned = false;
@@ -28,8 +31,8 @@ namespace IndexerWpf.Models
         private string def_path;
         private IndxElement selectedfile = new IndxElement();
         private IndxElements indexes = null;
-        private int prog_val;
-        private int prog_val_max;
+        private double prog_val;
+        private double prog_val_max;
         protected bool SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
         {
             if (!Equals(field, newValue))
@@ -48,13 +51,17 @@ namespace IndexerWpf.Models
             {
                 return _openfolder ?? (_openfolder = new CommandHandler(obj =>
                 {
-                    Process.Start("explorer.exe", $"{def_path}");
+                    Process.Start("explorer.exe", $"{Def_path}");
                 },
                 (obj) => !string.IsNullOrEmpty(Def_path)
                 ));
             }
         }
         private CommandHandler _startscan;
+        private string search_text;
+        private ObservableCollection<IndxElement> searched;
+        private string selectedFilter;
+
         public CommandHandler StartScanCommand
         {
             get
@@ -68,11 +75,12 @@ namespace IndexerWpf.Models
                         {
                             //folder_tree.Nodes.Clear();
                             Indexes = DoScan(fbd.SelectedPath);
-                            foreach (var item in Indexes.AllFiles)
-                            {
-                                var b = item.Items;
-                            }
+                            //foreach (var item in Indexes.AllFiles)
+                            //{
+                            //    var b = item.Items;
+                            //}
                             was_scanned = true;
+                            StaticModel.InvokeLoadEndEvent();
                             //folder_tree.Nodes[0].Expand();
                             //select_current_cmb.Items.Add(new FileInfo(fbd.SelectedPath).Name);
                             //select_current_cmb.SelectedIndexChanged -= select_current_cmb_SelectedIndexChanged;
@@ -89,7 +97,38 @@ namespace IndexerWpf.Models
         }
         public MainViewModel()
         {
+            Def_path = Directory.GetCurrentDirectory() + "\\indexes";
+            if (!Directory.Exists(Def_path))
+                Directory.CreateDirectory(Def_path);
+            Prog_value = 0;
+            Searched = new ObservableCollection<IndxElement>();
+            //Prog_value_max = 1;
 
+        }
+        private void DoSearch(string text)
+        {
+            if (text.Length > 2)
+            {
+                Searched.Clear();
+                if (SelectedFilter != "*" && SelectedFilter != null)
+                {
+                    var b = Indexes.AllFiles.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) && t.Extension == SelectedFilter);
+                    foreach (var item in b)
+                    {
+                        Searched.Add(item);//(item.FullPath, item.Name, item.Tp == IndxElement.Type.file ? "док.png" : "папка.png").Tag = item;
+                    }
+                }
+                else
+                {
+                    var b = Indexes.AllFiles.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase));
+                    foreach (var item in b)
+                    {
+                        Searched.Add(item);//search_result_lbx_.Items.Add(item.FullPath, item.Name, item.Tp == IndxElement.Type.file ? "док.png" : "папка.png").Tag = item;
+                    }
+                }
+            }
+            else
+                Searched.Clear();
         }
         private IndxElements DoScan(string path)
         {
@@ -113,7 +152,7 @@ namespace IndexerWpf.Models
             {
                 ie.AllFiles.Add(item);
             }
-            ie.VisualFolder = new ObservableCollection<IndxElement>(ie.AllFiles.Where(t=>t.Tp == IndxElement.Type.folder));
+            ie.VisualFolder = new ObservableCollection<IndxElement>(ie.AllFiles.Where(t => t.Tp == IndxElement.Type.folder && t.Prnt == null));
 
             //запускаем рекурсивный поиск
             //sel_ext_cmb.Items.Clear();
