@@ -40,16 +40,22 @@ namespace IndexerWpf
             //        //treeItem.IsExpanded = true;
             //        return;
             //    }
-                    
+
             //}
-           
-           
+
+
         }
 
-        private void treeView1_Expanded(object sender, RoutedEventArgs e)
+        private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            //var q = e.OriginalSource;
-
+            var a = sender as ListView;
+            IndxElement b = (IndxElement)a.SelectedItem;
+            b.Founded = true;
+            var mod = (MainViewModel)this.DataContext;
+            //тут надо у всех открытых проставить закрытие
+            //а потом по всем элементам, родительским пробежаться открыть
+           mod.Indexes.AllFiles.Where(t=>!t.Founded).
+            //folder_tree.ite
         }
     }
 }

@@ -51,9 +51,24 @@
                 <ColumnDefinition Width="0.75*"/>
                 <ColumnDefinition Width="0.25*"/>
             </Grid.ColumnDefinitions>
-            <TreeView x:Name="treeView1" Grid.RowSpan="2" Grid.Column="0" TreeViewItem.Expanded="treeView1_Expanded"
+            <TreeView x:Name="folder_tree" Grid.RowSpan="2" Grid.Column="0" 
                   ItemsSource="{Binding Indexes.VisualFolder, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0" >
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0">
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <!--<Setter Property="IsSelected" Value="True"/>-->
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Founded}" Value="True">
+                                <Setter Property="IsSelected" Value="True"/>
+                                <Setter Property="IsExpanded" Value="True"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Founded}" Value="False">
+                                <Setter Property="IsSelected" Value="False"/>
+                                <Setter Property="IsExpanded" Value="False"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TreeView.ItemContainerStyle>
                 <TreeView.Resources>
                     <HierarchicalDataTemplate DataType="{x:Type local_cls:IndxElement}" ItemsSource="{Binding Items}">
                         <StackPanel Orientation="Horizontal">
@@ -79,12 +94,20 @@
             </TreeView>
             <TextBox Grid.Row="0" Grid.Column="1" Margin="10,0,0,0" Text="{Binding Search_text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Left" VerticalContentAlignment="Center"/>
             <ComboBox Grid.Row="0" Grid.Column="2" Margin="10,0,0,0" ItemsSource="{Binding Indexes.Extentions}" SelectedItem="{Binding SelectedFilter}"/>
-            <ListView Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="10,10,0,0" ItemsSource="{Binding Searched}">
+            <ListView Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="10,10,0,0" ItemsSource="{Binding Searched}" SelectionChanged="ListView_SelectionChanged" >
                 <ListView.ItemTemplate>
                     <DataTemplate DataType="{x:Type local_cls:IndxElement}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch">
-                            <Image Source="{Binding GetUriImg}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
-                            <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+                            <Image Source="{Binding GetUriImg}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,0,5,0"/>
+                            <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                                <TextBlock.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Открыть документ" Command="{Binding OpenFileCommand}"/>
+                                        <Separator />
+                                        <MenuItem Header="Открыть папку документа" Command="{Binding OpenFolderCommand}"/>
+                                    </ContextMenu>
+                                </TextBlock.ContextMenu>
+                            </TextBlock>
                         </StackPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>

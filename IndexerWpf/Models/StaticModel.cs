@@ -1,6 +1,8 @@
 ﻿using IndexerWpf.Classes;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace IndexerWpf.Models
@@ -11,12 +13,12 @@ namespace IndexerWpf.Models
 
         public static IndxElements ElIndx { get => elIndx; set { elIndx = value; } }
 
-        public delegate void ItemDrawed(IndxElement db);
-        public static event ItemDrawed RemoveItemEvent;
-        public static void InvokeRemoveItemEvent(IndxElement db)
-        {
-            RemoveItemEvent?.Invoke(db);
-        }
+        //public delegate void ItemDrawed(IndxElement db);
+        //public static event ItemDrawed RemoveItemEvent;
+        //public static void InvokeRemoveItemEvent(IndxElement db)
+        //{
+        //    RemoveItemEvent?.Invoke(db);
+        //}
 
         public delegate void LoadEnd();
         public static event LoadEnd LoadEndEvent;
@@ -28,4 +30,5 @@ namespace IndexerWpf.Models
         //public ObservableCollection<IndxElement> VisualFolder { get => visualFolder; set { visualFolder = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("visualFolder")); } }
 
     }
+
 }
