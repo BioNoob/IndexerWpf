@@ -73,7 +73,7 @@
                     <HierarchicalDataTemplate DataType="{x:Type local_cls:IndxElement}" ItemsSource="{Binding Items}">
                         <StackPanel Orientation="Horizontal">
                             <Image Width="16" Height="16" Source="{Binding GetUriImg}" />
-                            <TextBlock Text="{Binding }" Width="350" TextWrapping="Wrap" TextTrimming="WordEllipsis" Margin="5,0,0,0">
+                            <TextBlock Text="{Binding }" TextWrapping="Wrap" TextTrimming="WordEllipsis" Margin="5,0,0,0">
                                 <TextBlock.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="Открыть документ" Command="{Binding OpenFileCommand}"/>

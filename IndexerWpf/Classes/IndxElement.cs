@@ -23,7 +23,7 @@ namespace IndexerWpf.Classes
         public ObservableCollection<IndxElement> VisualFolder { get => visualFolder; set { SetProperty(ref visualFolder, value); } }
 
         public string RootFolderPath { get => rootFolderPath; set { SetProperty(ref rootFolderPath, value); } }
-        
+
         public IndxElements()
         {
 
@@ -87,7 +87,7 @@ namespace IndexerWpf.Classes
     }
     public class IndxElement : INotifyPropertyChanged
     {
-        public static int Identificator = 1;
+        public static int Identificator = 0;
         private string fullPath;
         private Type tp;
         private int id;
@@ -111,7 +111,20 @@ namespace IndexerWpf.Classes
         public int Id { get => id; set { SetProperty(ref id, value); } }
 
         [JsonIgnore]
-        public bool Founded { get => founded; set => SetProperty(ref founded, value); }
+        public bool Founded
+        {
+            get => founded;
+            set
+            {
+                SetProperty(ref founded, value);
+                if (Prnt == null)
+                    return;
+                //if (value)
+                    StaticModel.ElIndx.AllFiles.Where(t => t.Id == Prnt).FirstOrDefault().Founded = value;
+                //else if (!value)
+                //    StaticModel.ElIndx.AllFiles.Where(t => t.Id == Prnt).FirstOrDefault().Founded = value;
+            }
+        }
 
         public IndxElement()
         {

@@ -107,28 +107,29 @@ namespace IndexerWpf.Models
         }
         private void DoSearch(string text)
         {
-            if (text.Length > 2)
-            {
-                Searched.Clear();
-                if (SelectedFilter != "*" && SelectedFilter != null)
+            if (Indexes != null)
+                if (text.Length > 2)
                 {
-                    var b = Indexes.AllFiles.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) && t.Extension == SelectedFilter);
-                    foreach (var item in b)
+                    Searched.Clear();
+                    if (SelectedFilter != "*" && SelectedFilter != null)
                     {
-                        Searched.Add(item);//(item.FullPath, item.Name, item.Tp == IndxElement.Type.file ? "док.png" : "папка.png").Tag = item;
+                        var b = Indexes.AllFiles.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) && t.Extension == SelectedFilter);
+                        foreach (var item in b)
+                        {
+                            Searched.Add(item);//(item.FullPath, item.Name, item.Tp == IndxElement.Type.file ? "док.png" : "папка.png").Tag = item;
+                        }
+                    }
+                    else
+                    {
+                        var b = Indexes.AllFiles.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase));
+                        foreach (var item in b)
+                        {
+                            Searched.Add(item);//search_result_lbx_.Items.Add(item.FullPath, item.Name, item.Tp == IndxElement.Type.file ? "док.png" : "папка.png").Tag = item;
+                        }
                     }
                 }
                 else
-                {
-                    var b = Indexes.AllFiles.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase));
-                    foreach (var item in b)
-                    {
-                        Searched.Add(item);//search_result_lbx_.Items.Add(item.FullPath, item.Name, item.Tp == IndxElement.Type.file ? "док.png" : "папка.png").Tag = item;
-                    }
-                }
-            }
-            else
-                Searched.Clear();
+                    Searched.Clear();
         }
         private IndxElements DoScan(string path)
         {
