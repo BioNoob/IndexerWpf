@@ -17,12 +17,15 @@ namespace IndexerWpf.Classes
         private ObservableCollection<IndxElement> allFiles;
         private ObservableCollection<IndxElement> visualFolder;
         private string rootFolderPath;
+        private string dateOfLastChange;
 
         public ObservableCollection<IndxElement> AllFiles { get => allFiles; set { SetProperty(ref allFiles, value); } }
 
         public ObservableCollection<IndxElement> VisualFolder { get => visualFolder; set { SetProperty(ref visualFolder, value); } }
 
         public string RootFolderPath { get => rootFolderPath; set { SetProperty(ref rootFolderPath, value); } }
+
+        public string DateOfLastChange { get => dateOfLastChange; set => SetProperty(ref dateOfLastChange, value); }
 
         public IndxElements()
         {
@@ -53,6 +56,7 @@ namespace IndexerWpf.Classes
 
         public static void SaveIndexes(IndxElements ie, string file_to_save)
         {
+            ie.DateOfLastChange = DateTime.Now.ToString("G");
             File.WriteAllText(file_to_save, JsonConvert.SerializeObject(ie, Formatting.Indented));
         }
         public static IndxElements LoadInexes(string file_to_load)

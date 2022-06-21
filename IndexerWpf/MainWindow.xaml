@@ -35,6 +35,9 @@
             <Button Margin="10,0,10,0"  ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding OpenIndexFolderCommand}">
                 <Image Source="Resources/опен.png"/>
             </Button>
+            <Button Margin="10,0,10,0"  ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding ForceSaveIndexFolderCommand}">
+                <Image Source="Resources/опен.png"/>
+            </Button>
             <Label Content="Доступные индексы" HorizontalAlignment="Stretch"/>
             <ComboBox HorizontalAlignment="Stretch" ClipToBounds="True" Margin="10,0,10,0" ItemsSource="{Binding ExistedIndexes}" SelectedItem="{Binding SelectedExisted}"/>
         </DockPanel>

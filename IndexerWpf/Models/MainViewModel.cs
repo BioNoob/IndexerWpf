@@ -67,6 +67,19 @@ namespace IndexerWpf.Models
                 ));
             }
         }
+        private CommandHandler _forcesave;
+        public CommandHandler ForceSaveIndexFolderCommand
+        {
+            get
+            {
+                return _forcesave ?? (_forcesave = new CommandHandler(obj =>
+                {
+                    DoSave();
+                },
+                (obj) => Was_scanned
+                ));
+            }
+        }
         private CommandHandler _startscan;
         public CommandHandler StartScanCommand
         {
@@ -91,6 +104,7 @@ namespace IndexerWpf.Models
         public MainViewModel()
         {
             Def_path = Directory.GetCurrentDirectory() + "\\indexes";
+            ExistedIndexes = new ObservableCollection<string>();
             if (!Directory.Exists(Def_path))
                 Directory.CreateDirectory(Def_path);
             else
@@ -99,12 +113,7 @@ namespace IndexerWpf.Models
                 if (fls.Length > 0)
                 {
                     foreach (var item in fls.Where(t => new FileInfo(t).Extension == ".json"))
-                    {
-                        //FileInfo di = new FileInfo(item);
-                        //if (new FileInfo(item).Extension == ".json")
-                        //select_current_cmb.Items.Add(new FileInfo(item).Name);
-                        ExistedIndexes.Add(new FileInfo(item).Name);
-                    }
+                        ExistedIndexes.Add(Path.GetFileNameWithoutExtension(item));
                     //Properties.Settings.Default.Last_load = select_current_cmb.SelectedItem.ToString();
                     //Properties.Settings.Default.Save();
                 }
@@ -119,25 +128,38 @@ namespace IndexerWpf.Models
 
         private void DoLoad(string name_of)
         {
-            if(!DoSave())
+            if (!DoSave())
             {
 
             }
             else
             {
-                string full_nm = $"{Def_path}\\{name_of}";
+                string full_nm = $"{Def_path}\\{name_of}.json";
                 Indexes = IndxElements.LoadInexes(full_nm);
+                Was_scanned = false;
+                PropertyChanged?.Invoke(Indexes, new PropertyChangedEventArgs(nameof(Indexes.Extentions)));
+                Prog_value = Indexes.TotalFiles;
+                Prog_value_max = Prog_value;
             }
         }
-        private bool DoSave()
+        private bool DoSave(bool force = false)
         {
-            if (was_scanned)
+            if (Was_scanned)
             {
-                var res = MessageBox.Show("File not saved! Save file?", "Not saved", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                DialogResult res = DialogResult.Yes;
+                if (!force)
+                    res = MessageBox.Show("File not saved! Save file?", "Not saved", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
                 if (res == DialogResult.Yes)
                 {
                     string to_save = new DirectoryInfo(Indexes.RootFolderPath).Name/* + DateTime.Now.ToString("ddMMy_HHmm")*/ + ".json";
-                    IndxElements.SaveIndexes(Indexes, Def_path + "\\" + to_save);
+                    string full_to_save = Def_path + "\\" + to_save;
+                    if (new FileInfo(full_to_save).Exists)
+                        if (MessageBox.Show($"Overwrite File\n{to_save} ?\n(No = cancel save)", "Already exist", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                            IndxElements.SaveIndexes(Indexes, full_to_save);
+                        else
+                            return false;
+                    else
+                        IndxElements.SaveIndexes(Indexes, full_to_save);
                     return true;
                 }
                 else if (res == DialogResult.Cancel)
@@ -148,11 +170,11 @@ namespace IndexerWpf.Models
             else
                 return true;
         }
-    
+
         private void DoSearch(string text)
         {
             if (Indexes != null)
-                if (text.Length > 2)
+                if (!string.IsNullOrEmpty(text) && text.Length > 2)
                 {
                     Searched.Clear();
                     if (SelectedFilter != "*" && SelectedFilter != null)
@@ -182,6 +204,17 @@ namespace IndexerWpf.Models
             //Debug.WriteLine("DONE");
             Was_scanned = true;
             PropertyChanged?.Invoke(Indexes, new PropertyChangedEventArgs(nameof(Indexes.Extentions)));
+            if (DoSave(true))
+            {
+                var nm = new DirectoryInfo(Indexes.RootFolderPath).Name;
+                Was_scanned = false;
+                if (!ExistedIndexes.Contains(nm))
+                    ExistedIndexes.Add(nm);
+                SetProperty(ref selectedexisted, nm, "SelectedExisted");
+                //selectedexisted = nm;
+
+            }
+
             Is_scanned = false;
         }
         private async Task DoScan(string path)
@@ -191,7 +224,7 @@ namespace IndexerWpf.Models
             Indexes = new IndxElements(path);
             DirectoryInfo di = new DirectoryInfo(path);
             //получаем количество файлов
-            prog_val = 0;
+            Prog_value = 0;
             Prog_value_max = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories).Length;
             //создаем корневую ноду по корневому каталогу
             IndxElement root = new IndxElement(di.FullName) { Tp = IndxElement.Type.folder, Prnt = null };
