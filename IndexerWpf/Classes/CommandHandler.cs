@@ -15,6 +15,14 @@ using System.Windows.Input;
 
 namespace IndexerWpf.Classes
 {
+    public class BooleanToReverseConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+         => !(bool?)value ?? true;
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+         => !(value as bool?);
+    }
     public class CommandHandler : ICommand
     {
         /// <summary>

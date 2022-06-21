@@ -9,30 +9,40 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows.Forms;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace IndexerWpf.Models
 {
     public class MainViewModel : INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        public ObservableCollection<string> ExistedIndexes { get => existedIndexs; set => SetProperty(ref existedIndexs, value); }
+        public string SelectedExisted { get => selectedexisted; set { SetProperty(ref selectedexisted, value); DoLoad(value); } }
         public IndxElements Indexes { get => indexes; set { StaticModel.ElIndx = value; SetProperty(ref indexes, value); } }
         public IndxElement Selectedfile { get => selectedfile; set => SetProperty(ref selectedfile, value); }
         public double Prog_value { get => prog_val; set => SetProperty(ref prog_val, value); }
         public double Prog_value_max { get => prog_val_max; set => SetProperty(ref prog_val_max, value); }// { prog_val = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Prog_value_max")); } }
-        string Def_path { get => def_path; set { def_path = value; /*curr_catalog_txt.Text = value;*/ } }
-
+        string Def_path { get => def_path; set { def_path = value; } }
         public string Search_text { get => search_text; set { SetProperty(ref search_text, value); DoSearch(value); } }
         public ObservableCollection<IndxElement> Searched { get => searched; set => SetProperty(ref searched, value); }
         public string SelectedFilter { get => selectedFilter; set { SetProperty(ref selectedFilter, value); DoSearch(Search_text); } }
+        public bool Was_scanned { get => was_scanned; set => SetProperty(ref was_scanned, value); }
+        public bool Is_scanned { get => is_scanned; set => SetProperty(ref is_scanned, value); }
 
         private bool was_scanned = false;
         private bool is_scanned = false;
-
+        private ObservableCollection<string> existedIndexs;
         private string def_path;
         private IndxElement selectedfile = new IndxElement();
         private IndxElements indexes = null;
         private double prog_val;
         private double prog_val_max;
+        private string search_text;
+        private ObservableCollection<IndxElement> searched;
+        private string selectedFilter;
+        private string selectedexisted;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
         protected bool SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
         {
             if (!Equals(field, newValue))
@@ -58,10 +68,6 @@ namespace IndexerWpf.Models
             }
         }
         private CommandHandler _startscan;
-        private string search_text;
-        private ObservableCollection<IndxElement> searched;
-        private string selectedFilter;
-
         public CommandHandler StartScanCommand
         {
             get
@@ -72,39 +78,77 @@ namespace IndexerWpf.Models
                     if (fbd.ShowDialog() == DialogResult.OK)
                     {
                         if (MessageBox.Show($"Do index of\n\n{fbd.SelectedPath}", "New Indexer", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                        {
-                            //folder_tree.Nodes.Clear();
-                            Indexes = DoScan(fbd.SelectedPath);
-                            //foreach (var item in Indexes.AllFiles)
-                            //{
-                            //    var b = item.Items;
-                            //}
-                            was_scanned = true;
-                            StaticModel.InvokeLoadEndEvent();
-                            //folder_tree.Nodes[0].Expand();
-                            //select_current_cmb.Items.Add(new FileInfo(fbd.SelectedPath).Name);
-                            //select_current_cmb.SelectedIndexChanged -= select_current_cmb_SelectedIndexChanged;
-                            //select_current_cmb.SelectedIndex = select_current_cmb.Items.Count - 1;
-                            //select_current_cmb.SelectedIndexChanged += select_current_cmb_SelectedIndexChanged;
-                        }
+                            Worker(fbd.SelectedPath);
                         else
                             return;
                     }
                 },
-                (obj) => !is_scanned
+                (obj) => !Is_scanned
                 ));
             }
         }
+
         public MainViewModel()
         {
             Def_path = Directory.GetCurrentDirectory() + "\\indexes";
             if (!Directory.Exists(Def_path))
                 Directory.CreateDirectory(Def_path);
+            else
+            {
+                var fls = Directory.GetFiles(Def_path);
+                if (fls.Length > 0)
+                {
+                    foreach (var item in fls.Where(t => new FileInfo(t).Extension == ".json"))
+                    {
+                        //FileInfo di = new FileInfo(item);
+                        //if (new FileInfo(item).Extension == ".json")
+                        //select_current_cmb.Items.Add(new FileInfo(item).Name);
+                        ExistedIndexes.Add(new FileInfo(item).Name);
+                    }
+                    //Properties.Settings.Default.Last_load = select_current_cmb.SelectedItem.ToString();
+                    //Properties.Settings.Default.Save();
+                }
+            }
+
             Prog_value = 0;
             Searched = new ObservableCollection<IndxElement>();
+            Indexes = null;
             //Prog_value_max = 1;
 
         }
+
+        private void DoLoad(string name_of)
+        {
+            if(!DoSave())
+            {
+
+            }
+            else
+            {
+                string full_nm = $"{Def_path}\\{name_of}";
+                Indexes = IndxElements.LoadInexes(full_nm);
+            }
+        }
+        private bool DoSave()
+        {
+            if (was_scanned)
+            {
+                var res = MessageBox.Show("File not saved! Save file?", "Not saved", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                if (res == DialogResult.Yes)
+                {
+                    string to_save = new DirectoryInfo(Indexes.RootFolderPath).Name/* + DateTime.Now.ToString("ddMMy_HHmm")*/ + ".json";
+                    IndxElements.SaveIndexes(Indexes, Def_path + "\\" + to_save);
+                    return true;
+                }
+                else if (res == DialogResult.Cancel)
+                    return false;
+                else
+                    return true;
+            }
+            else
+                return true;
+        }
+    
         private void DoSearch(string text)
         {
             if (Indexes != null)
@@ -131,39 +175,41 @@ namespace IndexerWpf.Models
                 else
                     Searched.Clear();
         }
-        private IndxElements DoScan(string path)
+        private async void Worker(string path)
         {
-            IndxElements ie = new IndxElements(path);
+            Is_scanned = true;
+            await DoScan(path);
+            //Debug.WriteLine("DONE");
+            Was_scanned = true;
+            PropertyChanged?.Invoke(Indexes, new PropertyChangedEventArgs(nameof(Indexes.Extentions)));
+            Is_scanned = false;
+        }
+        private async Task DoScan(string path)
+        {
+            //Indexes = new IndxElements(path);
+            //if (Indexes == null)
+            Indexes = new IndxElements(path);
             DirectoryInfo di = new DirectoryInfo(path);
             //получаем количество файлов
-            //progressBar1.Maximum = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories).Length;
+            prog_val = 0;
             Prog_value_max = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories).Length;
-            //file_cnt_lbl.Text = progressBar1.Maximum.ToString();
             //создаем корневую ноду по корневому каталогу
-            //TreeNode tds = folder_tree.Nodes.Add(di.FullName, di.Name, "папка.png");
-            //tds.SelectedImageKey = tds.ImageKey;
             IndxElement root = new IndxElement(di.FullName) { Tp = IndxElement.Type.folder, Prnt = null };
-            ie.AllFiles.Add(root);
+            Indexes.AllFiles.Add(root);
+            await Task.Run(() =>
+            {
+                foreach (var item in LoadFiles(path, root))
+                {
+                    Indexes.AllFiles.Add(item);
+                }
+                foreach (var item in LoadSubDirectories(path, root))
+                {
+                    Indexes.AllFiles.Add(item);
+                }
+            });
             //грузим файлы начального каталога
-            foreach (var item in LoadFiles(path, root))
-            {
-                ie.AllFiles.Add(item);
-            }
-            foreach (var item in LoadSubDirectories(path, root))
-            {
-                ie.AllFiles.Add(item);
-            }
-            ie.VisualFolder = new ObservableCollection<IndxElement>(ie.AllFiles.Where(t => t.Tp == IndxElement.Type.folder && t.Prnt == null));
-
-            //запускаем рекурсивный поиск
-            //sel_ext_cmb.Items.Clear();
-            //sel_ext_cmb.Items.Add("*");
-            //суем все найденные расширения
-            //sel_ext_cmb.Items.AddRange(ie.AllFiles.Select(t => t.Extension).Distinct().ToArray());
-            //sel_ext_cmb.SelectedIndex = 0;
+            Indexes.VisualFolder = new ObservableCollection<IndxElement>(Indexes.AllFiles.Where(t => t.Tp == IndxElement.Type.folder && t.Prnt == null));
             GC.Collect();
-            //progressBar1.CreateGraphics().DrawString("Done", new Font("Arial", (float)8.25, FontStyle.Regular), Brushes.Black, new PointF(progressBar1.Width / 2 - 10, progressBar1.Height / 2 - 7));
-            return ie;
         }
         /// <summary>
         /// Ищем файлы в указанном каталоге
@@ -179,9 +225,6 @@ namespace IndexerWpf.Models
             {
                 FileInfo fi = new FileInfo(file);
                 lie.Add(new IndxElement(fi.FullName) { Tp = IndxElement.Type.file, Prnt = parfolder.Id });
-                //var a = td.Nodes.Add(fi.FullName, fi.Name, "док.png");
-                //a.ToolTipText = parfolder.Name;
-                //a.SelectedImageKey = a.ImageKey;
                 UpdateProgress();
 
             }
@@ -200,12 +243,8 @@ namespace IndexerWpf.Models
             foreach (string subdirectory in subdirectoryEntries)
             {
                 DirectoryInfo di = new DirectoryInfo(subdirectory);
-                //TreeNode tds = td.Nodes.Add(di.FullName, di.Name, "папка.png");
                 IndxElement newparent = new IndxElement() { FullPath = di.FullName, Tp = IndxElement.Type.folder, Prnt = parfolder.Id };
                 ie.Add(newparent);
-
-                //tds.ToolTipText = newparent.Name;
-                //tds.SelectedImageKey = tds.ImageKey;
                 ie.AddRange(LoadFiles(subdirectory, /*tds,*/ newparent));
                 ie.AddRange(LoadSubDirectories(subdirectory, /*tds,*/ newparent));
                 UpdateProgress();
@@ -217,10 +256,6 @@ namespace IndexerWpf.Models
             if (Prog_value < Prog_value_max)
             {
                 Prog_value++;
-                //int percent = (int)(((double)Prog_value / (double)Prog_value_max) * 100);
-                //рисуем процентик
-                //progressBar1.CreateGraphics().DrawString(percent.ToString() + "%", new Font("Arial", (float)8.25, FontStyle.Regular), Brushes.Black, new PointF(progressBar1.Width / 2 - 10, progressBar1.Height / 2 - 7));
-                //Application.DoEvents();
             }
         }
     }

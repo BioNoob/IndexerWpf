@@ -1,9 +1,10 @@
 ﻿<Application x:Class="IndexerWpf.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:IndexerWpf"
+             xmlns:local="clr-namespace:IndexerWpf" xmlns:converters="clr-namespace:IndexerWpf.Classes"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <converters:BooleanToReverseConverter x:Key="BooleanToReverseConverter"/>
+        <!--<local:FauxVM x:Key="VM" />-->
     </Application.Resources>
 </Application>

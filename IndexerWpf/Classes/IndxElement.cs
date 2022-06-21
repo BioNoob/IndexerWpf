@@ -35,6 +35,7 @@ namespace IndexerWpf.Classes
         {
             AllFiles = new ObservableCollection<IndxElement>();
             VisualFolder = new ObservableCollection<IndxElement>();
+            IndxElement.Identificator = 0;
             //StaticModel.RemoveItemEvent += StaticModel_RemoveItem;
         }
 
@@ -43,8 +44,9 @@ namespace IndexerWpf.Classes
             RootFolderPath = path;
             Init();
         }
+        [JsonIgnore]
         public int TotalFiles { get => AllFiles.Count(t => t.Tp == IndxElement.Type.file); }
-
+        [JsonIgnore]
         public ObservableCollection<string> Extentions { get => new ObservableCollection<string>(AllFiles.Select(t => t.Extension).Distinct()); }
 
         public event PropertyChangedEventHandler PropertyChanged;
