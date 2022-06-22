@@ -15,6 +15,7 @@ namespace IndexerWpf.Models
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+        //СЮДА ПЛЮСОВАТЬ ДАТУ? ИЛИ ОТДЕЛЬНЫЙ РЯДОМ ТЕКСТБОКС
         public ObservableCollection<string> ExistedIndexes { get => existedIndexs; set => SetProperty(ref existedIndexs, value); }
         public string SelectedExisted { get => selectedexisted; set { SetProperty(ref selectedexisted, value); DoLoad(value); } }
         public IndxElements Indexes { get => indexes; set { StaticModel.ElIndx = value; SetProperty(ref indexes, value); } }
@@ -25,10 +26,14 @@ namespace IndexerWpf.Models
         public string Search_text { get => search_text; set { SetProperty(ref search_text, value); DoSearch(value); } }
         public ObservableCollection<IndxElement> Searched { get => searched; set => SetProperty(ref searched, value); }
         public string SelectedFilter { get => selectedFilter; set { SetProperty(ref selectedFilter, value); DoSearch(Search_text); } }
-        public bool Was_scanned { get => was_scanned; set => SetProperty(ref was_scanned, value); }
-        public bool Is_scanned { get => is_scanned; set => SetProperty(ref is_scanned, value); }
+        //public bool Was_scanned { get => was_scanned; set => SetProperty(ref was_scanned, value); }
+        public bool Was_Loaded { get => was_loaded; set => SetProperty(ref was_loaded, value); }
+        //public bool UI_Locker { get { return Was_scanned || Was_Loaded; } }
+        public bool Is_scanned { get => is_scanned; set => SetProperty(ref is_scanned, !value); }
 
-        private bool was_scanned = false;
+
+        //private bool was_scanned = false;
+        private bool was_loaded = false;
         private bool is_scanned = false;
         private ObservableCollection<string> existedIndexs;
         private string def_path;
@@ -67,19 +72,19 @@ namespace IndexerWpf.Models
                 ));
             }
         }
-        private CommandHandler _forcesave;
-        public CommandHandler ForceSaveIndexFolderCommand
-        {
-            get
-            {
-                return _forcesave ?? (_forcesave = new CommandHandler(obj =>
-                {
-                    DoSave();
-                },
-                (obj) => Was_scanned
-                ));
-            }
-        }
+        // private CommandHandler _forcesave;
+        //public CommandHandler ForceSaveIndexFolderCommand
+        //{
+        //    get
+        //    {
+        //        return _forcesave ?? (_forcesave = new CommandHandler(obj =>
+        //        {
+        //            DoSave();
+        //        },
+        //        (obj) => Was_scanned
+        //        ));
+        //    }
+        //}
         private CommandHandler _startscan;
         public CommandHandler StartScanCommand
         {
@@ -96,7 +101,7 @@ namespace IndexerWpf.Models
                             return;
                     }
                 },
-                (obj) => !Is_scanned
+                (obj) => Is_scanned
                 ));
             }
         }
@@ -105,6 +110,7 @@ namespace IndexerWpf.Models
         {
             Def_path = Directory.GetCurrentDirectory() + "\\indexes";
             ExistedIndexes = new ObservableCollection<string>();
+            Is_scanned = false;
             if (!Directory.Exists(Def_path))
                 Directory.CreateDirectory(Def_path);
             else
@@ -125,52 +131,59 @@ namespace IndexerWpf.Models
             //Prog_value_max = 1;
 
         }
-
+        
         private void DoLoad(string name_of)
         {
-            if (!DoSave())
-            {
+            //if (!DoSave())
+            //{
 
-            }
-            else
-            {
+            //}
+            //else
+            //{
+            //SelectedFilter = "";
                 string full_nm = $"{Def_path}\\{name_of}.json";
                 Indexes = IndxElements.LoadInexes(full_nm);
-                Was_scanned = false;
-                PropertyChanged?.Invoke(Indexes, new PropertyChangedEventArgs(nameof(Indexes.Extentions)));
-                Prog_value = Indexes.TotalFiles;
-                Prog_value_max = Prog_value;
-            }
-        }
-        private bool DoSave(bool force = false)
-        {
-            if (Was_scanned)
-            {
-                DialogResult res = DialogResult.Yes;
-                if (!force)
-                    res = MessageBox.Show("File not saved! Save file?", "Not saved", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
-                if (res == DialogResult.Yes)
+                if (Indexes != null)
                 {
-                    string to_save = new DirectoryInfo(Indexes.RootFolderPath).Name/* + DateTime.Now.ToString("ddMMy_HHmm")*/ + ".json";
-                    string full_to_save = Def_path + "\\" + to_save;
-                    if (new FileInfo(full_to_save).Exists)
-                        if (MessageBox.Show($"Overwrite File\n{to_save} ?\n(No = cancel save)", "Already exist", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                            IndxElements.SaveIndexes(Indexes, full_to_save);
-                        else
-                            return false;
-                    else
-                        IndxElements.SaveIndexes(Indexes, full_to_save);
-                    return true;
+                    //Was_scanned = false;
+                    Was_Loaded = true;
+                if (!string.IsNullOrEmpty(Search_text))
+                    DoSearch(Search_text);
+                    //PropertyChanged?.Invoke(Indexes, new PropertyChangedEventArgs(nameof(Indexes.Extentions)));
+                    Prog_value = Indexes.TotalFiles;
+                    Prog_value_max = Prog_value;
                 }
-                else if (res == DialogResult.Cancel)
-                    return false;
-                else
-                    return true;
-            }
-            else
-                return true;
+            //}
         }
-
+        //Сохранение полюбому в конце парсинга. Нет ситуации где бы оно не сохранилось. Если только отказаться перезаписывать
+        private bool DoSave()
+        {
+            //if (Was_scanned)
+            //{
+            //    DialogResult res = DialogResult.Yes;
+            //    if (!force)
+            //        res = MessageBox.Show("File not saved! Save file?", "Not saved", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+            //    if (res == DialogResult.Yes)
+            //    {
+            string to_save = new DirectoryInfo(Indexes.RootFolderPath).Name/* + DateTime.Now.ToString("ddMMy_HHmm")*/ + ".json";
+            string full_to_save = Def_path + "\\" + to_save;
+            if (new FileInfo(full_to_save).Exists)
+                if (MessageBox.Show($"Overwrite File\n{to_save} ?\n(No = cancel save)", "Already exist", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    IndxElements.SaveIndexes(Indexes, full_to_save);
+                else
+                    return false;
+            else
+                IndxElements.SaveIndexes(Indexes, full_to_save);
+            return true;
+            //}
+            //else if (res == DialogResult.Cancel)
+            //return false;
+            //else
+            //return true;
+            //}
+            //else
+            //return true;
+        }
         private void DoSearch(string text)
         {
             if (Indexes != null)
@@ -200,27 +213,29 @@ namespace IndexerWpf.Models
         private async void Worker(string path)
         {
             Is_scanned = true;
+            Was_Loaded = false;
             await DoScan(path);
             //Debug.WriteLine("DONE");
-            Was_scanned = true;
+            //Was_scanned = true;
             PropertyChanged?.Invoke(Indexes, new PropertyChangedEventArgs(nameof(Indexes.Extentions)));
-            if (DoSave(true))
-            {
-                var nm = new DirectoryInfo(Indexes.RootFolderPath).Name;
-                Was_scanned = false;
-                if (!ExistedIndexes.Contains(nm))
-                    ExistedIndexes.Add(nm);
-                SetProperty(ref selectedexisted, nm, "SelectedExisted");
-                //selectedexisted = nm;
-
-            }
-
+            //if (DoSave())
+            //{
+            DoSave();
+            var nm = new DirectoryInfo(Indexes.RootFolderPath).Name;
+            //Was_scanned = false;
+            if (!ExistedIndexes.Contains(nm))
+                ExistedIndexes.Add(nm);
+            SetProperty(ref selectedexisted, nm, "SelectedExisted");
+            //selectedexisted = nm;
+            //}
+            Was_Loaded = true;
             Is_scanned = false;
         }
         private async Task DoScan(string path)
         {
             //Indexes = new IndxElements(path);
             //if (Indexes == null)
+            Search_text = string.Empty;
             Indexes = new IndxElements(path);
             DirectoryInfo di = new DirectoryInfo(path);
             //получаем количество файлов

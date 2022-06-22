@@ -149,7 +149,7 @@ namespace IndexerWpf.Classes
         [JsonIgnore]
         public string Name => new FileInfo(FullPath).Name;
         [JsonIgnore]
-        public string Extension { get { if (Tp == Type.file) return new FileInfo(FullPath).Extension; else return "*"; } }
+        public string Extension { get { if (Tp == Type.file) return new FileInfo(FullPath).Extension.ToLower(); else return "*"; } }
         [JsonIgnore]
         public string DirPath => new FileInfo(FullPath).DirectoryName;
 
