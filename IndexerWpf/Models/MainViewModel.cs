@@ -15,7 +15,6 @@ namespace IndexerWpf.Models
 {
     public class MainViewModel : INotifyPropertyChanged
     {
-        //СЮДА ПЛЮСОВАТЬ ДАТУ? ИЛИ ОТДЕЛЬНЫЙ РЯДОМ ТЕКСТБОКС
         public ObservableCollection<string> ExistedIndexes { get => existedIndexs; set => SetProperty(ref existedIndexs, value); }
         public string SelectedExisted { get => selectedexisted; set { SetProperty(ref selectedexisted, value); DoLoad(value); } }
         public IndxElements Indexes { get => indexes; set { StaticModel.ElIndx = value; SetProperty(ref indexes, value); } }
@@ -26,9 +25,7 @@ namespace IndexerWpf.Models
         public string Search_text { get => search_text; set { SetProperty(ref search_text, value); DoSearch(value); } }
         public ObservableCollection<IndxElement> Searched { get => searched; set => SetProperty(ref searched, value); }
         public string SelectedFilter { get => selectedFilter; set { SetProperty(ref selectedFilter, value); DoSearch(Search_text); } }
-        //public bool Was_scanned { get => was_scanned; set => SetProperty(ref was_scanned, value); }
         public bool Was_Loaded { get => was_loaded; set => SetProperty(ref was_loaded, value); }
-        //public bool UI_Locker { get { return Was_scanned || Was_Loaded; } }
         public bool Is_scanned { get => is_scanned; set => SetProperty(ref is_scanned, !value); }
 
 
@@ -69,6 +66,19 @@ namespace IndexerWpf.Models
                     Process.Start("explorer.exe", $"{Def_path}");
                 },
                 (obj) => !string.IsNullOrEmpty(Def_path)
+                ));
+            }
+        }
+        private CommandHandler _closewindow;
+        public CommandHandler CloseWindowCommand
+        {
+            get
+            {
+                return _closewindow ?? (_closewindow = new CommandHandler(obj =>
+                {
+                    Environment.Exit(0);
+                },
+                (obj) => Is_scanned
                 ));
             }
         }

@@ -27,6 +27,7 @@ namespace IndexerWpf
         {
             InitializeComponent();
             StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
+            this.MouseLeftButtonDown += delegate { this.DragMove(); };
         }
 
         private void StaticModel_LoadEndEvent()

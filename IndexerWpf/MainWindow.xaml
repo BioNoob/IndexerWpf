@@ -7,76 +7,117 @@
         mc:Ignorable="d"
         xmlns:local="clr-namespace:IndexerWpf.Models"
         xmlns:local_cls="clr-namespace:IndexerWpf.Classes"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" 
+        WindowStyle="None"
+        WindowState="Normal" 
+        ResizeMode="CanResize"
+        AllowsTransparency="True"  Background="Transparent"
+        MinHeight="535" MinWidth="342">
     <Window.DataContext>
+        <!--Background="#474A51"-->
         <local:MainViewModel/>
     </Window.DataContext>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="10"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-        <!--<Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="25"/>
-                <ColumnDefinition Width="25"/>
-                <ColumnDefinition Width="75"/>
-            </Grid.ColumnDefinitions>
+    <Window.Resources>
+        <Style TargetType="{x:Type FrameworkElement}" x:Key="DefaultStyle">
+            <Setter Property="Control.FontFamily" Value="Jura" />
+            <Setter Property="Control.Background" Value="White" />
+            <Setter Property="Control.Foreground" Value="Black" />
+        </Style>
+        <Style TargetType="Button" BasedOn="{StaticResource DefaultStyle}"/>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource DefaultStyle}"/>
+        <Style TargetType="TextBox" BasedOn="{StaticResource DefaultStyle}"/>
+        <Style TargetType="ListView" BasedOn="{StaticResource DefaultStyle}"/>
+        <Style TargetType="ComboBox" BasedOn="{StaticResource DefaultStyle}"/>
+        <Style TargetType="TreeView" BasedOn="{StaticResource DefaultStyle}"/>
+        <Style TargetType="Label" BasedOn="{StaticResource DefaultStyle}">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+    </Window.Resources>
+    <WindowChrome.WindowChrome>
+        <WindowChrome 
+        CaptionHeight="0"
+        ResizeBorderThickness="10" />
+    </WindowChrome.WindowChrome>
+    <Border CornerRadius="10" BorderBrush="#474A51" Background="#474A51" BorderThickness="5" Padding="0">
+        <Grid Margin="0,0,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>-->
-        <DockPanel Grid.Row="0" Margin="0,5,0,0">
-            <Button Margin="10,0,10,0"  ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding OpenIndexFolderCommand}">
-                <Image Source="Resources/опен.png"/>
-            </Button>
-            <!--<Button Margin="10,0,10,0"  ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding ForceSaveIndexFolderCommand}">
-                <Image Source="Resources/опен.png"/>
-            </Button>-->
-            <Label Content="Доступные индексы" HorizontalAlignment="Stretch"/>
-            <ComboBox HorizontalAlignment="Stretch" ClipToBounds="True" Margin="10,0,10,0" ItemsSource="{Binding ExistedIndexes}" SelectedItem="{Binding SelectedExisted}" IsEnabled="{Binding Is_scanned}"/>
-        </DockPanel>
-        <Border Grid.Row="1" BorderThickness="0,1" Grid.ColumnSpan="3" BorderBrush="Black" HorizontalAlignment="Stretch" Padding="0" ClipToBounds="True" Height="1" Margin="10,0,10,0" />
-        <!--</Grid>-->
-
-        <Grid Grid.Row="2" Margin="10">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="25"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="0.75*"/>
-                <ColumnDefinition Width="0.25*"/>
+                <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <TreeView x:Name="folder_tree" Grid.RowSpan="2" Grid.Column="0" 
+            <Grid Grid.Row="0" Margin="10,5,10,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Button Margin="0,0,10,0" Grid.Column="0" ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding OpenIndexFolderCommand}">
+                    <Image Source="Resources/опен.png"/>
+                </Button>
+                <!--<Button Margin="10,0,10,0"  ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding ForceSaveIndexFolderCommand}">
+                <Image Source="Resources/опен.png"/>
+            </Button>-->
+                <Label Content="Avalibale indexes" HorizontalAlignment="Stretch" Grid.Column="1"/>
+                <ComboBox HorizontalAlignment="Stretch" Margin="10,0,10,0" ItemsSource="{Binding ExistedIndexes}" SelectedItem="{Binding SelectedExisted}" IsEnabled="{Binding Is_scanned}"
+                      Grid.Column="2" VerticalContentAlignment="Center"/>
+                <Label Content="Index date" HorizontalAlignment="Stretch" Grid.Column="3" Margin="0,0,5,0"/>
+                <TextBox Text="{Binding Indexes.DateOfLastChange}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
+                     HorizontalAlignment="Right" Width="135" IsReadOnly="True" Grid.Column="4"/>
+                <Button Margin="10,0,0,0" Grid.Column="5" ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding CloseWindowCommand}">
+                    <Image Source="Resources/закрыть.png"/>
+                </Button>
+                <Border Grid.Row="1" BorderThickness="0,1" Grid.ColumnSpan="6" BorderBrush="White" HorizontalAlignment="Stretch" Padding="0" 
+                    ClipToBounds="True" Height="1" Margin="0,5,0,0" />
+                
+            </Grid>
+            <Grid Grid.Row="1" Margin="10,5,10,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="25"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="0.75*"/>
+                    <ColumnDefinition Width="0.25*"/>
+                </Grid.ColumnDefinitions>
+                <TreeView x:Name="folder_tree" Grid.RowSpan="2" Grid.Column="0" 
                   ItemsSource="{Binding Indexes.VisualFolder, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0">
-                <TreeView.ItemContainerStyle>
-                    <Style TargetType="{x:Type TreeViewItem}">
-                        <!--<Setter Property="IsSelected" Value="True"/>-->
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Founded}" Value="True">
-                                <Setter Property="IsSelected" Value="True"/>
-                                <Setter Property="IsExpanded" Value="True"/>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Founded}" Value="False">
-                                <Setter Property="IsSelected" Value="False"/>
-                                <Setter Property="IsExpanded" Value="False"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </TreeView.ItemContainerStyle>
-                <TreeView.Resources>
-                    <HierarchicalDataTemplate DataType="{x:Type local_cls:IndxElement}" ItemsSource="{Binding Items}">
-                        <StackPanel Orientation="Horizontal">
-                            <Image Width="16" Height="16" Source="{Binding GetUriImg}" />
-                            <TextBlock Text="{Binding }" TextWrapping="Wrap" TextTrimming="WordEllipsis" Margin="5,0,0,0">
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="{x:Type TreeViewItem}">
+                            <!--<Setter Property="IsSelected" Value="True"/>-->
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Founded}" Value="True">
+                                    <Setter Property="IsSelected" Value="True"/>
+                                    <Setter Property="IsExpanded" Value="True"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Founded}" Value="False">
+                                    <Setter Property="IsSelected" Value="False"/>
+                                    <Setter Property="IsExpanded" Value="False"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                    <TreeView.Resources>
+                        <HierarchicalDataTemplate DataType="{x:Type local_cls:IndxElement}" ItemsSource="{Binding Items}">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Width="16" Height="16" Source="{Binding GetUriImg}" />
+                                <TextBlock Text="{Binding }" TextWrapping="Wrap" TextTrimming="WordEllipsis" Margin="5,0,0,0">
+                                    <TextBlock.ToolTip>
+                                        <TextBlock Text="{Binding }"/>
+                                    </TextBlock.ToolTip>
                                 <TextBlock.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="Открыть документ" Command="{Binding OpenFileCommand}"/>
@@ -85,51 +126,52 @@
                                     </ContextMenu>
                                 </TextBlock.ContextMenu>
                             </TextBlock>
-                        </StackPanel>
-                    </HierarchicalDataTemplate>
-                    <!--<DataTemplate DataType="{x:Type local_cls:IndxElement}" >
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                        <!--<DataTemplate DataType="{x:Type local_cls:IndxElement}" >
                     <StackPanel Orientation="Horizontal">
                         <Image Width="16" Height="16" Source="{Binding GetUriImg}" />
                         <TextBlock Text="{Binding }" Width="350" TextWrapping="Wrap" TextTrimming="WordEllipsis" Margin="5,0,0,0"/>
                     </StackPanel>
                 </DataTemplate>-->
-                </TreeView.Resources>
-            </TreeView>
-            <TextBox Grid.Row="0" Grid.Column="1" Margin="10,0,0,0" Text="{Binding Search_text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                    </TreeView.Resources>
+                </TreeView>
+                <TextBox Grid.Row="0" Grid.Column="1" Margin="10,0,0,0" Text="{Binding Search_text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                      HorizontalContentAlignment="Left" VerticalContentAlignment="Center" IsEnabled="{Binding Was_Loaded}"/>
-            <ComboBox Grid.Row="0" Grid.Column="2" Margin="10,0,0,0" ItemsSource="{Binding Indexes.Extentions}"  SelectedValue="{Binding SelectedFilter}" IsEnabled="{Binding Was_Loaded}"/>
-            <ListView Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="10,10,0,0" ItemsSource="{Binding Searched}" SelectionChanged="ListView_SelectionChanged" >
-                <ListView.ItemTemplate>
-                    <DataTemplate DataType="{x:Type local_cls:IndxElement}">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch">
-                            <Image Source="{Binding GetUriImg}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,0,5,0"/>
-                            <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
-                                <TextBlock.ContextMenu>
-                                    <ContextMenu>
-                                        <MenuItem Header="Открыть документ" Command="{Binding OpenFileCommand}"/>
-                                        <Separator />
-                                        <MenuItem Header="Открыть папку документа" Command="{Binding OpenFolderCommand}"/>
-                                    </ContextMenu>
-                                </TextBlock.ContextMenu>
-                            </TextBlock>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+                <ComboBox Grid.Row="0" Grid.Column="2" Margin="10,0,0,0" ItemsSource="{Binding Indexes.Extentions}"  SelectedValue="{Binding SelectedFilter}" IsEnabled="{Binding Was_Loaded}"/>
+                <ListView Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="10,10,0,0" ItemsSource="{Binding Searched}" SelectionChanged="ListView_SelectionChanged" >
+                    <ListView.ItemTemplate>
+                        <DataTemplate DataType="{x:Type local_cls:IndxElement}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch">
+                                <Image Source="{Binding GetUriImg}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,0,5,0"/>
+                                <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                                    <TextBlock.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Открыть документ" Command="{Binding OpenFileCommand}"/>
+                                            <Separator />
+                                            <MenuItem Header="Открыть папку документа" Command="{Binding OpenFolderCommand}"/>
+                                        </ContextMenu>
+                                    </TextBlock.ContextMenu>
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+            <Grid Grid.Row="2" Margin="10,5,10,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Label HorizontalAlignment="Left" Content="Files count" Grid.Column="0"/>
+                <TextBox Margin="5,0,5,0" Text="{Binding Prog_value}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Column="1" HorizontalAlignment="Left" Width="60" IsReadOnly="True"/>
+                <ProgressBar ClipToBounds="True" HorizontalAlignment="Stretch" Grid.Column="2" Margin="5,0,10,0" Maximum="{Binding Prog_value_max}" Value="{Binding Prog_value}"/>
+                <Button HorizontalAlignment="Right" Width="65" Content="Scan" Grid.Column="3" Command="{Binding StartScanCommand}" IsEnabled="{Binding Is_scanned}"/>
+                <!--, Converter={StaticResource BooleanToReverseConverter}-->
+            </Grid>
         </Grid>
-        <Grid Grid.Row="3" Margin="10,0,10,10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <Label HorizontalAlignment="Left" Content="Files count" Grid.Column="0"/>
-            <!--<TextBox Margin="5,0,5,0" Text="{Binding Indexes.TotalFiles, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Column="1" HorizontalAlignment="Left" Width="60" IsReadOnly="True"/>-->
-            <TextBox Margin="5,0,5,0" Text="{Binding Prog_value}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Column="1" HorizontalAlignment="Left" Width="60" IsReadOnly="True"/>
-            <ProgressBar ClipToBounds="True" HorizontalAlignment="Stretch" Grid.Column="2" Margin="5,0,10,0" Maximum="{Binding Prog_value_max}" Value="{Binding Prog_value}"/>
-            <Button HorizontalAlignment="Right" Width="65" Content="Scan" Grid.Column="3" Command="{Binding StartScanCommand}" IsEnabled="{Binding Is_scanned}"/>
-            <!--, Converter={StaticResource BooleanToReverseConverter}-->
-        </Grid>
-    </Grid>
+    </Border>
+
 </Window>
