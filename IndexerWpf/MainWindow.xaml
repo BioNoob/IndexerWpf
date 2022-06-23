@@ -7,12 +7,14 @@
         mc:Ignorable="d"
         xmlns:local="clr-namespace:IndexerWpf.Models"
         xmlns:local_cls="clr-namespace:IndexerWpf.Classes"
-        Title="MainWindow" Height="450" Width="800" 
+        Title="MainWindow"  
         WindowStyle="None"
         WindowState="Normal" 
         ResizeMode="CanResize"
         AllowsTransparency="True"  Background="Transparent"
-        MinHeight="535" MinWidth="342">
+        MinHeight="350" MinWidth="550"
+        Height="{Binding Sets.WindowSise.X, Mode=TwoWay}" Width="{Binding Sets.WindowSise.Y, Mode=TwoWay}"
+        Top="{Binding Sets.WindowLastPos.Y, Mode=TwoWay}" Left="{Binding Sets.WindowLastPos.X, Mode=TwoWay}">
     <Window.DataContext>
         <!--Background="#474A51"-->
         <local:MainViewModel/>
@@ -27,19 +29,182 @@
         <Style TargetType="TextBlock" BasedOn="{StaticResource DefaultStyle}"/>
         <Style TargetType="TextBox" BasedOn="{StaticResource DefaultStyle}"/>
         <Style TargetType="ListView" BasedOn="{StaticResource DefaultStyle}"/>
-        <Style TargetType="ComboBox" BasedOn="{StaticResource DefaultStyle}"/>
+        <!--<Style TargetType="ComboBox" BasedOn="{StaticResource DefaultStyle}"/>-->
         <Style TargetType="TreeView" BasedOn="{StaticResource DefaultStyle}"/>
         <Style TargetType="Label" BasedOn="{StaticResource DefaultStyle}">
             <Setter Property="Foreground" Value="White" />
             <Setter Property="Background" Value="Transparent" />
         </Style>
+
+
+        <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="{x:Type ToggleButton}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="20" />
+                </Grid.ColumnDefinitions>
+                <Border
+                  x:Name="Border" 
+                  Grid.ColumnSpan="2"
+                  CornerRadius="0"
+                  Background="#FF3F3F3F"
+                  BorderBrush="#FF97A0A5"
+                  BorderThickness="1" />
+                <Border 
+                  Grid.Column="0"
+                  CornerRadius="0" 
+                  Margin="1" 
+                  Background="#FF3F3F3F" 
+                  BorderBrush="#FF97A0A5"
+                  BorderThickness="0,0,1,0" />
+                <Path 
+                  x:Name="Arrow"
+                  Grid.Column="1"     
+                  Fill="White"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Data="M0,0 L0,2 L4,6 L8,2 L8,0 L4,4 z"
+                />
+            </Grid>
+            <!--<ControlTemplate.Triggers>
+            <Trigger Property="ToggleButton.IsMouseOver" Value="true">
+                <Setter TargetName="Border" Property="Background" Value="#808080" />
+            </Trigger>
+            <Trigger Property="ToggleButton.IsChecked" Value="true">
+                <Setter TargetName="Border" Property="Background" Value="#E0E0E0" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Border" Property="Background" Value="#EEEEEE" />
+                <Setter TargetName="Border" Property="BorderBrush" Value="#AAAAAA" />
+                <Setter Property="Foreground" Value="#888888"/>
+                <Setter TargetName="Arrow" Property="Fill" Value="#888888" />
+            </Trigger>
+        </ControlTemplate.Triggers>-->
+        </ControlTemplate>
+
+        <ControlTemplate x:Key="ComboBoxTextBox" TargetType="{x:Type TextBox}">
+            <Border x:Name="PART_ContentHost" Focusable="False" Background="{TemplateBinding Background}" />
+        </ControlTemplate>
+
+        <Style x:Key="{x:Type ComboBox}" TargetType="{x:Type ComboBox}">
+            <Setter Property="SnapsToDevicePixels" Value="true"/>
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.CanContentScroll" Value="true"/>
+            <Setter Property="MinWidth" Value="30"/>
+            <Setter Property="MinHeight" Value="20"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ComboBox}">
+                        <Grid>
+                            <ToggleButton 
+                            Name="ToggleButton" 
+                            Template="{StaticResource ComboBoxToggleButton}" 
+                            Grid.Column="2" 
+                            Focusable="false"
+                            IsChecked="{Binding Path=IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}"
+                            ClickMode="Press">
+                            </ToggleButton>
+                            <ContentPresenter Name="ContentSite" IsHitTestVisible="False"  Content="{TemplateBinding SelectionBoxItem}"
+                            ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                            ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                            Margin="3,3,23,3"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Left" />
+                            <TextBox x:Name="PART_EditableTextBox"
+                            Style="{x:Null}" 
+                            Template="{StaticResource ComboBoxTextBox}" 
+                            HorizontalAlignment="Left" 
+                            VerticalAlignment="Center" 
+                            Margin="3,3,23,3"
+                            Focusable="True" 
+                            Background="#FF3F3F3F"
+                            Foreground="Green"
+                            Visibility="Hidden"
+                            IsReadOnly="{TemplateBinding IsReadOnly}"/>
+                            <Popup 
+                            Name="Popup"
+                            Placement="Bottom"
+                            IsOpen="{TemplateBinding IsDropDownOpen}"
+                            AllowsTransparency="True" 
+                            Focusable="False"
+                            PopupAnimation="Slide">
+                                <Grid Name="DropDown"
+                              SnapsToDevicePixels="True"                
+                              MinWidth="{TemplateBinding ActualWidth}"
+                              MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border 
+                                        x:Name="DropDownBorder"
+                                        Background="#FF3F3F3F"
+                                        BorderThickness="1"
+                                        BorderBrush="#888888"/>
+                                    <ScrollViewer Margin="4,6,4,6" SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="HasItems" Value="false">
+                                <Setter TargetName="DropDownBorder" Property="MinHeight" Value="95"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Foreground" Value="#888888"/>
+                            </Trigger>
+                            <Trigger Property="IsGrouping" Value="true">
+                                <Setter Property="ScrollViewer.CanContentScroll" Value="false"/>
+                            </Trigger>
+                            <Trigger SourceName="Popup" Property="Popup.AllowsTransparency" Value="true">
+                                <Setter TargetName="DropDownBorder" Property="CornerRadius" Value="0"/>
+                                <Setter TargetName="DropDownBorder" Property="Margin" Value="0,2,0,0"/>
+                            </Trigger>
+                            <Trigger Property="IsEditable"  Value="true">
+                                <Setter Property="IsTabStop" Value="false"/>
+                                <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="ContentSite" Property="Visibility" Value="Hidden"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="{x:Type ComboBoxItem}" TargetType="{x:Type ComboBoxItem}">
+            <Setter Property="SnapsToDevicePixels" Value="true"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ComboBoxItem}">
+                        <Border Name="Border"
+                              Padding="2"
+                              SnapsToDevicePixels="true">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="true">
+                                <Setter TargetName="Border" Property="Background" Value="#FF4F4F4F"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Foreground" Value="#888888"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
     </Window.Resources>
     <WindowChrome.WindowChrome>
         <WindowChrome 
         CaptionHeight="0"
         ResizeBorderThickness="10" />
     </WindowChrome.WindowChrome>
-    <Border CornerRadius="10" BorderBrush="#474A51" Background="#474A51" BorderThickness="5" Padding="0">
+    <Border CornerRadius="10" BorderBrush="#FF3F3F3F" Background="#FF3F3F3F" BorderThickness="5" Padding="0">
         <Grid Margin="0,0,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -75,12 +240,12 @@
                 <Label Content="Index date" HorizontalAlignment="Stretch" Grid.Column="3" Margin="0,0,5,0"/>
                 <TextBox Text="{Binding Indexes.DateOfLastChange}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
                      HorizontalAlignment="Right" Width="135" IsReadOnly="True" Grid.Column="4"/>
-                <Button Margin="10,0,0,0" Grid.Column="5" ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding CloseWindowCommand}">
+                <Button Margin="10,0,0,0" Grid.Column="5" ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding CloseWindowCommand}" Background="#FF3F3F3F" BorderBrush="#FF3F3F3F">
                     <Image Source="Resources/закрыть.png"/>
                 </Button>
                 <Border Grid.Row="1" BorderThickness="0,1" Grid.ColumnSpan="6" BorderBrush="White" HorizontalAlignment="Stretch" Padding="0" 
                     ClipToBounds="True" Height="1" Margin="0,5,0,0" />
-                
+
             </Grid>
             <Grid Grid.Row="1" Margin="10,5,10,0">
                 <Grid.RowDefinitions>
@@ -93,30 +258,36 @@
                     <ColumnDefinition Width="0.25*"/>
                 </Grid.ColumnDefinitions>
                 <TreeView x:Name="folder_tree" Grid.RowSpan="2" Grid.Column="0" 
-                  ItemsSource="{Binding Indexes.VisualFolder, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                 ItemsSource="{Binding Indexes.VisualFolder}"
                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0">
+                    <!--<TreeView.ItemsSource>
+                        <MultiBinding Converter="{StaticResource NameConverter}">
+                            <Binding Path="Indexes.VisualFolder" />
+                            <Binding Path="Indexes.AllFiles" />
+                        </MultiBinding>
+                    </TreeView.ItemsSource>-->
                     <TreeView.ItemContainerStyle>
                         <Style TargetType="{x:Type TreeViewItem}">
-                            <!--<Setter Property="IsSelected" Value="True"/>-->
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Founded}" Value="True">
-                                    <Setter Property="IsSelected" Value="True"/>
-                                    <Setter Property="IsExpanded" Value="True"/>
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                            <EventSetter Event="Selected" Handler="TreeViewSelectedItemChanged" />
+                            <!--<Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSelected, Mode=TwoWay}" Value="True">
+                                    <Setter Property="Foreground" Value="#1E90FF"/>
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding Founded}" Value="False">
-                                    <Setter Property="IsSelected" Value="False"/>
-                                    <Setter Property="IsExpanded" Value="False"/>
+                                <DataTrigger Binding="{Binding IsSelected, Mode=TwoWay}" Value="False">
+                                    <Setter Property="Foreground" Value="Black"/>
                                 </DataTrigger>
-                            </Style.Triggers>
+                            </Style.Triggers>-->
                         </Style>
                     </TreeView.ItemContainerStyle>
                     <TreeView.Resources>
                         <HierarchicalDataTemplate DataType="{x:Type local_cls:IndxElement}" ItemsSource="{Binding Items}">
                             <StackPanel Orientation="Horizontal">
                                 <Image Width="16" Height="16" Source="{Binding GetUriImg}" />
-                                <TextBlock Text="{Binding }" TextWrapping="Wrap" TextTrimming="WordEllipsis" Margin="5,0,0,0">
+                                <TextBlock Text="{Binding Name}" TextWrapping="Wrap" TextTrimming="WordEllipsis" Margin="5,0,0,0">
                                     <TextBlock.ToolTip>
-                                        <TextBlock Text="{Binding }"/>
+                                        <TextBlock Text="{Binding ParentName}"/>
                                     </TextBlock.ToolTip>
                                 <TextBlock.ContextMenu>
                                     <ContextMenu>
@@ -128,12 +299,6 @@
                             </TextBlock>
                             </StackPanel>
                         </HierarchicalDataTemplate>
-                        <!--<DataTemplate DataType="{x:Type local_cls:IndxElement}" >
-                    <StackPanel Orientation="Horizontal">
-                        <Image Width="16" Height="16" Source="{Binding GetUriImg}" />
-                        <TextBlock Text="{Binding }" Width="350" TextWrapping="Wrap" TextTrimming="WordEllipsis" Margin="5,0,0,0"/>
-                    </StackPanel>
-                </DataTemplate>-->
                     </TreeView.Resources>
                 </TreeView>
                 <TextBox Grid.Row="0" Grid.Column="1" Margin="10,0,0,0" Text="{Binding Search_text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
@@ -167,7 +332,15 @@
                 </Grid.ColumnDefinitions>
                 <Label HorizontalAlignment="Left" Content="Files count" Grid.Column="0"/>
                 <TextBox Margin="5,0,5,0" Text="{Binding Prog_value}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Column="1" HorizontalAlignment="Left" Width="60" IsReadOnly="True"/>
-                <ProgressBar ClipToBounds="True" HorizontalAlignment="Stretch" Grid.Column="2" Margin="5,0,10,0" Maximum="{Binding Prog_value_max}" Value="{Binding Prog_value}"/>
+                <ProgressBar ClipToBounds="True" HorizontalAlignment="Stretch" Grid.Column="2" Margin="5,0,10,0" Maximum="{Binding Prog_value_max}" Value="{Binding Prog_value}">
+                    <ProgressBar.Foreground>
+                        <LinearGradientBrush EndPoint="0,0.5" StartPoint="1,0.5">
+                            <GradientStop Color="#FF4990FB" Offset="0"/>
+                            <GradientStop Color="#FF124BA1" Offset="1"/>
+                        </LinearGradientBrush>
+                    </ProgressBar.Foreground>
+
+                </ProgressBar>
                 <Button HorizontalAlignment="Right" Width="65" Content="Scan" Grid.Column="3" Command="{Binding StartScanCommand}" IsEnabled="{Binding Is_scanned}"/>
                 <!--, Converter={StaticResource BooleanToReverseConverter}-->
             </Grid>

@@ -26,6 +26,12 @@ namespace IndexerWpf.Models
         {
             LoadEndEvent?.Invoke();
         }
+        
+        public static event LoadEnd WindowClosing;
+        public static void InvokeWindowClosing()
+        {
+            WindowClosing?.Invoke();
+        }
         //private ObservableCollection<IndxElement> visualFolder;
         //public ObservableCollection<IndxElement> VisualFolder { get => visualFolder; set { visualFolder = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("visualFolder")); } }
 

@@ -4,7 +4,6 @@
              xmlns:local="clr-namespace:IndexerWpf" xmlns:converters="clr-namespace:IndexerWpf.Classes"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-        <converters:BooleanToReverseConverter x:Key="BooleanToReverseConverter"/>
         <!--<local:FauxVM x:Key="VM" />-->
     </Application.Resources>
 </Application>

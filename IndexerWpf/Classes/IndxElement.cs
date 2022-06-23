@@ -12,16 +12,37 @@ using System.Runtime.CompilerServices;
 #pragma warning disable CS0661
 namespace IndexerWpf.Classes
 {
-    public class IndxElements : INotifyPropertyChanged
+    public class Proper : INotifyPropertyChanged
+    {
+        public Proper() { }
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected bool SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
+        {
+            if (!Equals(field, newValue))
+            {
+                field = newValue;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                return true;
+            }
+
+            return false;
+        }
+
+        protected bool SetProperty([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            return true;
+        }
+    }
+    public class IndxElements : Proper
     {
         private ObservableCollection<IndxElement> allFiles;
-        private ObservableCollection<IndxElement> visualFolder;
         private string rootFolderPath;
         private string dateOfLastChange;
 
         public ObservableCollection<IndxElement> AllFiles { get => allFiles; set { SetProperty(ref allFiles, value); } }
 
-        public ObservableCollection<IndxElement> VisualFolder { get => visualFolder; set { SetProperty(ref visualFolder, value); } }
+        public ObservableCollection<IndxElement> VisualFolder { get => new ObservableCollection<IndxElement>(AllFiles.Where(t => t.Prnt == null)); }//visualFolder; set { SetProperty(ref visualFolder, value); } }
 
         public string RootFolderPath { get => rootFolderPath; set { SetProperty(ref rootFolderPath, value); } }
 
@@ -37,9 +58,14 @@ namespace IndexerWpf.Classes
         private void Init()
         {
             AllFiles = new ObservableCollection<IndxElement>();
-            VisualFolder = new ObservableCollection<IndxElement>();
             IndxElement.Identificator = 0;
-            //StaticModel.RemoveItemEvent += StaticModel_RemoveItem;
+            StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
+        }
+
+        private void StaticModel_LoadEndEvent()
+        {
+            SetProperty(nameof(VisualFolder));
+            SetProperty(nameof(Extentions));
         }
 
         public IndxElements(string path)
@@ -51,8 +77,6 @@ namespace IndexerWpf.Classes
         public int TotalFiles { get => AllFiles.Count(t => t.Tp == IndxElement.Type.file); }
         [JsonIgnore]
         public ObservableCollection<string> Extentions { get => new ObservableCollection<string>(AllFiles.Select(t => t.Extension).Distinct()); }
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         public static void SaveIndexes(IndxElements ie, string file_to_save)
         {
@@ -66,6 +90,7 @@ namespace IndexerWpf.Classes
                 try
                 {
                     var a = JsonConvert.DeserializeObject<IndxElements>(File.ReadAllText(file_to_load));
+                    //Debug.WriteLine("DONE DESER");
                     return a;
                 }
                 catch (Exception)
@@ -79,33 +104,22 @@ namespace IndexerWpf.Classes
                 return null;
             }
         }
-        protected bool SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
-        {
-            if (!Equals(field, newValue))
-            {
-                field = newValue;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                return true;
-            }
-
-            return false;
-        }
     }
-    public class IndxElement : INotifyPropertyChanged
+    public class IndxElement : Proper
     {
         public static int Identificator = 0;
         private string fullPath;
         private Type tp;
         private int id;
         private int? prnt;
-        private bool founded;
+        private bool isSelected;
+        private bool isExpanded;
 
         public enum Type
         {
             folder,
             file
         }
-        public event PropertyChangedEventHandler PropertyChanged;
         public string FullPath { get => fullPath; set { SetProperty(ref fullPath, value); } }
 
 
@@ -117,19 +131,27 @@ namespace IndexerWpf.Classes
         public int Id { get => id; set { SetProperty(ref id, value); } }
 
         [JsonIgnore]
-        public bool Founded
+        public IndxElement Parent { get => StaticModel.ElIndx.AllFiles.FirstOrDefault(t => t.Id == Prnt); }
+        [JsonIgnore]
+        public string ParentName { get => Parent == null ? this.Name : Parent.Name; }
+        [JsonIgnore]
+        public bool IsExpanded
         {
-            get => founded;
+            get => isExpanded;
             set
             {
-                SetProperty(ref founded, value);
-                if (Prnt == null)
-                    return;
-                //if (value)
-                    StaticModel.ElIndx.AllFiles.Where(t => t.Id == Prnt).FirstOrDefault().Founded = value;
-                //else if (!value)
-                //    StaticModel.ElIndx.AllFiles.Where(t => t.Id == Prnt).FirstOrDefault().Founded = value;
+                if (value != isExpanded)
+                    SetProperty(ref isExpanded, value);
+                // Expand all the way up to the root.
+                if (isExpanded && Parent != null)
+                    Parent.IsExpanded = value;
             }
+        }
+        [JsonIgnore]
+        public bool IsSelected
+        {
+            get => isSelected;
+            set => SetProperty(ref isSelected, value);
         }
 
         public IndxElement()
@@ -267,18 +289,6 @@ namespace IndexerWpf.Classes
                         return "";
                 }
             }
-        }
-
-        protected bool SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
-        {
-            if (!Equals(field, newValue))
-            {
-                field = newValue;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                return true;
-            }
-
-            return false;
         }
     }
 }

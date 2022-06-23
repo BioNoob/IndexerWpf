@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace IndexerWpf.Models
 {
-    public class MainViewModel : INotifyPropertyChanged
+    public class MainViewModel : Proper
     {
         public ObservableCollection<string> ExistedIndexes { get => existedIndexs; set => SetProperty(ref existedIndexs, value); }
         public string SelectedExisted { get => selectedexisted; set { SetProperty(ref selectedexisted, value); DoLoad(value); } }
@@ -43,19 +43,6 @@ namespace IndexerWpf.Models
         private string selectedFilter;
         private string selectedexisted;
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected bool SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
-        {
-            if (!Equals(field, newValue))
-            {
-                field = newValue;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                return true;
-            }
-
-            return false;
-        }
         private CommandHandler _openfolder;
         public CommandHandler OpenIndexFolderCommand
         {
@@ -76,6 +63,7 @@ namespace IndexerWpf.Models
             {
                 return _closewindow ?? (_closewindow = new CommandHandler(obj =>
                 {
+                    Sets.SaveSettings();
                     Environment.Exit(0);
                 },
                 (obj) => Is_scanned
@@ -116,8 +104,13 @@ namespace IndexerWpf.Models
             }
         }
 
+        private Settings sets; 
+        public Settings Sets { get => sets; set => SetProperty(ref sets, value); }
+
         public MainViewModel()
         {
+            Sets = Settings.LoadSettings();
+
             Def_path = Directory.GetCurrentDirectory() + "\\indexes";
             ExistedIndexes = new ObservableCollection<string>();
             Is_scanned = false;
@@ -141,7 +134,7 @@ namespace IndexerWpf.Models
             //Prog_value_max = 1;
 
         }
-        
+
         private void DoLoad(string name_of)
         {
             //if (!DoSave())
@@ -151,18 +144,19 @@ namespace IndexerWpf.Models
             //else
             //{
             //SelectedFilter = "";
-                string full_nm = $"{Def_path}\\{name_of}.json";
-                Indexes = IndxElements.LoadInexes(full_nm);
-                if (Indexes != null)
-                {
-                    //Was_scanned = false;
-                    Was_Loaded = true;
+            string full_nm = $"{Def_path}\\{name_of}.json";
+            Indexes = IndxElements.LoadInexes(full_nm);
+            if (Indexes != null)
+            {
+                //Was_scanned = false;
+                //Indexes.VisualFolder = new ObservableCollection<IndxElement>(Indexes.AllFiles.Where(t => t.Tp == IndxElement.Type.folder && t.Prnt == null));
+                Was_Loaded = true;
                 if (!string.IsNullOrEmpty(Search_text))
                     DoSearch(Search_text);
-                    //PropertyChanged?.Invoke(Indexes, new PropertyChangedEventArgs(nameof(Indexes.Extentions)));
-                    Prog_value = Indexes.TotalFiles;
-                    Prog_value_max = Prog_value;
-                }
+                //PropertyChanged?.Invoke(Indexes, new PropertyChangedEventArgs(nameof(Indexes.Extentions)));
+                Prog_value = Indexes.TotalFiles;
+                Prog_value_max = Prog_value;
+            }
             //}
         }
         //Сохранение полюбому в конце парсинга. Нет ситуации где бы оно не сохранилось. Если только отказаться перезаписывать
@@ -226,20 +220,14 @@ namespace IndexerWpf.Models
             Was_Loaded = false;
             await DoScan(path);
             //Debug.WriteLine("DONE");
-            //Was_scanned = true;
-            PropertyChanged?.Invoke(Indexes, new PropertyChangedEventArgs(nameof(Indexes.Extentions)));
-            //if (DoSave())
-            //{
             DoSave();
             var nm = new DirectoryInfo(Indexes.RootFolderPath).Name;
-            //Was_scanned = false;
             if (!ExistedIndexes.Contains(nm))
                 ExistedIndexes.Add(nm);
             SetProperty(ref selectedexisted, nm, "SelectedExisted");
-            //selectedexisted = nm;
-            //}
             Was_Loaded = true;
             Is_scanned = false;
+            StaticModel.InvokeLoadEndEvent();
         }
         private async Task DoScan(string path)
         {
@@ -266,7 +254,8 @@ namespace IndexerWpf.Models
                 }
             });
             //грузим файлы начального каталога
-            Indexes.VisualFolder = new ObservableCollection<IndxElement>(Indexes.AllFiles.Where(t => t.Tp == IndxElement.Type.folder && t.Prnt == null));
+            //Indexes.VisualFolder = new ObservableCollection<IndxElement>(Indexes.AllFiles.Where(t => t.Tp == IndxElement.Type.folder && t.Prnt == null));
+            
             GC.Collect();
         }
         /// <summary>
