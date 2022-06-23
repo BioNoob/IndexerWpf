@@ -40,29 +40,27 @@ namespace IndexerWpf.Classes
             Properties.Settings.Default.Save();
             File.WriteAllText(Directory.GetCurrentDirectory() +"\\settings.json", JsonConvert.SerializeObject(this, Formatting.Indented));
         }
-        public static Settings LoadSettings()
+        public void LoadSettings()
         {
-            Settings a = new Settings();
+            //Settings a = new Settings();
             if (File.Exists(Directory.GetCurrentDirectory() + "\\settings.json"))
             {
                 try
                 {
-                    a = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(Directory.GetCurrentDirectory() + "\\settings.json"));
+                    FolderIndexesDefPath = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(Directory.GetCurrentDirectory() + "\\settings.json")).FolderIndexesDefPath;
                 }
                 catch (Exception)
                 {
-                    a.FolderIndexesDefPath = string.Empty;
+                    FolderIndexesDefPath = string.Empty;
                 }
-
             }
             else
             {
-                a.FolderIndexesDefPath = string.Empty;
+                FolderIndexesDefPath = string.Empty;
             }
-            a.LastIndex = Properties.Settings.Default.LastIndex;
-            a.WindowSise = new CustomPoint() {X = Properties.Settings.Default.LastSize.Width, Y = Properties.Settings.Default.LastSize.Height };
-            a.WindowLastPos = new CustomPoint() { X = Properties.Settings.Default.LastPos.X, Y = Properties.Settings.Default.LastPos.Y };
-            return a;
+            LastIndex = Properties.Settings.Default.LastIndex;
+            WindowSise = new CustomPoint() {X = Properties.Settings.Default.LastSize.Width, Y = Properties.Settings.Default.LastSize.Height };
+            WindowLastPos = new CustomPoint() { X = Properties.Settings.Default.LastPos.X, Y = Properties.Settings.Default.LastPos.Y };
         }
     }
 }

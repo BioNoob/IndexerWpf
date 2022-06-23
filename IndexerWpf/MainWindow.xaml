@@ -25,7 +25,11 @@
             <Setter Property="Control.Background" Value="White" />
             <Setter Property="Control.Foreground" Value="Black" />
         </Style>
-        <Style TargetType="Button" BasedOn="{StaticResource DefaultStyle}"/>
+        <Style TargetType="Button" BasedOn="{StaticResource DefaultStyle}">
+            <Setter Property="Background" Value="#FF3F3F3F" />
+            <Setter Property="BorderBrush" Value="#FF3F3F3F" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
         <Style TargetType="TextBlock" BasedOn="{StaticResource DefaultStyle}"/>
         <Style TargetType="TextBox" BasedOn="{StaticResource DefaultStyle}"/>
         <Style TargetType="ListView" BasedOn="{StaticResource DefaultStyle}"/>
@@ -110,7 +114,7 @@
                             <ContentPresenter Name="ContentSite" IsHitTestVisible="False"  Content="{TemplateBinding SelectionBoxItem}"
                             ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                             ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-                            Margin="3,3,23,3"
+                            Margin="10,3,23,3"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Left" />
                             <TextBox x:Name="PART_EditableTextBox"
@@ -118,7 +122,7 @@
                             Template="{StaticResource ComboBoxTextBox}" 
                             HorizontalAlignment="Left" 
                             VerticalAlignment="Center" 
-                            Margin="3,3,23,3"
+                            Margin="10,3,23,3"
                             Focusable="True" 
                             Background="#FF3F3F3F"
                             Foreground="Green"
@@ -140,7 +144,7 @@
                                         Background="#FF3F3F3F"
                                         BorderThickness="1"
                                         BorderBrush="#888888"/>
-                                    <ScrollViewer Margin="4,6,4,6" SnapsToDevicePixels="True">
+                                    <ScrollViewer Margin="6,6,6,6" SnapsToDevicePixels="True">
                                         <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
                                     </ScrollViewer>
                                 </Grid>
@@ -240,7 +244,7 @@
                 <Label Content="Index date" HorizontalAlignment="Stretch" Grid.Column="3" Margin="0,0,5,0"/>
                 <TextBox Text="{Binding Indexes.DateOfLastChange}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
                      HorizontalAlignment="Right" Width="135" IsReadOnly="True" Grid.Column="4"/>
-                <Button Margin="10,0,0,0" Grid.Column="5" ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding CloseWindowCommand}" Background="#FF3F3F3F" BorderBrush="#FF3F3F3F">
+                <Button Margin="10,0,0,0" Grid.Column="5" ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding CloseWindowCommand}">
                     <Image Source="Resources/закрыть.png"/>
                 </Button>
                 <Border Grid.Row="1" BorderThickness="0,1" Grid.ColumnSpan="6" BorderBrush="White" HorizontalAlignment="Stretch" Padding="0" 
@@ -341,7 +345,8 @@
                     </ProgressBar.Foreground>
 
                 </ProgressBar>
-                <Button HorizontalAlignment="Right" Width="65" Content="Scan" Grid.Column="3" Command="{Binding StartScanCommand}" IsEnabled="{Binding Is_scanned}"/>
+                <Button HorizontalAlignment="Right" Width="65" Content="Scan" Grid.Column="3" Command="{Binding StartScanCommand}" IsEnabled="{Binding Is_scanned}"
+                                   BorderBrush="White" Background="White" Foreground="Black" />
                 <!--, Converter={StaticResource BooleanToReverseConverter}-->
             </Grid>
         </Grid>

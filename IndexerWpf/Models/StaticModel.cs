@@ -1,17 +1,13 @@
 ﻿using IndexerWpf.Classes;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text;
+using System.Collections.ObjectModel;
 
 namespace IndexerWpf.Models
 {
     public static class StaticModel
     {
-        private static IndxElements elIndx;
+        private static ObservableCollection<IndxElement> elIndx;
 
-        public static IndxElements ElIndx { get => elIndx; set { elIndx = value; } }
+        public static ObservableCollection<IndxElement> ElIndx { get => elIndx; set { elIndx = value; } }
 
         //public delegate void ItemDrawed(IndxElement db);
         //public static event ItemDrawed RemoveItemEvent;

@@ -34,19 +34,29 @@ namespace IndexerWpf.Classes
             return true;
         }
     }
-    public class IndxElements : Proper
+    public class IndxElements : Proper, IDisposable
     {
+        //public static int Identificator = 0;
         private ObservableCollection<IndxElement> allFiles;
+        private ObservableCollection<IndxElement> visualfolder;
+        private ObservableCollection<string> extentions;
         private string rootFolderPath;
         private string dateOfLastChange;
 
-        public ObservableCollection<IndxElement> AllFiles { get => allFiles; set { SetProperty(ref allFiles, value); } }
 
-        public ObservableCollection<IndxElement> VisualFolder { get => new ObservableCollection<IndxElement>(AllFiles.Where(t => t.Prnt == null)); }//visualFolder; set { SetProperty(ref visualFolder, value); } }
+        [JsonIgnore]
+        public ObservableCollection<IndxElement> VisualFolder { get => visualfolder; set { SetProperty(ref visualfolder, value); } }
+        [JsonIgnore]
+        public ObservableCollection<string> Extentions { get => extentions; set { SetProperty(ref extentions, value); } }
+        [JsonIgnore]
+        public int TotalFiles { get => AllFiles.Count(t => t.Tp == IndxElement.Type.file); }
+        //[JsonIgnore]
+        //public int ID { get; set; }
+
 
         public string RootFolderPath { get => rootFolderPath; set { SetProperty(ref rootFolderPath, value); } }
-
         public string DateOfLastChange { get => dateOfLastChange; set => SetProperty(ref dateOfLastChange, value); }
+        public ObservableCollection<IndxElement> AllFiles { get => allFiles; set { SetProperty(ref allFiles, value); } }
 
         public IndxElements()
         {
@@ -60,49 +70,66 @@ namespace IndexerWpf.Classes
             AllFiles = new ObservableCollection<IndxElement>();
             IndxElement.Identificator = 0;
             StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
+            //ID = Identificator++;
         }
-
         private void StaticModel_LoadEndEvent()
         {
-            SetProperty(nameof(VisualFolder));
-            SetProperty(nameof(Extentions));
+            Debug.WriteLine("EVENT");
+            Extentions = null;
+            VisualFolder = null;
+            Extentions = new ObservableCollection<string>(AllFiles.Select(t => t.Extension).Distinct());
+            VisualFolder = new ObservableCollection<IndxElement>(AllFiles.Where(t => t.Prnt == null));
         }
-
         public IndxElements(string path)
         {
             RootFolderPath = path;
             Init();
         }
-        [JsonIgnore]
-        public int TotalFiles { get => AllFiles.Count(t => t.Tp == IndxElement.Type.file); }
-        [JsonIgnore]
-        public ObservableCollection<string> Extentions { get => new ObservableCollection<string>(AllFiles.Select(t => t.Extension).Distinct()); }
-
-        public static void SaveIndexes(IndxElements ie, string file_to_save)
+        public void SaveIndexes(string file_to_save)
         {
-            ie.DateOfLastChange = DateTime.Now.ToString("G");
-            File.WriteAllText(file_to_save, JsonConvert.SerializeObject(ie, Formatting.Indented));
+            this.DateOfLastChange = DateTime.Now.ToString("G");
+            File.WriteAllText(file_to_save, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
-        public static IndxElements LoadInexes(string file_to_load)
+        public void LoadInexes(string file_to_load)
         {
             if (File.Exists(file_to_load))
             {
                 try
                 {
                     var a = JsonConvert.DeserializeObject<IndxElements>(File.ReadAllText(file_to_load));
+                    RootFolderPath = a.RootFolderPath;
+                    DateOfLastChange = a.DateOfLastChange;
+                    AllFiles = a.AllFiles;
+                    a.Dispose();
                     //Debug.WriteLine("DONE DESER");
-                    return a;
+                    //return a;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    return null;
+                    //return null;
+                    System.Windows.Forms.MessageBox.Show($"File {file_to_load} load error\n{e.Message}!", "Error load", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+                    throw;
                 }
 
             }
             else
             {
-                return null;
+                System.Windows.Forms.MessageBox.Show($"File {file_to_load} was deleted!","Error load",System.Windows.Forms.MessageBoxButtons.OK,System.Windows.Forms.MessageBoxIcon.Error);
+                throw new Exception();
+                //return null;
             }
+        }
+
+        public void Dispose()
+        {
+            AllFiles = null;
+            VisualFolder = null;
+            Extentions = null;
+            DateOfLastChange = null;
+            RootFolderPath = null;
+            //ID = -1;
+            StaticModel.LoadEndEvent -= StaticModel_LoadEndEvent;
+            GC.SuppressFinalize(this);
         }
     }
     public class IndxElement : Proper
@@ -131,7 +158,7 @@ namespace IndexerWpf.Classes
         public int Id { get => id; set { SetProperty(ref id, value); } }
 
         [JsonIgnore]
-        public IndxElement Parent { get => StaticModel.ElIndx.AllFiles.FirstOrDefault(t => t.Id == Prnt); }
+        public IndxElement Parent { get => StaticModel.ElIndx.FirstOrDefault(t => t.Id == Prnt); }
         [JsonIgnore]
         public string ParentName { get => Parent == null ? this.Name : Parent.Name; }
         [JsonIgnore]
@@ -169,11 +196,30 @@ namespace IndexerWpf.Classes
         }
 
         [JsonIgnore]
-        public string Name => new FileInfo(FullPath).Name;
+        public string Name => Path.GetFileNameWithoutExtension(FullPath);//new FileInfo(FullPath).Name;
         [JsonIgnore]
-        public string Extension { get { if (Tp == Type.file) return new FileInfo(FullPath).Extension.ToLower(); else return "*"; } }
+        public string Extension 
+        { 
+            get 
+            {
+                if (Tp == Type.file)
+                {
+                    var ext = Path.GetExtension(FullPath);
+                    if (string.IsNullOrWhiteSpace(ext))
+                    {
+                        return "*";
+                    }
+                    else
+                    {
+                        return ext.ToLower();
+                    }
+                }
+                else 
+                    return "*"; 
+            } 
+        }
         [JsonIgnore]
-        public string DirPath => new FileInfo(FullPath).DirectoryName;
+        public string DirPath => Path.GetDirectoryName(FullPath);//new FileInfo(FullPath).DirectoryName;
 
         public static bool operator ==(IndxElement a, IndxElement b)
         {
@@ -251,21 +297,19 @@ namespace IndexerWpf.Classes
         }
 
         [JsonIgnore]
-        public IList<object> Items
+        public IList<IndxElement> Items
         {
             get
             {
-                IList<object> childNodes = new ObservableCollection<object>();
+                IList<IndxElement> childNodes = new ObservableCollection<IndxElement>();
                 if (Tp == Type.folder)
                 {
-                    var a = StaticModel.ElIndx.AllFiles.Where(t => t.Prnt == Id);
+                    var a = StaticModel.ElIndx.Where(t => t.Prnt == Id);
                     if (a != null)
                     {
                         foreach (var item in a)
                         {
                             childNodes.Add(item);
-                            //if(item.Tp == Type.folder)
-                            //StaticModel.InvokeRemoveItemEvent(item);
                         }
                     }
                     return childNodes;
