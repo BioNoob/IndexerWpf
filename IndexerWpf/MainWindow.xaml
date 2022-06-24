@@ -16,21 +16,109 @@
         Height="{Binding Sets.WindowSise.X, Mode=TwoWay}" Width="{Binding Sets.WindowSise.Y, Mode=TwoWay}"
         Top="{Binding Sets.WindowLastPos.Y, Mode=TwoWay}" Left="{Binding Sets.WindowLastPos.X, Mode=TwoWay}">
     <Window.DataContext>
-        <!--Background="#474A51"-->
         <local:MainViewModel/>
     </Window.DataContext>
     <Window.Resources>
+        <Style x:Key="MenuSeparatorStyle" TargetType="{x:Type Separator}">
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="KeyboardNavigation.IsTabStop" Value="False"/>
+            <Setter Property="KeyboardNavigation.TabNavigation" Value="None"/>
+            <Setter Property="Height" Value="5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Separator}">
+                        <Border Height="2" Margin="2" VerticalAlignment="Center" Background="#FF808080"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style TargetType="{x:Type FrameworkElement}" x:Key="DefaultStyle">
             <Setter Property="Control.FontFamily" Value="Jura" />
             <Setter Property="Control.Background" Value="White" />
             <Setter Property="Control.Foreground" Value="Black" />
         </Style>
-        <Style TargetType="Button" BasedOn="{StaticResource DefaultStyle}">
+        <Style TargetType="{x:Type Button}" x:Key="ImgButton" BasedOn="{StaticResource DefaultStyle}">
             <Setter Property="Background" Value="#FF3F3F3F" />
             <Setter Property="BorderBrush" Value="#FF3F3F3F" />
             <Setter Property="Foreground" Value="White" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#50FFFFFF"/>
+                </Trigger>
+            </Style.Triggers>
+
         </Style>
         <Style TargetType="TextBlock" BasedOn="{StaticResource DefaultStyle}"/>
+        <Style TargetType="MenuItem">
+            <Setter Property="Width" Value="200"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type MenuItem}">
+                        <Grid Name="Root" Height="Auto" >
+                            <ContentPresenter Name="HeaderHost" Margin="10,2,0,2" ContentSource="Header" RecognizesAccessKey="True" HorizontalAlignment="Left" VerticalAlignment="Center"
+                      TextOptions.TextRenderingMode="ClearType" TextBlock.FontSize="12" TextBlock.Foreground="{TemplateBinding Foreground}" TextOptions.TextFormattingMode="Display">
+                                <ContentPresenter.Resources>
+                                    <Style TargetType="{x:Type TextBlock}">
+                                        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                    </Style>
+                                </ContentPresenter.Resources>
+                            </ContentPresenter>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#505050"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#808080"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="#808080"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="{x:Type ContextMenu}">
+            <Setter Property="Background" Value="#FF3F3F3F"/>
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Opacity" Value="0.95"/>
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="Grid.IsSharedSizeScope" Value="true" />
+            <Setter Property="HasDropShadow" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ContextMenu}">
+                        <Grid Background="Transparent">
+                            <Border Margin="0,0,5,5" Background="#FF3F3F3F" BorderThickness="2" BorderBrush="Black" CornerRadius="5">
+                                <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" Margin="5"/>
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="3" ShadowDepth="3" Color="Black" Opacity="0.5"/>
+                                </Border.Effect>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!--<Style TargetType="MenuItem" BasedOn="{StaticResource DefaultStyle}">
+            <Setter Property="Background" Value="#FF3F3F3F"/>
+            <Setter Property="Foreground" Value="White" />
+        </Style>-->
         <Style TargetType="TextBox" BasedOn="{StaticResource DefaultStyle}"/>
         <Style TargetType="ListView" BasedOn="{StaticResource DefaultStyle}"/>
         <!--<Style TargetType="ComboBox" BasedOn="{StaticResource DefaultStyle}"/>-->
@@ -85,11 +173,9 @@
             </Trigger>
         </ControlTemplate.Triggers>-->
         </ControlTemplate>
-
         <ControlTemplate x:Key="ComboBoxTextBox" TargetType="{x:Type TextBox}">
             <Border x:Name="PART_ContentHost" Focusable="False" Background="{TemplateBinding Background}" />
         </ControlTemplate>
-
         <Style x:Key="{x:Type ComboBox}" TargetType="{x:Type ComboBox}">
             <Setter Property="SnapsToDevicePixels" Value="true"/>
             <Setter Property="OverridesDefaultStyle" Value="true"/>
@@ -173,7 +259,15 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Style.Triggers>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                    </Style>
+                </Setter.Value>
+            </Setter>
+                <Style.Triggers>
             </Style.Triggers>
         </Style>
         <Style x:Key="{x:Type ComboBoxItem}" TargetType="{x:Type ComboBoxItem}">
@@ -232,19 +326,24 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Button Margin="0,0,10,0" Grid.Column="0" ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding OpenIndexFolderCommand}">
-                    <Image Source="Resources/опен.png"/>
+                <Button Margin="0,0,10,0" Grid.Column="0" ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding OpenIndexFolderCommand}" Style="{StaticResource ImgButton}"
+                        ToolTip="Show indexes folder">
+                    <Image Source="Resources/папка_настрйока.png"/>
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Change default folder" Command="{Binding ChangeDirCommand}"/>
+                            <Separator Style="{StaticResource MenuSeparatorStyle}"/>
+                            <MenuItem IsEnabled="False" Header="{Binding Def_path}" ToolTip="{Binding Def_path}" ToolTipService.ShowOnDisabled="True"/>
+                        </ContextMenu>
+                    </Button.ContextMenu>
                 </Button>
-                <!--<Button Margin="10,0,10,0"  ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding ForceSaveIndexFolderCommand}">
-                <Image Source="Resources/опен.png"/>
-            </Button>-->
                 <Label Content="Avalibale indexes" HorizontalAlignment="Stretch" Grid.Column="1"/>
                 <ComboBox HorizontalAlignment="Stretch" Margin="10,0,10,0" ItemsSource="{Binding ExistedIndexes}" SelectedItem="{Binding SelectedExisted}" IsEnabled="{Binding Is_scanned}"
                       Grid.Column="2" VerticalContentAlignment="Center"/>
                 <Label Content="Index date" HorizontalAlignment="Stretch" Grid.Column="3" Margin="0,0,5,0"/>
                 <TextBox Text="{Binding Indexes.DateOfLastChange}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
                      HorizontalAlignment="Right" Width="135" IsReadOnly="True" Grid.Column="4"/>
-                <Button Margin="10,0,0,0" Grid.Column="5" ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding CloseWindowCommand}">
+                <Button Margin="10,0,0,0" Grid.Column="5" ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding CloseWindowCommand}" Style="{StaticResource ImgButton}">
                     <Image Source="Resources/закрыть.png"/>
                 </Button>
                 <Border Grid.Row="1" BorderThickness="0,1" Grid.ColumnSpan="6" BorderBrush="White" HorizontalAlignment="Stretch" Padding="0" 
@@ -258,57 +357,46 @@
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="32"/>
                     <ColumnDefinition Width="0.75*"/>
                     <ColumnDefinition Width="0.25*"/>
                 </Grid.ColumnDefinitions>
                 <TreeView x:Name="folder_tree" Grid.RowSpan="2" Grid.Column="0" 
-                 ItemsSource="{Binding Indexes.VisualFolder}"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0">
-                    <!--<TreeView.ItemsSource>
-                        <MultiBinding Converter="{StaticResource NameConverter}">
-                            <Binding Path="Indexes.VisualFolder" />
-                            <Binding Path="Indexes.AllFiles" />
-                        </MultiBinding>
-                    </TreeView.ItemsSource>-->
+                 ItemsSource="{Binding VisualFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0" ScrollViewer.HorizontalScrollBarVisibility="Auto">
                     <TreeView.ItemContainerStyle>
                         <Style TargetType="{x:Type TreeViewItem}">
                             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                             <EventSetter Event="Selected" Handler="TreeViewSelectedItemChanged" />
-                            <!--<Style.Triggers>
-                                <DataTrigger Binding="{Binding IsSelected, Mode=TwoWay}" Value="True">
-                                    <Setter Property="Foreground" Value="#1E90FF"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsSelected, Mode=TwoWay}" Value="False">
-                                    <Setter Property="Foreground" Value="Black"/>
-                                </DataTrigger>
-                            </Style.Triggers>-->
                         </Style>
                     </TreeView.ItemContainerStyle>
                     <TreeView.Resources>
                         <HierarchicalDataTemplate DataType="{x:Type local_cls:IndxElement}" ItemsSource="{Binding Items}">
                             <StackPanel Orientation="Horizontal">
-                                <Image Width="16" Height="16" Source="{Binding GetUriImg}" />
+                                <Image x:Name="treeImg"  Width="16" Height="16" Source="{Binding GetUriImg}" />
                                 <TextBlock Text="{Binding Name}" TextWrapping="Wrap" TextTrimming="WordEllipsis" Margin="5,0,0,0">
                                     <TextBlock.ToolTip>
                                         <TextBlock Text="{Binding ParentName}"/>
                                     </TextBlock.ToolTip>
                                 <TextBlock.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="Открыть документ" Command="{Binding OpenFileCommand}"/>
-                                        <Separator />
-                                        <MenuItem Header="Открыть папку документа" Command="{Binding OpenFolderCommand}"/>
+                                        <MenuItem Header="Open document" Command="{Binding OpenFileCommand}"/>
+                                            <Separator Style="{StaticResource MenuSeparatorStyle}"/>
+                                        <MenuItem Header="Open document folder" Command="{Binding OpenFolderCommand}"/>
                                     </ContextMenu>
                                 </TextBlock.ContextMenu>
                             </TextBlock>
                             </StackPanel>
+                            
                         </HierarchicalDataTemplate>
                     </TreeView.Resources>
                 </TreeView>
-                <TextBox Grid.Row="0" Grid.Column="1" Margin="10,0,0,0" Text="{Binding Search_text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                <Image Source="Resources/поиск.png" Width="24" Height="24" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10,0,0,0" />
+                <TextBox Grid.Row="0" Grid.Column="2" Margin="10,0,0,0" Text="{Binding Search_text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                      HorizontalContentAlignment="Left" VerticalContentAlignment="Center" IsEnabled="{Binding Was_Loaded}"/>
-                <ComboBox Grid.Row="0" Grid.Column="2" Margin="10,0,0,0" ItemsSource="{Binding Indexes.Extentions}"  SelectedValue="{Binding SelectedFilter}" IsEnabled="{Binding Was_Loaded}"/>
-                <ListView Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="10,10,0,0" ItemsSource="{Binding Searched}" SelectionChanged="ListView_SelectionChanged" >
+                <ComboBox Grid.Row="0" Grid.Column="3" Margin="10,0,0,0" ItemsSource="{Binding Indexes.Extentions}"  SelectedValue="{Binding SelectedFilter}" IsEnabled="{Binding Was_Loaded}"/>
+                <ListView Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Margin="10,10,0,0" ItemsSource="{Binding Searched}" SelectionChanged="ListView_SelectionChanged" SelectionMode="Single">
                     <ListView.ItemTemplate>
                         <DataTemplate DataType="{x:Type local_cls:IndxElement}">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch">
@@ -316,9 +404,9 @@
                                 <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
                                     <TextBlock.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem Header="Открыть документ" Command="{Binding OpenFileCommand}"/>
-                                            <Separator />
-                                            <MenuItem Header="Открыть папку документа" Command="{Binding OpenFolderCommand}"/>
+                                            <MenuItem Header="Open document" Command="{Binding OpenFileCommand}"/>
+                                            <Separator Style="{StaticResource MenuSeparatorStyle}"/>
+                                            <MenuItem Header="Open document folder" Command="{Binding OpenFolderCommand}"/>
                                         </ContextMenu>
                                     </TextBlock.ContextMenu>
                                 </TextBlock>

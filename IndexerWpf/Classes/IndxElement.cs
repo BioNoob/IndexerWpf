@@ -36,27 +36,19 @@ namespace IndexerWpf.Classes
     }
     public class IndxElements : Proper, IDisposable
     {
-        //public static int Identificator = 0;
-        private ObservableCollection<IndxElement> allFiles;
-        private ObservableCollection<IndxElement> visualfolder;
-        private ObservableCollection<string> extentions;
+        private WpfObservableRangeCollection<IndxElement> allFiles;
         private string rootFolderPath;
         private string dateOfLastChange;
-
-
-        [JsonIgnore]
-        public ObservableCollection<IndxElement> VisualFolder { get => visualfolder; set { SetProperty(ref visualfolder, value); } }
-        [JsonIgnore]
-        public ObservableCollection<string> Extentions { get => extentions; set { SetProperty(ref extentions, value); } }
+        private WpfObservableRangeCollection<string> extentions;
         [JsonIgnore]
         public int TotalFiles { get => AllFiles.Count(t => t.Tp == IndxElement.Type.file); }
-        //[JsonIgnore]
-        //public int ID { get; set; }
 
+        [JsonIgnore]
+        public WpfObservableRangeCollection<string> Extentions { get => extentions; set { SetProperty(ref extentions, value); } }
 
         public string RootFolderPath { get => rootFolderPath; set { SetProperty(ref rootFolderPath, value); } }
         public string DateOfLastChange { get => dateOfLastChange; set => SetProperty(ref dateOfLastChange, value); }
-        public ObservableCollection<IndxElement> AllFiles { get => allFiles; set { SetProperty(ref allFiles, value); } }
+        public WpfObservableRangeCollection<IndxElement> AllFiles { get => allFiles; set { SetProperty(ref allFiles, value); } }
 
         public IndxElements()
         {
@@ -67,19 +59,26 @@ namespace IndexerWpf.Classes
 
         private void Init()
         {
-            AllFiles = new ObservableCollection<IndxElement>();
-            IndxElement.Identificator = 0;
+            AllFiles = new WpfObservableRangeCollection<IndxElement>();
+            Extentions = new WpfObservableRangeCollection<string>();
             StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
-            //ID = Identificator++;
+            IndxElement.Identificator = 0;
         }
+
+        public void Clear()
+        {
+            AllFiles = new WpfObservableRangeCollection<IndxElement>();
+            Extentions = new WpfObservableRangeCollection<string>();
+            IndxElement.Identificator = 0;
+            RootFolderPath = string.Empty;
+        }
+
         private void StaticModel_LoadEndEvent()
         {
-            Debug.WriteLine("EVENT");
-            Extentions = null;
-            VisualFolder = null;
-            Extentions = new ObservableCollection<string>(AllFiles.Select(t => t.Extension).Distinct());
-            VisualFolder = new ObservableCollection<IndxElement>(AllFiles.Where(t => t.Prnt == null));
+            Extentions.Clear();
+            Extentions.AddRange(AllFiles.Select(t => t.Extension).Distinct());
         }
+
         public IndxElements(string path)
         {
             RootFolderPath = path;
@@ -114,7 +113,7 @@ namespace IndexerWpf.Classes
             }
             else
             {
-                System.Windows.Forms.MessageBox.Show($"File {file_to_load} was deleted!","Error load",System.Windows.Forms.MessageBoxButtons.OK,System.Windows.Forms.MessageBoxIcon.Error);
+                System.Windows.Forms.MessageBox.Show($"File {file_to_load} was deleted!", "Error load", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
                 throw new Exception();
                 //return null;
             }
@@ -123,8 +122,8 @@ namespace IndexerWpf.Classes
         public void Dispose()
         {
             AllFiles = null;
-            VisualFolder = null;
-            Extentions = null;
+            //VisualFolder = null;
+            //Extentions = null;
             DateOfLastChange = null;
             RootFolderPath = null;
             //ID = -1;
@@ -172,6 +171,7 @@ namespace IndexerWpf.Classes
                 // Expand all the way up to the root.
                 if (isExpanded && Parent != null)
                     Parent.IsExpanded = value;
+                SetProperty(nameof(GetUriImg));
             }
         }
         [JsonIgnore]
@@ -198,9 +198,9 @@ namespace IndexerWpf.Classes
         [JsonIgnore]
         public string Name => Path.GetFileNameWithoutExtension(FullPath);//new FileInfo(FullPath).Name;
         [JsonIgnore]
-        public string Extension 
-        { 
-            get 
+        public string Extension
+        {
+            get
             {
                 if (Tp == Type.file)
                 {
@@ -214,9 +214,9 @@ namespace IndexerWpf.Classes
                         return ext.ToLower();
                     }
                 }
-                else 
-                    return "*"; 
-            } 
+                else
+                    return "*";
+            }
         }
         [JsonIgnore]
         public string DirPath => Path.GetDirectoryName(FullPath);//new FileInfo(FullPath).DirectoryName;
@@ -326,7 +326,10 @@ namespace IndexerWpf.Classes
                 switch (Tp)
                 {
                     case Type.folder:
-                        return "/Resources/папка.png";
+                        if (IsExpanded)
+                            return "/Resources/опен.png";
+                        else
+                            return "/Resources/папка.png";
                     case Type.file:
                         return "/Resources/док.png";
                     default:

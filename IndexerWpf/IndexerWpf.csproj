@@ -17,6 +17,8 @@
     <None Remove="Resources\закрыть.png" />
     <None Remove="Resources\опен.png" />
     <None Remove="Resources\папка.png" />
+    <None Remove="Resources\папка_настрйока.png" />
+    <None Remove="Resources\поиск.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +33,8 @@
     <Resource Include="Resources\закрыть.png" />
     <Resource Include="Resources\опен.png" />
     <Resource Include="Resources\папка.png" />
+    <Resource Include="Resources\папка_настрйока.png" />
+    <Resource Include="Resources\поиск.png" />
   </ItemGroup>
 
   <ItemGroup>
