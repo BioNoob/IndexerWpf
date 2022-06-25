@@ -42,7 +42,6 @@ namespace IndexerWpf.Classes
         }
         public void LoadSettings()
         {
-            //Settings a = new Settings();
             if (File.Exists(Directory.GetCurrentDirectory() + "\\settings.json"))
             {
                 try

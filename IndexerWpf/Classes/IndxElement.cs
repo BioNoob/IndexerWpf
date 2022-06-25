@@ -196,7 +196,7 @@ namespace IndexerWpf.Classes
         }
 
         [JsonIgnore]
-        public string Name => Path.GetFileNameWithoutExtension(FullPath);//new FileInfo(FullPath).Name;
+        public string Name => Path.GetFileName(FullPath);
         [JsonIgnore]
         public string Extension
         {
@@ -219,7 +219,7 @@ namespace IndexerWpf.Classes
             }
         }
         [JsonIgnore]
-        public string DirPath => Path.GetDirectoryName(FullPath);//new FileInfo(FullPath).DirectoryName;
+        public string DirPath => Path.GetDirectoryName(FullPath);
 
         public static bool operator ==(IndxElement a, IndxElement b)
         {

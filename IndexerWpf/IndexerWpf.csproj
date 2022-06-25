@@ -13,6 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\regex_shpora.jpg" />
     <None Remove="Resources\док.png" />
     <None Remove="Resources\закрыть.png" />
     <None Remove="Resources\опен.png" />
@@ -22,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\regex_shpora.jpg" />
     <Resource Include="Resources\док.png" />
   </ItemGroup>
 

@@ -1,16 +1,12 @@
 ﻿using IndexerWpf.Classes;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Windows.Forms;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace IndexerWpf.Models
 {
@@ -133,14 +129,9 @@ namespace IndexerWpf.Models
             fbd.ShowNewFolderButton = true;
             fbd.AutoUpgradeEnabled = true;
             fbd.RootFolder = Environment.SpecialFolder.Recent;
-
-
             Is_scanned = false;
             LoadListIndexes();
-
             Prog_value = 0;
-            //Prog_value_max = 1;
-
         }
 
         private void LoadListIndexes()
@@ -181,10 +172,8 @@ namespace IndexerWpf.Models
                 var ind = ExistedIndexes.IndexOf(name_of);
                 ExistedIndexes.Remove(name_of);
                 if (ind > 0)
-                    //SetProperty(ref selectedexisted, ExistedIndexes.ElementAt(ind - 1));
                     SelectedExisted = ExistedIndexes.ElementAt(ind - 1);
                 else
-                    //SetProperty(ref selectedexisted, ExistedIndexes.ElementAt(ind));
                     SelectedExisted = ExistedIndexes.ElementAt(ind);
                 return;
             }
@@ -192,27 +181,16 @@ namespace IndexerWpf.Models
             StaticModel.InvokeLoadEndEvent();
             if (Indexes != null)
             {
-                //Was_scanned = false;
-                //Indexes.VisualFolder = new ObservableCollection<IndxElement>(Indexes.AllFiles.Where(t => t.Tp == IndxElement.Type.folder && t.Prnt == null));
                 Was_Loaded = true;
                 if (!string.IsNullOrEmpty(Search_text))
                     DoSearch(Search_text);
-                //PropertyChanged?.Invoke(Indexes, new PropertyChangedEventArgs(nameof(Indexes.Extentions)));
                 Prog_value = Indexes.TotalFiles;
                 Prog_value_max = Prog_value;
             }
-            //}
         }
         //Сохранение полюбому в конце парсинга. Нет ситуации где бы оно не сохранилось. Если только отказаться перезаписывать
         private bool DoSave()
         {
-            //if (Was_scanned)
-            //{
-            //    DialogResult res = DialogResult.Yes;
-            //    if (!force)
-            //        res = MessageBox.Show("File not saved! Save file?", "Not saved", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
-            //    if (res == DialogResult.Yes)
-            //    {
             string to_save = Path.GetFileName(Indexes.RootFolderPath) /*new DirectoryInfo(Indexes.RootFolderPath).Name/* + DateTime.Now.ToString("ddMMy_HHmm")*/ + ".json";
             string full_to_save = Def_path + "\\" + to_save;
             if (new FileInfo(full_to_save).Exists)
@@ -223,41 +201,30 @@ namespace IndexerWpf.Models
             else
                 Indexes.SaveIndexes(full_to_save);
             return true;
-            //}
-            //else if (res == DialogResult.Cancel)
-            //return false;
-            //else
-            //return true;
-            //}
-            //else
-            //return true;
+
         }
         private void DoSearch(string text)
         {
             if (Indexes != null)
-                if (!string.IsNullOrEmpty(text) && text.Length > 2)
+                if (!string.IsNullOrEmpty(text) && text.Length > 1)
                 {
                     Searched.Clear();
-                    //НУЖНА ПРОВЕРКА НА ПРАВИЛЬНОСТЬ РЕГУЛЯРКИ
-                    var reg = new Regex(@$"^{text}$", RegexOptions.IgnoreCase);
-                    var reg_res = Indexes.AllFiles.Where(t => reg.IsMatch(t.Name)).ToList();
+                    List<IndxElement> res = new List<IndxElement>();
+                    if (StaticModel.IsValidRegex(text))
+                    {
+                        var reg = new Regex(@$"^{text}$", RegexOptions.IgnoreCase);
+                        res = Indexes.AllFiles.Where(t => reg.IsMatch(t.Name)).ToList();
+                    }
+
                     if (SelectedFilter != "*" && SelectedFilter != null)
                     {
-                        Searched.AddRange(reg_res.Where(t => t.Extension == SelectedFilter));
+                        Searched.AddRange(res.Where(t => t.Extension == SelectedFilter));
                         Searched.AddRange(Indexes.AllFiles.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) && t.Extension == SelectedFilter));
-                        //foreach (var item in b)
-                        //{
-                        //    Searched.Add(item);//(item.FullPath, item.Name, item.Tp == IndxElement.Type.file ? "док.png" : "папка.png").Tag = item;
-                        //}
                     }
                     else
                     {
-                        Searched.AddRange(reg_res);
+                        Searched.AddRange(res);
                         Searched.AddRange(Indexes.AllFiles.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase)));
-                        //foreach (var item in b)
-                        //{
-                        //    Searched.Add(item);//search_result_lbx_.Items.Add(item.FullPath, item.Name, item.Tp == IndxElement.Type.file ? "док.png" : "папка.png").Tag = item;
-                        //}
                     }
                 }
                 else
@@ -270,7 +237,7 @@ namespace IndexerWpf.Models
             await DoScan(path);
             //Debug.WriteLine("DONE");
             DoSave();
-            var nm = Path.GetFileNameWithoutExtension(Indexes.RootFolderPath);//new DirectoryInfo(Indexes.RootFolderPath).Name;
+            var nm = Path.GetFileNameWithoutExtension(Indexes.RootFolderPath);
             if (!ExistedIndexes.Contains(nm))
                 ExistedIndexes.Add(nm);
             SetProperty(ref selectedexisted, nm, "SelectedExisted");
@@ -280,17 +247,14 @@ namespace IndexerWpf.Models
         }
         private async Task DoScan(string path)
         {
-            //Indexes = new IndxElements(path);
-            //if (Indexes == null)
             Search_text = string.Empty;
             Indexes.Dispose();
             Indexes = new IndxElements(path);
-            //DirectoryInfo di = new DirectoryInfo(path);
             //получаем количество файлов
             Prog_value = 0;
             Prog_value_max = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories).Length;
             //создаем корневую ноду по корневому каталогу
-            IndxElement root = new IndxElement(Path.GetFullPath(path)/*di.FullName*/) { Tp = IndxElement.Type.folder, Prnt = null };
+            IndxElement root = new IndxElement(Path.GetFullPath(path)) { Tp = IndxElement.Type.folder, Prnt = null };
             Indexes.AllFiles.Add(root);
             await Task.Run(() =>
             {
@@ -303,9 +267,6 @@ namespace IndexerWpf.Models
                     Indexes.AllFiles.Add(item);
                 }
             });
-            //грузим файлы начального каталога
-            //Indexes.VisualFolder = new ObservableCollection<IndxElement>(Indexes.AllFiles.Where(t => t.Tp == IndxElement.Type.folder && t.Prnt == null));
-
             GC.Collect();
         }
         /// <summary>
@@ -340,11 +301,10 @@ namespace IndexerWpf.Models
             string[] subdirectoryEntries = Directory.GetDirectories(dir);
             foreach (string subdirectory in subdirectoryEntries)
             {
-                //DirectoryInfo di = new DirectoryInfo(subdirectory);
-                IndxElement newparent = new IndxElement() { FullPath = Path.GetFullPath(subdirectory)/*di.FullName*/, Tp = IndxElement.Type.folder, Prnt = parfolder.Id };
+                IndxElement newparent = new IndxElement() { FullPath = Path.GetFullPath(subdirectory), Tp = IndxElement.Type.folder, Prnt = parfolder.Id };
                 ie.Add(newparent);
-                ie.AddRange(LoadFiles(subdirectory, /*tds,*/ newparent));
-                ie.AddRange(LoadSubDirectories(subdirectory, /*tds,*/ newparent));
+                ie.AddRange(LoadFiles(subdirectory, newparent));
+                ie.AddRange(LoadSubDirectories(subdirectory,  newparent));
                 UpdateProgress();
             }
             return ie;

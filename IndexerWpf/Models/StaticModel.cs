@@ -1,5 +1,7 @@
 ﻿using IndexerWpf.Classes;
+using System;
 using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 
 namespace IndexerWpf.Models
 {
@@ -8,13 +10,6 @@ namespace IndexerWpf.Models
         private static ObservableCollection<IndxElement> elIndx;
 
         public static ObservableCollection<IndxElement> ElIndx { get => elIndx; set { elIndx = value; } }
-
-        //public delegate void ItemDrawed(IndxElement db);
-        //public static event ItemDrawed RemoveItemEvent;
-        //public static void InvokeRemoveItemEvent(IndxElement db)
-        //{
-        //    RemoveItemEvent?.Invoke(db);
-        //}
 
         public delegate void LoadEnd();
         public static event LoadEnd LoadEndEvent;
@@ -28,9 +23,21 @@ namespace IndexerWpf.Models
         {
             WindowClosing?.Invoke();
         }
-        //private ObservableCollection<IndxElement> visualFolder;
-        //public ObservableCollection<IndxElement> VisualFolder { get => visualFolder; set { visualFolder = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("visualFolder")); } }
+        public static bool IsValidRegex(string pattern)
+        {
+            if (string.IsNullOrWhiteSpace(pattern)) return false;
 
+            try
+            {
+                Regex.Match("", pattern);
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 
 }

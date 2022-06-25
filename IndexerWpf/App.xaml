@@ -5,5 +5,25 @@
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <!--<local:FauxVM x:Key="VM" />-->
+        <Style TargetType="{x:Type FrameworkElement}" x:Key="DefaultStyle">
+            <Setter Property="Control.FontFamily" Value="Jura" />
+            <Setter Property="Control.Background" Value="White" />
+            <Setter Property="Control.Foreground" Value="Black" />
+        </Style>
+        <Style TargetType="Label" BasedOn="{StaticResource DefaultStyle}">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style TargetType="{x:Type Hyperlink}">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Foreground" Value="#FF4990FB" />
+            <Setter Property="FontFamily" Value="Jura"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="Red" />
+                    <Setter Property="TextBlock.TextDecorations" Value="Underline" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Application.Resources>
 </Application>
