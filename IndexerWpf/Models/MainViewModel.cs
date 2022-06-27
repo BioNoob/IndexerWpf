@@ -136,7 +136,7 @@ namespace IndexerWpf.Models
 
             SelectedExisted = Sets.LastIndex;
 
-            Prog_value = 0;
+            //Prog_value = 0;
         }
 
         private void LoadListIndexes()
@@ -163,6 +163,7 @@ namespace IndexerWpf.Models
             VisualFolder.AddRange(Indexes.AllFiles.Where(t => t.Prnt == null));
         }
 
+        //https://docs.microsoft.com/en-us/dotnet/standard/parallel-programming/how-to-iterate-file-directories-with-the-parallel-class?redirectedfrom=MSDN ??
         private void DoLoad(string name_of)
         {
             string full_nm = $"{Def_path}\\{name_of}.json";
@@ -189,8 +190,9 @@ namespace IndexerWpf.Models
                 Was_Loaded = true;
                 if (!string.IsNullOrEmpty(Search_text))
                     DoSearch(Search_text);
+                Prog_value_max = Indexes.TotalFiles;
                 Prog_value = Indexes.TotalFiles;
-                Prog_value_max = Prog_value;
+
             }
         }
         //Сохранение полюбому в конце парсинга. Нет ситуации где бы оно не сохранилось. Если только отказаться перезаписывать
@@ -263,10 +265,16 @@ namespace IndexerWpf.Models
             Indexes = new IndxElements(path);
             //получаем количество файлов
             Prog_value = 0;
-            var dirs = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
-            //Directory.EnumerateFiles()
-            Prog_value_max = dirs.Length;
-            if(Prog_value_max > 10000)
+
+            
+            //var dirs = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+
+            //Prog_value_max = dirs.Length;
+
+            var fileNames = Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories);
+    
+            Prog_value_max = fileNames.Count();
+            if(Prog_value_max > 100000)
             {
                 MessageBox.Show($"Too many files ({Prog_value_max})\n Please use internal directories!", "Too many files", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 Prog_value = 1;
@@ -300,7 +308,7 @@ namespace IndexerWpf.Models
         private List<IndxElement> LoadFiles(string dir, /*TreeNode td,*/ IndxElement parfolder)
         {
             List<IndxElement> lie = new List<IndxElement>();
-            string[] Files = Directory.GetFiles(dir, "*.*");
+            var Files = Directory.EnumerateFiles(dir, "*.*");
             foreach (string file in Files)
             {
                 //FileInfo fi = new FileInfo(file);
@@ -320,8 +328,10 @@ namespace IndexerWpf.Models
         private List<IndxElement> LoadSubDirectories(string dir, /*TreeNode td, */IndxElement parfolder)
         {
             List<IndxElement> ie = new List<IndxElement>();
-            string[] subdirectoryEntries = Directory.GetDirectories(dir);
-            foreach (string subdirectory in subdirectoryEntries)
+            //string[] subdirectoryEntries = Directory.GetDirectories(dir);
+            var subs = Directory.EnumerateDirectories(dir);
+
+            foreach (string subdirectory in subs)
             {
                 IndxElement newparent = new IndxElement() { FullPath = Path.GetFullPath(subdirectory), Tp = IndxElement.Type.folder, Prnt = parfolder.Id };
                 ie.Add(newparent);
