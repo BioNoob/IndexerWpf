@@ -13,7 +13,7 @@ namespace IndexerWpf.Models
     public class MainViewModel : Proper
     {
         public WpfObservableRangeCollection<string> ExistedIndexes { get => existedIndexs; set => SetProperty(ref existedIndexs, value); }
-        public string SelectedExisted { get => selectedexisted; set { SetProperty(ref selectedexisted, value); if (value != null) DoLoad(value); } }
+        public string SelectedExisted { get => selectedexisted; set { SetProperty(ref selectedexisted, value); if (!string.IsNullOrEmpty(value)) DoLoad(value); } }
         public IndxElements Indexes { get => indexes; set { StaticModel.ElIndx = value.AllFiles; SetProperty(ref indexes, value); } }
         public IndxElement Selectedfile { get => selectedfile; set => SetProperty(ref selectedfile, value); }
         public double Prog_value { get => prog_val; set => SetProperty(ref prog_val, value); }
@@ -133,6 +133,9 @@ namespace IndexerWpf.Models
             fbd.RootFolder = Environment.SpecialFolder.Recent;
             Is_scanned = false;
             LoadListIndexes();
+
+            SelectedExisted = Sets.LastIndex;
+
             Prog_value = 0;
         }
 
@@ -176,7 +179,7 @@ namespace IndexerWpf.Models
                 if (ind > 0)
                     SelectedExisted = ExistedIndexes.ElementAt(ind - 1);
                 else
-                    SelectedExisted = ExistedIndexes.ElementAt(ind);
+                    SelectedExisted = null;
                 return;
             }
 
