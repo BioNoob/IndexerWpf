@@ -39,7 +39,7 @@ namespace IndexerWpf.Classes
             Properties.Settings.Default.LastIndex = LastIndex;
             Properties.Settings.Default.FolderIndexesDefPath = FolderIndexesDefPath;
             Properties.Settings.Default.Save();
-            File.WriteAllText(Directory.GetCurrentDirectory() +"\\settings.json", JsonConvert.SerializeObject(this, Formatting.Indented));
+            //File.WriteAllText(Directory.GetCurrentDirectory() +"\\settings.json", JsonConvert.SerializeObject(this, Formatting.Indented));
         }
         public void LoadSettings()
         {
