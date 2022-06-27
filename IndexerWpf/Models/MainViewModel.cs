@@ -258,6 +258,7 @@ namespace IndexerWpf.Models
             //получаем количество файлов
             Prog_value = 0;
             var dirs = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+            //Directory.EnumerateFiles()
             Prog_value_max = dirs.Length;
             if(Prog_value_max > 10000)
             {
