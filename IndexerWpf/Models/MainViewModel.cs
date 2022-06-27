@@ -241,6 +241,9 @@ namespace IndexerWpf.Models
             Was_Loaded = false;
             if(!await DoScan(path))
             {
+                Was_Loaded = true;
+                Is_scanned = false;
+                StaticModel.InvokeLoadEndEvent();
                 return;
             }
             //Debug.WriteLine("DONE");
