@@ -6,6 +6,13 @@
     <UseWPF>true</UseWPF>
 	<UseWindowsForms>true</UseWindowsForms>
 	<ApplicationIcon>anchor.ico</ApplicationIcon>
+	<Authors>BioYakor</Authors>
+	<Company>Yasma corp</Company>
+	<AssemblyVersion>1.1.0.0</AssemblyVersion>
+	<FileVersion>1.1.0.0</FileVersion>
+	<PackageIcon>anchor.ico</PackageIcon>
+	<PackageIconUrl />
+	<PackageProjectUrl>https://github.com/BioNoob/IndexerWpf</PackageProjectUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -20,6 +27,10 @@
     <None Remove="Resources\папка.png" />
     <None Remove="Resources\папка_настрйока.png" />
     <None Remove="Resources\поиск.png" />
+    <None Include="anchor.ico">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

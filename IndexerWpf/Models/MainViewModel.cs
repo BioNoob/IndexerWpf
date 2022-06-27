@@ -65,6 +65,7 @@ namespace IndexerWpf.Models
             {
                 return _closewindow ?? (_closewindow = new CommandHandler(obj =>
                 {
+                    Sets.LastIndex = SelectedExisted;
                     Sets.SaveSettings();
                     Environment.Exit(0);
                 },
@@ -119,6 +120,7 @@ namespace IndexerWpf.Models
             Sets.LoadSettings();
             if (string.IsNullOrEmpty(Sets.FolderIndexesDefPath))
                 Sets.FolderIndexesDefPath = Directory.GetCurrentDirectory() + "\\indexes";
+
             ExistedIndexes = new WpfObservableRangeCollection<string>();
             Indexes = new IndxElements();
             Searched = new WpfObservableRangeCollection<IndxElement>();
@@ -252,7 +254,16 @@ namespace IndexerWpf.Models
             Indexes = new IndxElements(path);
             //получаем количество файлов
             Prog_value = 0;
-            Prog_value_max = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories).Length;
+            var dirs = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+            Prog_value_max = dirs.Length;
+            if(Prog_value_max > 10000)
+            {
+                MessageBox.Show($"Too many files ({Prog_value_max})\n Please use internal directories!", "Too many files", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                Prog_value = 1;
+                Prog_value_max = 1;
+                return;
+            }
+                
             //создаем корневую ноду по корневому каталогу
             IndxElement root = new IndxElement(Path.GetFullPath(path)) { Tp = IndxElement.Type.folder, Prnt = null };
             Indexes.AllFiles.Add(root);

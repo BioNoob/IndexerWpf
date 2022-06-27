@@ -37,26 +37,28 @@ namespace IndexerWpf.Classes
             Properties.Settings.Default.LastPos = new Point(WindowLastPos.X, WindowLastPos.Y);
             Properties.Settings.Default.LastSize = new Size(WindowSise.X, WindowSise.Y);
             Properties.Settings.Default.LastIndex = LastIndex;
+            Properties.Settings.Default.FolderIndexesDefPath = FolderIndexesDefPath;
             Properties.Settings.Default.Save();
             File.WriteAllText(Directory.GetCurrentDirectory() +"\\settings.json", JsonConvert.SerializeObject(this, Formatting.Indented));
         }
         public void LoadSettings()
         {
-            if (File.Exists(Directory.GetCurrentDirectory() + "\\settings.json"))
-            {
-                try
-                {
-                    FolderIndexesDefPath = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(Directory.GetCurrentDirectory() + "\\settings.json")).FolderIndexesDefPath;
-                }
-                catch (Exception)
-                {
-                    FolderIndexesDefPath = string.Empty;
-                }
-            }
-            else
-            {
-                FolderIndexesDefPath = string.Empty;
-            }
+            //if (File.Exists(Directory.GetCurrentDirectory() + "\\settings.json"))
+            //{
+            //    try
+            //    {
+            //        FolderIndexesDefPath = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(Directory.GetCurrentDirectory() + "\\settings.json")).FolderIndexesDefPath;
+            //    }
+            //    catch (Exception)
+            //    {
+            //        FolderIndexesDefPath = string.Empty;
+            //    }
+            //}
+            //else
+            //{
+            //    FolderIndexesDefPath = string.Empty;
+            //}
+            FolderIndexesDefPath = Properties.Settings.Default.FolderIndexesDefPath;
             LastIndex = Properties.Settings.Default.LastIndex;
             WindowSise = new CustomPoint() {X = Properties.Settings.Default.LastSize.Width, Y = Properties.Settings.Default.LastSize.Height };
             WindowLastPos = new CustomPoint() { X = Properties.Settings.Default.LastPos.X, Y = Properties.Settings.Default.LastPos.Y };

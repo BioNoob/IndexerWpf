@@ -58,5 +58,17 @@ namespace IndexerWpf.Properties {
                 this["LastIndex"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string FolderIndexesDefPath {
+            get {
+                return ((string)(this["FolderIndexesDefPath"]));
+            }
+            set {
+                this["FolderIndexesDefPath"] = value;
+            }
+        }
     }
 }
