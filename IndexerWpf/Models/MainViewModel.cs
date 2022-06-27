@@ -239,7 +239,10 @@ namespace IndexerWpf.Models
         {
             Is_scanned = true;
             Was_Loaded = false;
-            await DoScan(path);
+            if(!await DoScan(path))
+            {
+                return;
+            }
             //Debug.WriteLine("DONE");
             DoSave();
             var nm = Path.GetFileNameWithoutExtension(Indexes.RootFolderPath);
@@ -250,7 +253,7 @@ namespace IndexerWpf.Models
             Is_scanned = false;
             StaticModel.InvokeLoadEndEvent();
         }
-        private async Task DoScan(string path)
+        private async Task<bool> DoScan(string path)
         {
             Search_text = string.Empty;
             Indexes.Dispose();
@@ -265,7 +268,7 @@ namespace IndexerWpf.Models
                 MessageBox.Show($"Too many files ({Prog_value_max})\n Please use internal directories!", "Too many files", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 Prog_value = 1;
                 Prog_value_max = 1;
-                return;
+                return false;
             }
                 
             //создаем корневую ноду по корневому каталогу
@@ -283,6 +286,7 @@ namespace IndexerWpf.Models
                 }
             });
             GC.Collect();
+            return true;
         }
         /// <summary>
         /// Ищем файлы в указанном каталоге
