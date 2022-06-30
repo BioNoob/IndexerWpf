@@ -433,39 +433,27 @@
                 <Border BorderBrush="#FF97A0A5" Background="#353F3F3F" Width="150" Height="150" VerticalAlignment="Center" HorizontalAlignment="Center" BorderThickness="2" CornerRadius="100">
                     <Image Height="150" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center"  Stretch="Fill" Source="Resources/spinner.png" RenderTransformOrigin=".5,.5">
                         <Image.RenderTransform>
-                            <RotateTransform x:Name="AnimatedRotateTransform" Angle="0" />
+                            <RotateTransform x:Name="noFreeze" />
                         </Image.RenderTransform>
                         <Image.Triggers>
-                            <EventTrigger RoutedEvent="Visibility">
+                            <EventTrigger RoutedEvent="Loaded">
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="AnimatedRotateTransform" 
-                            Storyboard.TargetProperty="Angle" 
-                            By="10"        
-                            To="360" 
-                            Duration="0:0:0.5" 
-                            FillBehavior="Stop" />
+                                        <DoubleAnimation
+                        Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)"
+                        To="360" Duration="0:0:2" RepeatBehavior="Forever" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
                         </Image.Triggers>
                     </Image>
+
                 </Border>
-                <!--<Grid.Style>
+                <Grid.Style>
                     <Style TargetType="Grid">
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding Is_scanned}" Value="true">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <DataTrigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.99" To="0" Duration="0:0:1.5" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </DataTrigger.EnterActions>
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Is_scanned}" Value="false">
-                                <Setter Property="Visibility" Value="Visible" />
+                                <!--<Setter Property="Visibility" Value="Collapsed" />-->
                                 <DataTrigger.EnterActions>
                                     <BeginStoryboard>
                                         <Storyboard>
@@ -474,9 +462,19 @@
                                     </BeginStoryboard>
                                 </DataTrigger.EnterActions>
                             </DataTrigger>
+                            <DataTrigger Binding="{Binding Is_scanned}" Value="false">
+                                <!--<Setter Property="Visibility" Value="Visible" />-->
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.99" To="0" Duration="0:0:1.5" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                            </DataTrigger>
                         </Style.Triggers>
                     </Style>
-                </Grid.Style>-->
+                </Grid.Style>
 
 
             </Grid>

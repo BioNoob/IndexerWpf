@@ -26,8 +26,6 @@ namespace IndexerWpf.Models
         public bool Is_scanned { get => is_scanned; set => SetProperty(ref is_scanned, !value); }
         public Settings Sets { get => sets; set => SetProperty(ref sets, value); }
 
-        public CustomPoint SpnnerPos { get => new CustomPoint(Sets.WindowSise.X / 4, Sets.WindowSise.Y / 4); }
-
         //[JsonIgnore]
         public WpfObservableRangeCollection<IndxElement> VisualFolder { get => visualfolder; set { SetProperty(ref visualfolder, value); } }
 
@@ -49,7 +47,7 @@ namespace IndexerWpf.Models
         private Settings sets;
         private CommandHandler _openfolder;
         private FolderBrowserDialog fbd;
-        private CustomPoint spinnerPos;
+
         public CommandHandler OpenIndexFolderCommand
         {
             get
@@ -275,9 +273,9 @@ namespace IndexerWpf.Models
 
             //Prog_value_max = dirs.Length;
 
-            var fileNames = Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories);
+            //var fileNames = Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories);
 
-            Prog_value_max = fileNames.Count();
+            //Prog_value_max = fileNames.Count();
             if (Prog_value_max > 100000)
             {
                 MessageBox.Show($"Too many files ({Prog_value_max})\n Please use internal directories!", "Too many files", MessageBoxButtons.OK, MessageBoxIcon.Warning);
