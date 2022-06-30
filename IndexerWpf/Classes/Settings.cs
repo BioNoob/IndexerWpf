@@ -7,6 +7,7 @@ namespace IndexerWpf.Classes
 {
     public class CustomPoint : Proper
     {
+        public CustomPoint(int x,int y) { X = x; Y = y; }
         public CustomPoint() { X = 0; Y = 0; }
         private int x;
         private int y;

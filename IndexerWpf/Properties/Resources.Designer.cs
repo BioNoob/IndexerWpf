@@ -61,6 +61,26 @@ namespace IndexerWpf.Properties {
         }
         
         /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap regex_shpora {
+            get {
+                object obj = ResourceManager.GetObject("regex_shpora", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap spinner {
+            get {
+                object obj = ResourceManager.GetObject("spinner", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Поиск локализованного ресурса типа System.Byte[].
         /// </summary>
         internal static byte[] док {
@@ -97,6 +117,26 @@ namespace IndexerWpf.Properties {
             get {
                 object obj = ResourceManager.GetObject("папка", resourceCulture);
                 return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap папка_настрйока {
+            get {
+                object obj = ResourceManager.GetObject("папка_настрйока", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap поиск {
+            get {
+                object obj = ResourceManager.GetObject("поиск", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
     }

@@ -6,7 +6,7 @@
         xmlns:cm="clr-namespace:System.ComponentModel;assembly=System"
         mc:Ignorable="d"
         xmlns:local="clr-namespace:IndexerWpf.Models"
-        xmlns:local_cls="clr-namespace:IndexerWpf.Classes"
+        xmlns:local_cls="clr-namespace:IndexerWpf.Classes" xmlns:Forms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
         Title="MainWindow"  
         WindowStyle="None"
         WindowState="Normal" 
@@ -388,7 +388,7 @@
                         RegEx supported
                     </Hyperlink>
                 </TextBlock>
-                 <ComboBox Grid.Row="0" Grid.Column="3" Margin="10,0,0,0" ItemsSource="{Binding Indexes.Extentions}"  SelectedValue="{Binding SelectedFilter}" IsEnabled="{Binding Was_Loaded}"/>
+                <ComboBox Grid.Row="0" Grid.Column="3" Margin="10,0,0,0" ItemsSource="{Binding Indexes.Extentions}"  SelectedValue="{Binding SelectedFilter}" IsEnabled="{Binding Was_Loaded}"/>
                 <ListView Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="10,2,0,0" ItemsSource="{Binding Searched}" SelectionChanged="ListView_SelectionChanged" SelectionMode="Single">
                     <ListView.ItemTemplate>
                         <DataTemplate DataType="{x:Type local_cls:IndxElement}">
@@ -428,6 +428,57 @@
                 </ProgressBar>
                 <Button HorizontalAlignment="Right" Width="65" Content="Scan" Grid.Column="3" Command="{Binding StartScanCommand}" IsEnabled="{Binding Is_scanned}"
                                    BorderBrush="White" Background="White" Foreground="Black" />
+            </Grid>
+            <Grid Grid.RowSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Border BorderBrush="#FF97A0A5" Background="#353F3F3F" Width="150" Height="150" VerticalAlignment="Center" HorizontalAlignment="Center" BorderThickness="2" CornerRadius="100">
+                    <Image Height="150" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center"  Stretch="Fill" Source="Resources/spinner.png" RenderTransformOrigin=".5,.5">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="AnimatedRotateTransform" Angle="0" />
+                        </Image.RenderTransform>
+                        <Image.Triggers>
+                            <EventTrigger RoutedEvent="Visibility">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="AnimatedRotateTransform" 
+                            Storyboard.TargetProperty="Angle" 
+                            By="10"        
+                            To="360" 
+                            Duration="0:0:0.5" 
+                            FillBehavior="Stop" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Image.Triggers>
+                    </Image>
+                </Border>
+                <!--<Grid.Style>
+                    <Style TargetType="Grid">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Is_scanned}" Value="true">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.99" To="0" Duration="0:0:1.5" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Is_scanned}" Value="false">
+                                <Setter Property="Visibility" Value="Visible" />
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="0.99" Duration="0:0:1.5" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>-->
+
+
             </Grid>
         </Grid>
     </Border>

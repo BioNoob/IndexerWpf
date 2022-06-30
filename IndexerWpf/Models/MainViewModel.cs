@@ -25,6 +25,9 @@ namespace IndexerWpf.Models
         public bool Was_Loaded { get => was_loaded; set => SetProperty(ref was_loaded, value); }
         public bool Is_scanned { get => is_scanned; set => SetProperty(ref is_scanned, !value); }
         public Settings Sets { get => sets; set => SetProperty(ref sets, value); }
+
+        public CustomPoint SpnnerPos { get => new CustomPoint(Sets.WindowSise.X / 4, Sets.WindowSise.Y / 4); }
+
         //[JsonIgnore]
         public WpfObservableRangeCollection<IndxElement> VisualFolder { get => visualfolder; set { SetProperty(ref visualfolder, value); } }
 
@@ -46,6 +49,7 @@ namespace IndexerWpf.Models
         private Settings sets;
         private CommandHandler _openfolder;
         private FolderBrowserDialog fbd;
+        private CustomPoint spinnerPos;
         public CommandHandler OpenIndexFolderCommand
         {
             get
@@ -241,7 +245,7 @@ namespace IndexerWpf.Models
         {
             Is_scanned = true;
             Was_Loaded = false;
-            if(!await DoScan(path))
+            if (!await DoScan(path))
             {
                 Was_Loaded = true;
                 Is_scanned = false;
@@ -266,22 +270,22 @@ namespace IndexerWpf.Models
             //получаем количество файлов
             Prog_value = 0;
 
-            
+
             //var dirs = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
 
             //Prog_value_max = dirs.Length;
 
             var fileNames = Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories);
-    
+
             Prog_value_max = fileNames.Count();
-            if(Prog_value_max > 100000)
+            if (Prog_value_max > 100000)
             {
                 MessageBox.Show($"Too many files ({Prog_value_max})\n Please use internal directories!", "Too many files", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 Prog_value = 1;
                 Prog_value_max = 1;
                 return false;
             }
-                
+
             //создаем корневую ноду по корневому каталогу
             IndxElement root = new IndxElement(Path.GetFullPath(path)) { Tp = IndxElement.Type.folder, Prnt = null };
             Indexes.AllFiles.Add(root);
@@ -336,7 +340,7 @@ namespace IndexerWpf.Models
                 IndxElement newparent = new IndxElement() { FullPath = Path.GetFullPath(subdirectory), Tp = IndxElement.Type.folder, Prnt = parfolder.Id };
                 ie.Add(newparent);
                 ie.AddRange(LoadFiles(subdirectory, newparent));
-                ie.AddRange(LoadSubDirectories(subdirectory,  newparent));
+                ie.AddRange(LoadSubDirectories(subdirectory, newparent));
                 UpdateProgress();
             }
             return ie;
