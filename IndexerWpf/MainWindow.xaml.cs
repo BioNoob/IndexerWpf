@@ -52,5 +52,15 @@ namespace IndexerWpf
             rgx.Left += this.Width / 2;
             e.Handled = true;
         }
+
+        private void Storyboard_Completed(object sender, EventArgs e)
+        {
+            var a = 0;
+        }
+
+        private void Storyboard_Completed_1(object sender, EventArgs e)
+        {
+            var a = 0;
+        }
     }
 }

@@ -63,9 +63,9 @@ namespace IndexerWpf.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap regex_shpora {
+        internal static System.Drawing.Bitmap frag_b {
             get {
-                object obj = ResourceManager.GetObject("regex_shpora", resourceCulture);
+                object obj = ResourceManager.GetObject("frag_b", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -73,9 +73,39 @@ namespace IndexerWpf.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap spinner {
+        internal static System.Drawing.Bitmap frag_c {
             get {
-                object obj = ResourceManager.GetObject("spinner", resourceCulture);
+                object obj = ResourceManager.GetObject("frag_c", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap frag_o {
+            get {
+                object obj = ResourceManager.GetObject("frag_o", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap frag_y {
+            get {
+                object obj = ResourceManager.GetObject("frag_y", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap regex_shpora {
+            get {
+                object obj = ResourceManager.GetObject("regex_shpora", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

@@ -23,8 +23,9 @@ namespace IndexerWpf.Models
         public WpfObservableRangeCollection<IndxElement> Searched { get => searched; set => SetProperty(ref searched, value); }
         public string SelectedFilter { get => selectedFilter; set { SetProperty(ref selectedFilter, value); DoSearch(Search_text); } }
         public bool Was_Loaded { get => was_loaded; set => SetProperty(ref was_loaded, value); }
-        public bool Is_scanned { get => is_scanned; set => SetProperty(ref is_scanned, !value); }
+        public bool Is_scanned { get => is_scanned; set { if (value) SpinnerVisio = System.Windows.Visibility.Visible; else SpinnerVisio = System.Windows.Visibility.Collapsed; SetProperty(ref is_scanned, !value); } }
         public Settings Sets { get => sets; set => SetProperty(ref sets, value); }
+        public System.Windows.Visibility SpinnerVisio { get => spinnerVisio; set => SetProperty(ref spinnerVisio, value); }
 
         //[JsonIgnore]
         public WpfObservableRangeCollection<IndxElement> VisualFolder { get => visualfolder; set { SetProperty(ref visualfolder, value); } }
@@ -32,7 +33,7 @@ namespace IndexerWpf.Models
 
         private WpfObservableRangeCollection<IndxElement> visualfolder;
 
-
+        private System.Windows.Visibility spinnerVisio = System.Windows.Visibility.Visible;
         private bool was_loaded = false;
         private bool is_scanned = false;
         private WpfObservableRangeCollection<string> existedIndexs;
