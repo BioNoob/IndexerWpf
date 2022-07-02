@@ -4,6 +4,8 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
+using IndexerWpf.Models;
+using System.Windows.Media.Animation;
 
 namespace IndexerWpf
 {
@@ -13,6 +15,50 @@ namespace IndexerWpf
         {
             InitializeComponent();
             this.MouseLeftButtonDown += delegate { this.DragMove(); };
+            (DataContext as MainViewModel).PropertyChanged += MainWindow_PropertyChanged;
+        }
+        bool fadeout = false;
+        private void MainWindow_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == "Is_scanned")
+            {
+                DoubleAnimation opacityAnimation = new DoubleAnimation();
+                if ((DataContext as MainViewModel).Is_scanned)
+                {
+                    opacityAnimation.From = 0.89;
+                    opacityAnimation.To = 0;
+                    opacityAnimation.Duration = TimeSpan.FromSeconds(2);
+
+                }
+                else if (!(DataContext as MainViewModel).Is_scanned)
+                {
+                    borderspinner.Visibility = Visibility.Visible;
+                    opacityAnimation.From = 0;
+                    opacityAnimation.To = 0.89;
+                    opacityAnimation.Duration = TimeSpan.FromSeconds(2);
+                    fadeout = true;
+                }
+
+
+                Storyboard.SetTarget(opacityAnimation, borderspinner);
+                Storyboard.SetTargetProperty(opacityAnimation, new PropertyPath("(Border.Opacity)"));
+
+                var storyboard = new Storyboard();
+                storyboard.Completed += Storyboard_Completed1;
+                storyboard.Children.Add(opacityAnimation);
+                storyboard.Begin();
+
+
+            }
+        }
+
+        private void Storyboard_Completed1(object sender, EventArgs e)
+        {
+            if(fadeout)
+            {
+                fadeout = false;
+                borderspinner.Visibility = Visibility.Collapsed;
+            }
         }
 
         IndxElement lastSelected = null;
@@ -51,16 +97,6 @@ namespace IndexerWpf
             rgx.Show();
             rgx.Left += this.Width / 2;
             e.Handled = true;
-        }
-
-        private void Storyboard_Completed(object sender, EventArgs e)
-        {
-            var a = 0;
-        }
-
-        private void Storyboard_Completed_1(object sender, EventArgs e)
-        {
-            var a = 0;
         }
     }
 }

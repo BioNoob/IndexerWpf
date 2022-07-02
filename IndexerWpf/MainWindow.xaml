@@ -19,13 +19,6 @@
         <local:MainViewModel/>
     </Window.DataContext>
     <Window.Resources>
-        <Storyboard x:Key="VsetToOne" Completed="Storyboard_Completed">
-            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="0.99" Duration="0:0:1.5"/>
-        </Storyboard>
-
-        <Storyboard x:Key="VsetToZero" Completed="Storyboard_Completed_1">
-            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.99" To="0" Duration="0:0:1.5"/>
-        </Storyboard>
         <Style x:Key="MenuSeparatorStyle" TargetType="{x:Type Separator}">
             <Setter Property="SnapsToDevicePixels" Value="True"/>
             <Setter Property="OverridesDefaultStyle" Value="True"/>
@@ -437,7 +430,7 @@
                                    BorderBrush="White" Background="White" Foreground="Black" />
             </Grid>
 
-            <Border Background="Yellow" Grid.ColumnSpan="2" Grid.RowSpan="3" ClipToBounds="True" CornerRadius="10" x:Name="borderspinner" Visibility="{Binding SpinnerVisio, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+            <Border Background="#7F3F3F3F" Grid.ColumnSpan="2" Grid.RowSpan="3" ClipToBounds="True" CornerRadius="10" x:Name="borderspinner" Visibility="Collapsed" Opacity="100">
                 <Grid Grid.RowSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <Border BorderBrush="Transparent" Width="153" Height="153" VerticalAlignment="Center" HorizontalAlignment="Center" CornerRadius="100" Padding="0">
                         <Border.Background>
@@ -515,8 +508,9 @@
                     </Grid>
                     <Border BorderBrush="Black" Width="153" Height="153" VerticalAlignment="Center" HorizontalAlignment="Center" BorderThickness="3" CornerRadius="100" Padding="0"/>
                 </Grid>
-                <Border.Style>
+                <!--<Border.Style>
                     <Style TargetType="Border">
+                        <Setter Property="Opacity" Value="100"/>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding Is_scanned}" Value="false">
     
@@ -532,7 +526,7 @@
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
-                </Border.Style>
+                </Border.Style>-->
             </Border>
         </Grid>
     </Border>

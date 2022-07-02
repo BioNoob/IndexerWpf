@@ -23,17 +23,14 @@ namespace IndexerWpf.Models
         public WpfObservableRangeCollection<IndxElement> Searched { get => searched; set => SetProperty(ref searched, value); }
         public string SelectedFilter { get => selectedFilter; set { SetProperty(ref selectedFilter, value); DoSearch(Search_text); } }
         public bool Was_Loaded { get => was_loaded; set => SetProperty(ref was_loaded, value); }
-        public bool Is_scanned { get => is_scanned; set { if (value) SpinnerVisio = System.Windows.Visibility.Visible; else SpinnerVisio = System.Windows.Visibility.Collapsed; SetProperty(ref is_scanned, !value); } }
+        public bool Is_scanned { get => is_scanned; set { SetProperty(ref is_scanned, !value); } }
         public Settings Sets { get => sets; set => SetProperty(ref sets, value); }
-        public System.Windows.Visibility SpinnerVisio { get => spinnerVisio; set => SetProperty(ref spinnerVisio, value); }
 
         //[JsonIgnore]
         public WpfObservableRangeCollection<IndxElement> VisualFolder { get => visualfolder; set { SetProperty(ref visualfolder, value); } }
 
 
         private WpfObservableRangeCollection<IndxElement> visualfolder;
-
-        private System.Windows.Visibility spinnerVisio = System.Windows.Visibility.Visible;
         private bool was_loaded = false;
         private bool is_scanned = false;
         private WpfObservableRangeCollection<string> existedIndexs;
@@ -311,15 +308,25 @@ namespace IndexerWpf.Models
         private List<IndxElement> LoadFiles(string dir, /*TreeNode td,*/ IndxElement parfolder)
         {
             List<IndxElement> lie = new List<IndxElement>();
-            var Files = Directory.EnumerateFiles(dir, "*.*");
-            foreach (string file in Files)
+            try
             {
-                //FileInfo fi = new FileInfo(file);
-                Path.GetFullPath(file);
-                lie.Add(new IndxElement(Path.GetFullPath(file)/*fi.FullName*/) { Tp = IndxElement.Type.file, Prnt = parfolder.Id });
-                UpdateProgress();
+                var Files = Directory.EnumerateFiles(dir, "*.*");
+                foreach (string file in Files)
+                {
+                    //FileInfo fi = new FileInfo(file);
+                    Path.GetFullPath(file);
+                    lie.Add(new IndxElement(Path.GetFullPath(file)/*fi.FullName*/) { Tp = IndxElement.Type.file, Prnt = parfolder.Id });
+                    UpdateProgress();
+
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+
+                return lie;
 
             }
+
             return lie;
         }
         /// <summary>
@@ -332,16 +339,26 @@ namespace IndexerWpf.Models
         {
             List<IndxElement> ie = new List<IndxElement>();
             //string[] subdirectoryEntries = Directory.GetDirectories(dir);
-            var subs = Directory.EnumerateDirectories(dir);
-
-            foreach (string subdirectory in subs)
+            try
             {
-                IndxElement newparent = new IndxElement() { FullPath = Path.GetFullPath(subdirectory), Tp = IndxElement.Type.folder, Prnt = parfolder.Id };
-                ie.Add(newparent);
-                ie.AddRange(LoadFiles(subdirectory, newparent));
-                ie.AddRange(LoadSubDirectories(subdirectory, newparent));
-                UpdateProgress();
+                var subs = Directory.EnumerateDirectories(dir);
+
+                foreach (string subdirectory in subs)
+                {
+                    IndxElement newparent = new IndxElement() { FullPath = Path.GetFullPath(subdirectory), Tp = IndxElement.Type.folder, Prnt = parfolder.Id };
+                    ie.Add(newparent);
+                    ie.AddRange(LoadFiles(subdirectory, newparent));
+                    ie.AddRange(LoadSubDirectories(subdirectory, newparent));
+                    UpdateProgress();
+                }
             }
+            catch (UnauthorizedAccessException)
+            {
+
+                return ie;
+
+            }
+
             return ie;
         }
         private void UpdateProgress()
