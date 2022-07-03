@@ -8,21 +8,29 @@ using IndexerWpf.Models;
 using System.Windows.Media.Animation;
 using System.Windows.Input;
 using System.Diagnostics;
+using System.Collections.Generic;
+using System.Linq;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Windows.Media;
 
 namespace IndexerWpf
 {
     public partial class MainWindow : Window
     {
+        public bool FocusOnList = false;
+        public WpfObservableRangeCollection<IndxElement> SelectedElements { get => (this.DataContext as MainViewModel).SelectedElements; }
         public MainWindow()
         {
             InitializeComponent();
             this.MouseLeftButtonDown += delegate { this.DragMove(); };
+
             (DataContext as MainViewModel).PropertyChanged += MainWindow_PropertyChanged;
         }
         bool fadeout = false;
         private void MainWindow_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if(e.PropertyName == "Is_scanned")
+            if (e.PropertyName == "Is_scanned")
             {
                 DoubleAnimation opacityAnimation = new DoubleAnimation();
                 if ((DataContext as MainViewModel).Is_scanned)
@@ -56,40 +64,80 @@ namespace IndexerWpf
 
         private void Storyboard_Completed1(object sender, EventArgs e)
         {
-            if(fadeout)
+            if (fadeout)
             {
                 fadeout = false;
                 borderspinner.Visibility = Visibility.Collapsed;
             }
         }
 
-        IndxElement lastSelected = null;
         private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var a = sender as ListView;
-            IndxElement b = (IndxElement)a.SelectedItem;
-            if (b == null) return;
-            if (b != lastSelected)
+            var added = e.AddedItems.OfType<IndxElement>().ToList();
+            var deleted = e.RemovedItems.OfType<IndxElement>().ToList();
+            if (added != null)
             {
-                if (lastSelected != null)
+                foreach (var item in added)
                 {
-                    lastSelected.IsExpanded = false;
-                    lastSelected.IsSelected = false;
+                    if (!SelectedElements.Contains(item))
+                    {
+                        SelectedElements.Add(item);
+                        item.IsSelected = true;
+                        item.IsExpanded = true;
+                    }
+                }
+
+            }
+            if (deleted != null)
+            {
+                foreach (var item in deleted)
+                {
+                    if (SelectedElements.Contains(item))
+                    {
+                        SelectedElements.Remove(item);
+                        item.IsSelected = false;
+                        item.IsExpanded = false;
+                    }
                 }
             }
-            b.IsExpanded = true;
-            b.IsSelected = true;
-            lastSelected = b;
+            //folder_tree.ClearSelection();
+            //folder_tree.UpdateLayout();
+            //folder_tree.SelectedItems = SelectedElements;
+
+
+            //List<IndxElement> b = new List<IndxElement>(a.SelectedItems.);
+            //e.AddedItems
+
+
+
+            //IndxElement b = (IndxElement)a.SelectedItem;
+            //if (b == null) return;
+            //if (b != lastSelected)
+            //{
+            //    if (lastSelected != null)
+            //    {
+            //        lastSelected.IsExpanded = false;
+            //        lastSelected.IsSelected = false;
+            //    }
+            //}
+            //b.IsExpanded = true;
+            //b.IsSelected = true;
+            //lastSelected = b;
+
+
+
+
         }
 
         private void TreeViewSelectedItemChanged(object sender, RoutedEventArgs e)
         {
-            TreeViewItem item = sender as TreeViewItem;
-            if (item != null)
-            {
-                item.BringIntoView();
-                e.Handled = true;
-            }
+            //TreeViewItem item = sender as TreeViewItem;
+            //if (item != null)
+            //{
+            //    item.BringIntoView();
+            //    e.Handled = true;
+            //}
         }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
@@ -105,6 +153,63 @@ namespace IndexerWpf
             //Trace.WriteLine("Preview MouseRightButtonDown");
 
             e.Handled = true;
+        }
+
+        private void folder_tree_PreviewSelectionChanged(object sender, PreviewSelectionChangedEventArgs e)
+        {
+            //TreeViewItem item = e.Item as TreeViewItem;
+            //if (item == null)
+            //    return;
+            //if (e.Selecting)
+            //{
+            //    if (!item.IsSelected)
+            //        item.BringIntoView();
+            //}
+            //else
+            //{
+            //    if (!item.IsSelected)
+            //        item.BringIntoView();
+            //}
+
+        }
+        private void folder_tree_SelectionChanged(object sender, EventArgs e)
+        {
+
+            MultiSelectTreeView a = sender as MultiSelectTreeView;
+            //List<MultiSelectTreeViewItem> expandedTVI = new List<MultiSelectTreeViewItem>();
+            //foreach (MultiSelectTreeViewItem item in a.Items)
+            //{
+            //    if (item.HasItems && item.IsExpanded) //if it has children, and the parent is expanded
+            //    {
+            //        foreach (MultiSelectTreeViewItem child in item.Items)
+            //            expandedTVI.Add(child); //add the child to the list
+            //    }
+
+            //    expandedTVI.Add(item); //always add the parent to the list
+            //}
+            //a.
+            if (a.LastSelectedItem == null) return;
+            a.FocusItem(a.LastSelectedItem, true);
+            if(FocusOnList)
+            SearchResult.Focus();
+            ////a.BringIntoView();
+
+            //a.BringItemIntoView(a.LastSelectedItem);
+
+            //if (item == null)
+            //    return;
+            //if (item.IsSelected)
+            //    item.BringIntoView();
+        }
+
+        private void folder_tree_GotFocus(object sender, RoutedEventArgs e)
+        {
+            FocusOnList = false;
+        }
+
+        private void SearchResult_GotFocus(object sender, RoutedEventArgs e)
+        {
+            FocusOnList = true;
         }
     }
 }

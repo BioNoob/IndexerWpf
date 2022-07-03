@@ -158,6 +158,7 @@ namespace IndexerWpf.Classes
 
         [JsonIgnore]
         public IndxElement Parent { get => StaticModel.ElIndx.FirstOrDefault(t => t.Id == Prnt); }
+
         [JsonIgnore]
         public string ParentName { get => Parent == null ? this.Name : Parent.Name; }
         [JsonIgnore]

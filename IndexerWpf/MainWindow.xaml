@@ -349,9 +349,12 @@
                     <ColumnDefinition Width="0.75*"/>
                     <ColumnDefinition Width="0.25*"/>
                 </Grid.ColumnDefinitions>
-                <Controls:MultiSelectTreeView x:Name="folder_tree" Grid.RowSpan="3" Grid.Column="0" 
+                <Controls:MultiSelectTreeView x:Name="folder_tree" Grid.RowSpan="3" Grid.Column="0" GotFocus="folder_tree_GotFocus"
                  ItemsSource="{Binding VisualFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                                              SelectedItems="{Binding SelectedElements, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                                              PreviewSelectionChanged="folder_tree_PreviewSelectionChanged" SelectionChanged="folder_tree_SelectionChanged" 
+                                              >
                     <Controls:MultiSelectTreeView.ItemContainerStyle>
                         <Style TargetType="{x:Type Controls:MultiSelectTreeViewItem}">
                             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
@@ -391,11 +394,13 @@
                     </Hyperlink>
                 </TextBlock>
                 <ComboBox Grid.Row="0" Grid.Column="3" Margin="10,0,0,0" ItemsSource="{Binding Indexes.Extentions}"  SelectedValue="{Binding SelectedFilter}" IsEnabled="{Binding Was_Loaded}"/>
-                <ListView Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="10,2,0,0" ItemsSource="{Binding Searched}" SelectionChanged="ListView_SelectionChanged" SelectionMode="Multiple">
+                <ListView Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="10,2,0,0" ItemsSource="{Binding Searched}" SelectionChanged="ListView_SelectionChanged" SelectionMode="Extended"
+                          x:Name="SearchResult" GotFocus="SearchResult_GotFocus">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="{x:Type ListViewItem}">
                             <EventSetter Event="PreviewMouseRightButtonDown"
                          Handler="OnListViewItemPreviewMouseRightButtonDown" />
+                            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
                         </Style>
                     </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>

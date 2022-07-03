@@ -13,6 +13,7 @@ namespace IndexerWpf.Models
 {
     public class MainViewModel : Proper
     {
+        public WpfObservableRangeCollection<IndxElement> SelectedElements { get => selectedElements; set => SetProperty(ref selectedElements, value); }
         public WpfObservableRangeCollection<string> ExistedIndexes { get => existedIndexs; set => SetProperty(ref existedIndexs, value); }
         public string SelectedExisted { get => selectedexisted; set { SetProperty(ref selectedexisted, value); if (!string.IsNullOrEmpty(value)) DoLoad(value); } }
         public IndxElements Indexes { get => indexes; set { StaticModel.ElIndx = value.AllFiles; SetProperty(ref indexes, value); } }
@@ -30,7 +31,7 @@ namespace IndexerWpf.Models
         //[JsonIgnore]
         public WpfObservableRangeCollection<IndxElement> VisualFolder { get => visualfolder; set { SetProperty(ref visualfolder, value); } }
 
-
+        private WpfObservableRangeCollection<IndxElement> selectedElements;
         private WpfObservableRangeCollection<IndxElement> visualfolder;
         private bool was_loaded = false;
         private bool is_scanned = false;
@@ -143,6 +144,7 @@ namespace IndexerWpf.Models
             Indexes = new IndxElements();
             Searched = new WpfObservableRangeCollection<IndxElement>();
             VisualFolder = new WpfObservableRangeCollection<IndxElement>();
+            SelectedElements = new WpfObservableRangeCollection<IndxElement>();
 
             StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
             fbd = new FolderBrowserDialog();
