@@ -6,6 +6,8 @@ using System.Windows.Controls;
 using System.Windows.Navigation;
 using IndexerWpf.Models;
 using System.Windows.Media.Animation;
+using System.Windows.Input;
+using System.Diagnostics;
 
 namespace IndexerWpf
 {
@@ -96,6 +98,12 @@ namespace IndexerWpf
             rgx.Owner = this;
             rgx.Show();
             rgx.Left += this.Width / 2;
+            e.Handled = true;
+        }
+        private void OnListViewItemPreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            //Trace.WriteLine("Preview MouseRightButtonDown");
+
             e.Handled = true;
         }
     }

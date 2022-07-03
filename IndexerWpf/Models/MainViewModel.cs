@@ -1,6 +1,7 @@
 ﻿using IndexerWpf.Classes;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -70,6 +71,23 @@ namespace IndexerWpf.Models
                     Environment.Exit(0);
                 },
                 (obj) => Is_scanned
+                ));
+            }
+        }
+        private CommandHandler _savefiles;
+        public CommandHandler SaveFilesCommand
+        {
+            get
+            {
+                return _savefiles ?? (_savefiles = new CommandHandler(obj =>
+                {
+                    StringCollection paths = new StringCollection();
+
+                    paths.AddRange(Searched.Where(t => t.IsSelected).Select(t=>t.FullPath).ToArray());
+                    Clipboard.SetFileDropList(paths);
+
+                },
+                (obj) => Searched.Where(t=>t.IsSelected).Count() > 0
                 ));
             }
         }
