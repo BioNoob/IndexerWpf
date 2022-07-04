@@ -7,7 +7,7 @@
         	xmlns:Controls="clr-namespace:System.Windows.Controls;assembly=MultiSelectTreeView" 
         mc:Ignorable="d"
         xmlns:local="clr-namespace:IndexerWpf.Models"
-        xmlns:local_cls="clr-namespace:IndexerWpf.Classes" xmlns:Forms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+        xmlns:local_cls="clr-namespace:IndexerWpf.Classes" xmlns:Forms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms" xmlns:indexerwpf="clr-namespace:IndexerWpf"
         Title="MainWindow"  
         WindowStyle="None"
         WindowState="Normal" 
@@ -422,6 +422,7 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
+                <indexerwpf:MultiCombo Height="500" Grid.RowSpan="2"/>
             </Grid>
             <Grid Grid.Row="2" Margin="10,5,10,5">
                 <Grid.ColumnDefinitions>

@@ -39,7 +39,16 @@ namespace IndexerWpf.Classes
         private WpfObservableRangeCollection<IndxElement> allFiles;
         private string rootFolderPath;
         private string dateOfLastChange;
+        private bool isSelected;
         private WpfObservableRangeCollection<string> extentions;
+        [JsonIgnore]
+        public string GetName { get => Path.GetFileNameWithoutExtension(RootFolderPath); }
+
+        public delegate void WasSelected(bool state, string nm);
+        public event WasSelected SelectedChanged;
+
+        [JsonIgnore]
+        public bool IsSelected { get => isSelected; set { SetProperty(ref isSelected, value); SelectedChanged?.Invoke(value, GetName); } }
         [JsonIgnore]
         public int TotalFiles { get => AllFiles.Count(t => t.Tp == IndxElement.Type.file); }
 
@@ -52,7 +61,7 @@ namespace IndexerWpf.Classes
 
         public IndxElements()
         {
-
+            IsSelected = false;
             RootFolderPath = string.Empty;
             Init();
         }
