@@ -24,7 +24,6 @@ namespace IndexerWpf
         {
             InitializeComponent();
             this.MouseLeftButtonDown += delegate { this.DragMove(); };
-
             (DataContext as MainViewModel).PropertyChanged += MainWindow_PropertyChanged;
         }
         bool fadeout = false;

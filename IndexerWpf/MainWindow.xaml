@@ -14,6 +14,7 @@
         ResizeMode="CanResize"
         AllowsTransparency="True"  Background="Transparent"
         MinHeight="350" MinWidth="550"
+        Name="Window"
         Height="{Binding Sets.WindowSise.X, Mode=TwoWay}" Width="{Binding Sets.WindowSise.Y, Mode=TwoWay}"
         Top="{Binding Sets.WindowLastPos.Y, Mode=TwoWay}" Left="{Binding Sets.WindowLastPos.X, Mode=TwoWay}">
     <Window.DataContext>
@@ -97,6 +98,7 @@
             <Setter Property="OverridesDefaultStyle" Value="True" />
             <Setter Property="Grid.IsSharedSizeScope" Value="true" />
             <Setter Property="HasDropShadow" Value="True" />
+            <Setter Property="Width" Value="180"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ContextMenu}">
@@ -414,7 +416,24 @@
                                             <Separator Style="{StaticResource MenuSeparatorStyle}"/>
                                             <MenuItem Header="Open document folder" Command="{Binding OpenFolderCommand}"/>
                                             <Separator Style="{StaticResource MenuSeparatorStyle}"/>
-                                            <MenuItem Header="Open document folder" Command="{Binding CopyFileCommand}"/>
+                                            <MenuItem Header="Copy Selected Files" Command="{Binding Path=DataContext.SaveFilesCommand, Source={x:Reference Name=Window}}" StaysOpenOnClick="True"/>
+                                            <Border Width="auto" BorderBrush="#7F888888" BorderThickness="1.5" Background="Transparent" CornerRadius="5" Padding="5">
+                                                <TextBlock VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="TUT TEXT TOGO CHTO SCOPIROVANNO" Foreground="White"
+                                                           TextWrapping="WrapWithOverflow" />
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Path=DataContext.ShowPopUp, Source={x:Reference Name=Window}}" Value="false">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Path=DataContext.ShowPopUp, Source={x:Reference Name=Window}}" Value="true">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                            </Border>
+
                                         </ContextMenu>
                                     </TextBlock.ContextMenu>
                                 </TextBlock>
@@ -422,7 +441,7 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-                <indexerwpf:MultiCombo Height="500" Grid.RowSpan="2"/>
+                <!--<indexerwpf:MultiCombo Height="500" Grid.RowSpan="2"/>-->
             </Grid>
             <Grid Grid.Row="2" Margin="10,5,10,5">
                 <Grid.ColumnDefinitions>

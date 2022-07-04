@@ -44,11 +44,8 @@ namespace IndexerWpf.Classes
         [JsonIgnore]
         public string GetName { get => Path.GetFileNameWithoutExtension(RootFolderPath); }
 
-        public delegate void WasSelected(bool state, string nm);
-        public event WasSelected SelectedChanged;
-
         [JsonIgnore]
-        public bool IsSelected { get => isSelected; set { SetProperty(ref isSelected, value); SelectedChanged?.Invoke(value, GetName); } }
+        public bool IsSelected { get => isSelected; set { SetProperty(ref isSelected, value); } }
         [JsonIgnore]
         public int TotalFiles { get => AllFiles.Count(t => t.Tp == IndxElement.Type.file); }
 

@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Controls.Primitives;
 using System.Windows.Forms;
 
 namespace IndexerWpf.Models
@@ -27,7 +28,7 @@ namespace IndexerWpf.Models
         public bool Was_Loaded { get => was_loaded; set => SetProperty(ref was_loaded, value); }
         public bool Is_scanned { get => is_scanned; set { SetProperty(ref is_scanned, !value); } }
         public Settings Sets { get => sets; set => SetProperty(ref sets, value); }
-
+        public bool ShowPopUp { get => showpopup; set => SetProperty(ref showpopup, value); }
         //[JsonIgnore]
         public WpfObservableRangeCollection<IndxElement> VisualFolder { get => visualfolder; set { SetProperty(ref visualfolder, value); } }
 
@@ -35,6 +36,7 @@ namespace IndexerWpf.Models
         private WpfObservableRangeCollection<IndxElement> visualfolder;
         private bool was_loaded = false;
         private bool is_scanned = false;
+        private bool showpopup = false;
         private WpfObservableRangeCollection<string> existedIndexs;
         private IndxElement selectedfile = new IndxElement();
         private IndxElements indexes = null;
@@ -86,7 +88,7 @@ namespace IndexerWpf.Models
 
                     paths.AddRange(Searched.Where(t => t.IsSelected).Select(t=>t.FullPath).ToArray());
                     Clipboard.SetFileDropList(paths);
-
+                    ShowPopUp = true;
                 },
                 (obj) => Searched.Where(t=>t.IsSelected).Count() > 0
                 ));
