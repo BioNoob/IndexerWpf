@@ -25,5 +25,25 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <Style TargetType="{x:Type Button}" x:Key="ImgButton">
+            <Setter Property="Background" Value="#FF3F3F3F" />
+            <Setter Property="BorderBrush" Value="#FF3F3F3F" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#50FFFFFF"/>
+                </Trigger>
+            </Style.Triggers>
+
+        </Style>
     </Application.Resources>
 </Application>

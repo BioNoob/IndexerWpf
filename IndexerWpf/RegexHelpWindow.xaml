@@ -16,28 +16,6 @@
         CaptionHeight="0"
         ResizeBorderThickness="10" />
     </WindowChrome.WindowChrome>
-    <Window.Resources>
-        <Style TargetType="{x:Type Button}" x:Key="ImgButton">
-            <Setter Property="Background" Value="#FF3F3F3F" />
-            <Setter Property="BorderBrush" Value="#FF3F3F3F" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Button}">
-                        <Border Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#50FFFFFF"/>
-                </Trigger>
-            </Style.Triggers>
-
-        </Style>
-    </Window.Resources>
     <Border CornerRadius="10" BorderBrush="#FF3F3F3F" Background="#FF3F3F3F" BorderThickness="5" Padding="0">
         <Grid Margin="10,0,10,0">
             <Grid.RowDefinitions>

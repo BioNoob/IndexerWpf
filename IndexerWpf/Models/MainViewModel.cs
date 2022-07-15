@@ -15,7 +15,8 @@ namespace IndexerWpf.Models
     public class MainViewModel : Proper
     {
         public WpfObservableRangeCollection<IndxElement> SelectedElements { get => selectedElements; set => SetProperty(ref selectedElements, value); }
-        public WpfObservableRangeCollection<string> ExistedIndexes { get => existedIndexs; set => SetProperty(ref existedIndexs, value); }
+        public WpfObservableRangeCollection<IndxElements> SelectedIndexes { get => selectedIndexes; set => SetProperty(ref selectedIndexes, value); }
+        //public WpfObservableRangeCollection<string> ExistedIndexes { get => existedIndexs; set => SetProperty(ref existedIndexs, value); }
         public string SelectedExisted { get => selectedexisted; set { SetProperty(ref selectedexisted, value); if (!string.IsNullOrEmpty(value)) DoLoad(value); } }
         public IndxElements Indexes { get => indexes; set { StaticModel.ElIndx = value.AllFiles; SetProperty(ref indexes, value); } }
         public IndxElement Selectedfile { get => selectedfile; set => SetProperty(ref selectedfile, value); }
@@ -33,6 +34,7 @@ namespace IndexerWpf.Models
         public WpfObservableRangeCollection<IndxElement> VisualFolder { get => visualfolder; set { SetProperty(ref visualfolder, value); } }
 
         private WpfObservableRangeCollection<IndxElement> selectedElements;
+        private WpfObservableRangeCollection<IndxElements> selectedIndexes;
         private WpfObservableRangeCollection<IndxElement> visualfolder;
         private bool was_loaded = false;
         private bool is_scanned = false;
@@ -86,11 +88,11 @@ namespace IndexerWpf.Models
                 {
                     StringCollection paths = new StringCollection();
 
-                    paths.AddRange(Searched.Where(t => t.IsSelected).Select(t=>t.FullPath).ToArray());
+                    paths.AddRange(Searched.Where(t => t.IsSelected).Select(t => t.FullPath).ToArray());
                     Clipboard.SetFileDropList(paths);
                     ShowPopUp = true;
                 },
-                (obj) => Searched.Where(t=>t.IsSelected).Count() > 0
+                (obj) => Searched.Where(t => t.IsSelected).Count() > 0
                 ));
             }
         }
@@ -142,7 +144,7 @@ namespace IndexerWpf.Models
             if (string.IsNullOrEmpty(Sets.FolderIndexesDefPath))
                 Sets.FolderIndexesDefPath = Directory.GetCurrentDirectory() + "\\indexes";
 
-            ExistedIndexes = new WpfObservableRangeCollection<string>();
+            SelectedIndexes = new WpfObservableRangeCollection<IndxElements>();
             Indexes = new IndxElements();
             Searched = new WpfObservableRangeCollection<IndxElement>();
             VisualFolder = new WpfObservableRangeCollection<IndxElement>();
@@ -163,7 +165,7 @@ namespace IndexerWpf.Models
 
         private void LoadListIndexes()
         {
-            ExistedIndexes.Clear();
+            SelectedIndexes.Clear();
             Indexes.Clear();
             VisualFolder.Clear();
             if (!Directory.Exists(Def_path))
@@ -174,9 +176,22 @@ namespace IndexerWpf.Models
                 if (fls.Length > 0)
                 {
                     foreach (var item in fls.Where(t => Path.GetExtension(t) == ".json"))
-                        ExistedIndexes.Add(Path.GetFileNameWithoutExtension(item));
+                    {
+                        var q = new IndxElements(item);
+                        q.IsSelectedChangedEvent += Q_IsSelectedChangedEvent; ;
+                        SelectedIndexes.Add(q); //Path.GetFileNameWithoutExtension(item));
+                    }
+
                 }
             }
+        }
+
+        private void Q_IsSelectedChangedEvent(IndxElements sender, bool state)
+        {
+            if (state)
+                SelectedExisted += ", " + sender.GetName;
+            else
+                SelectedExisted = SelectedExisted.Replace($", {sender.GetName}", "");
         }
 
         private void StaticModel_LoadEndEvent()
@@ -188,34 +203,48 @@ namespace IndexerWpf.Models
         //https://docs.microsoft.com/en-us/dotnet/standard/parallel-programming/how-to-iterate-file-directories-with-the-parallel-class?redirectedfrom=MSDN ??
         private void DoLoad(string name_of)
         {
-            string full_nm = $"{Def_path}\\{name_of}.json";
-            try
+            List<string> paths = new List<string>();
+            if (name_of.Contains(","))
             {
-                Indexes.LoadInexes(full_nm);
-                //Костыль
-                Indexes = Indexes;
+                name_of = name_of.Replace(" ", "");
+                paths.AddRange(name_of.Split(","));
             }
-            catch (Exception)
+            else
+                paths.Add(name_of);
+            foreach (var item in paths)
             {
-                var ind = ExistedIndexes.IndexOf(name_of);
-                ExistedIndexes.Remove(name_of);
-                if (ind > 0)
-                    SelectedExisted = ExistedIndexes.ElementAt(ind - 1);
-                else
-                    SelectedExisted = null;
-                return;
+                string full_nm = $"{Def_path}\\{item}.json";
+                try
+                {
+                    Indexes.LoadInexes(full_nm);
+                    //Костыль
+                    Indexes = Indexes;
+                }
+                catch (Exception)
+                {
+                    //И ТУУУУУУТ
+                    //var ind = ExistedIndexes.IndexOf(name_of);
+                    //ExistedIndexes.Remove(name_of);
+                    //if (ind > 0)
+                    //    SelectedExisted = ExistedIndexes.ElementAt(ind - 1);
+                    //else
+                    //    SelectedExisted = null;
+                    //return;
+                }
+
+                StaticModel.InvokeLoadEndEvent();
+                if (Indexes != null)
+                {
+                    Was_Loaded = true;
+                    if (!string.IsNullOrEmpty(Search_text))
+                        DoSearch(Search_text);
+                    Prog_value_max = Indexes.TotalFiles;
+                    Prog_value = Indexes.TotalFiles;
+
+                }
             }
 
-            StaticModel.InvokeLoadEndEvent();
-            if (Indexes != null)
-            {
-                Was_Loaded = true;
-                if (!string.IsNullOrEmpty(Search_text))
-                    DoSearch(Search_text);
-                Prog_value_max = Indexes.TotalFiles;
-                Prog_value = Indexes.TotalFiles;
 
-            }
         }
         //Сохранение полюбому в конце парсинга. Нет ситуации где бы оно не сохранилось. Если только отказаться перезаписывать
         private bool DoSave()
@@ -272,10 +301,15 @@ namespace IndexerWpf.Models
             }
             //Debug.WriteLine("DONE");
             DoSave();
+
+            //ТУУУУТ!
             var nm = Path.GetFileNameWithoutExtension(Indexes.RootFolderPath);
-            if (!ExistedIndexes.Contains(nm))
-                ExistedIndexes.Add(nm);
-            SetProperty(ref selectedexisted, nm, "SelectedExisted");
+
+            //if (!ExistedIndexes.Contains(nm))
+            //    ExistedIndexes.Add(nm);
+            //SetProperty(ref selectedexisted, nm, "SelectedExisted");
+
+
             Was_Loaded = true;
             Is_scanned = false;
             StaticModel.InvokeLoadEndEvent();

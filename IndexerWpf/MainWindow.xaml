@@ -7,7 +7,8 @@
         	xmlns:Controls="clr-namespace:System.Windows.Controls;assembly=MultiSelectTreeView" 
         mc:Ignorable="d"
         xmlns:local="clr-namespace:IndexerWpf.Models"
-        xmlns:local_cls="clr-namespace:IndexerWpf.Classes" xmlns:Forms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms" xmlns:indexerwpf="clr-namespace:IndexerWpf"
+        xmlns:bas="clr-namespace:IndexerWpf"
+        xmlns:local_cls="clr-namespace:IndexerWpf.Classes"
         Title="MainWindow"  
         WindowStyle="None"
         WindowState="Normal" 
@@ -129,7 +130,9 @@
                   CornerRadius="0"
                   Background="#FF3F3F3F"
                   BorderBrush="#FF97A0A5"
-                  BorderThickness="1" />
+                  BorderThickness="1" >
+
+                </Border>
                 <Border 
                   Grid.Column="0"
                   CornerRadius="0" 
@@ -137,7 +140,7 @@
                   Background="#FF3F3F3F" 
                   BorderBrush="#FF97A0A5"
                   BorderThickness="0,0,1,0" />
-                <Path 
+                <Path Margin="-2,0,0,0"
                   x:Name="Arrow"
                   Grid.Column="1"     
                   Fill="White"
@@ -165,6 +168,7 @@
             <Border x:Name="PART_ContentHost" Focusable="False" Background="{TemplateBinding Background}" />
         </ControlTemplate>
         <Style x:Key="{x:Type ComboBox}" TargetType="{x:Type ComboBox}">
+            <Setter Property="FontFamily" Value="Jura"/>
             <Setter Property="SnapsToDevicePixels" Value="true"/>
             <Setter Property="OverridesDefaultStyle" Value="true"/>
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
@@ -188,7 +192,7 @@
                             <ContentPresenter Name="ContentSite" IsHitTestVisible="False"  Content="{TemplateBinding SelectionBoxItem}"
                             ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                             ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-                            Margin="10,3,23,3"
+                            Margin="10,0,23,3"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Left" />
                             <TextBox x:Name="PART_EditableTextBox"
@@ -218,7 +222,7 @@
                                         Background="#FF3F3F3F"
                                         BorderThickness="1"
                                         BorderBrush="#888888"/>
-                                    <ScrollViewer Margin="6,6,6,6" SnapsToDevicePixels="True" CanContentScroll="True">
+                                    <ScrollViewer Margin="6,6,3,3" SnapsToDevicePixels="True" CanContentScroll="True">
                                         <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
                                     </ScrollViewer>
                                 </Grid>
@@ -326,9 +330,63 @@
                 </Button>
                 <Label Content="Avalibale indexes" HorizontalAlignment="Stretch" Grid.Column="1"/>
 
-                <ComboBox HorizontalAlignment="Stretch" Margin="10,0,10,0" ItemsSource="{Binding ExistedIndexes}" SelectedItem="{Binding SelectedExisted}" IsEnabled="{Binding Is_scanned}"
-                      Grid.Column="2" VerticalContentAlignment="Center">
-                </ComboBox>
+                <!--<ComboBox HorizontalAlignment="Stretch" Margin="10,0,10,0" ItemsSource="{Binding ExistedIndexes}" SelectedItem="{Binding SelectedExisted}" IsEnabled="{Binding Is_scanned}"
+                      Grid.Column="2" VerticalContentAlignment="Center"> Width="{Binding ActualWidth, ElementName=Sats}"  Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                </ComboBox>-->
+                <Border  x:Name="Sats" Margin="10,0,10,0" HorizontalAlignment="Stretch" Grid.Column="2" Background="Transparent" BorderThickness="0" Padding="0"> 
+                    <!--<Grid Margin="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                        </Grid.ColumnDefinitions>
+                        <Path Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M0,0 L0,2 L4,6 L8,2 L8,0 L4,4 z" Grid.Column="1"/>
+                        <TextBox VerticalContentAlignment="Center" HorizontalAlignment="Stretch"  Foreground="White" Background="Transparent" 
+                                                     Padding="0" Margin="0"  IsReadOnly="True" Text="{Binding SelectedExisted, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Grid.Column="0" BorderThickness="0,0,1,0"/>
+                        <Popup IsOpen="True" Placement="Bottom" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide" VerticalOffset="5" Width="{Binding ActualWidth, ElementName=Sats}">
+                            <bas:SelectIndxElementsWindow Padding="0" Margin="0">
+
+                            </bas:SelectIndxElementsWindow>
+                        </Popup>
+                    </Grid>-->
+                    <ToggleButton ClipToBounds="True" IsEnabled="{Binding Is_scanned}" Focusable="false" IsChecked="False">
+                        <ToggleButton.Template>
+                            <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                <Border CornerRadius="0" Background="#FF3F3F3F" Padding="0" Margin="0"
+                                                BorderBrush="#FF97A0A5" BorderThickness="1,1,1.5,1" >
+                                    <Grid x:Name="Sats">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="20"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Path Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M0,0 L0,2 L4,6 L8,2 L8,0 L4,4 z" Grid.Column="1"/>
+                                        <TextBox VerticalContentAlignment="Center" HorizontalAlignment="Stretch"  Foreground="White" Background="Transparent" 
+                                                     Padding="0" Margin="5,0,0,0"  IsReadOnly="True" Text="{Binding SelectedExisted, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="0" BorderThickness="0,0,1,0"/>
+                                        <Popup IsOpen="{TemplateBinding IsChecked}" Placement="Bottom" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide" VerticalOffset="5" Width="{TemplateBinding ActualWidth}">
+                                            <Border  CornerRadius="0" BorderBrush="#FF97A0A5" Background="#FF3F3F3F" BorderThickness="1" Padding="0">
+                                                <ListView ItemsSource="{Binding SelectedIndexes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                          Margin="2.5" ScrollViewer.VerticalScrollBarVisibility="Visible" Background="Transparent" BorderThickness="0">
+                                                    <ListView.ItemTemplate>
+                                                        <DataTemplate DataType="{x:Type local_cls:IndxElements}">
+                                                            <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding GetName}" Foreground="White"/>
+                                                        </DataTemplate>
+                                                    </ListView.ItemTemplate>
+                                                </ListView>
+                                            </Border>
+                                        </Popup>
+                                    </Grid>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsEnabled" Value="false">
+                                        <Setter Property="Foreground" Value="#888888"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </ToggleButton.Template>
+                    </ToggleButton>
+                </Border>
+
+
+
                 <Label Content="Index date" HorizontalAlignment="Stretch" Grid.Column="3" Margin="0,0,5,0"/>
                 <TextBox Text="{Binding Indexes.DateOfLastChange}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
                      HorizontalAlignment="Right" Width="135" IsReadOnly="True" Grid.Column="4"/>
