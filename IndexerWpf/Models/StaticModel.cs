@@ -1,15 +1,17 @@
 ﻿using IndexerWpf.Classes;
 using System;
-using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace IndexerWpf.Models
 {
     public static class StaticModel
     {
-        private static ObservableCollection<IndxElement> elIndx;
+        private static WpfObservableRangeCollection<IndxElement> elIndx = new WpfObservableRangeCollection<IndxElement>();
 
-        public static ObservableCollection<IndxElement> ElIndx { get => elIndx; set { elIndx = value; } }
+        public static WpfObservableRangeCollection<IndxElement> ElIndx { get => elIndx; set { elIndx = value; } }
+
+        public static WpfObservableRangeCollection<string> UnicExtentions { get => new WpfObservableRangeCollection<string>(ElIndx.Select(t => t.Extension).Distinct()); }
 
         public delegate void LoadEnd();
         public static event LoadEnd LoadEndEvent;
@@ -17,7 +19,7 @@ namespace IndexerWpf.Models
         {
             LoadEndEvent?.Invoke();
         }
-        
+
         public static event LoadEnd WindowClosing;
         public static void InvokeWindowClosing()
         {

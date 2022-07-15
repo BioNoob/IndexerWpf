@@ -13,7 +13,7 @@ namespace IndexerWpf.Classes
         private string rootFolderPath;
         private string dateOfLastChange;
         private bool isSelected;
-        private WpfObservableRangeCollection<string> extentions;
+        //private WpfObservableRangeCollection<string> extentions;
         
         public event IsSelecetdChange IsSelectedChangedEvent;
         public delegate void IsSelecetdChange(IndxElements sender, bool state);
@@ -26,8 +26,8 @@ namespace IndexerWpf.Classes
         [JsonIgnore]
         public int TotalFiles { get => AllFiles.Count(t => t.Tp == IndxElement.Type.file); }
 
-        [JsonIgnore]
-        public WpfObservableRangeCollection<string> Extentions { get => extentions; set { SetProperty(ref extentions, value); } }
+        //[JsonIgnore]
+        //public WpfObservableRangeCollection<string> Extentions { get => extentions; set { SetProperty(ref extentions, value); } }
 
         public string RootFolderPath { get => rootFolderPath; set { SetProperty(ref rootFolderPath, value); } }
         public string DateOfLastChange { get => dateOfLastChange; set => SetProperty(ref dateOfLastChange, value); }
@@ -43,24 +43,24 @@ namespace IndexerWpf.Classes
         private void Init()
         {
             AllFiles = new WpfObservableRangeCollection<IndxElement>();
-            Extentions = new WpfObservableRangeCollection<string>();
-            StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
+            //Extentions = new WpfObservableRangeCollection<string>();
+            //StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
             IndxElement.Identificator = 0;
         }
 
         public void Clear()
         {
             AllFiles = new WpfObservableRangeCollection<IndxElement>();
-            Extentions = new WpfObservableRangeCollection<string>();
+            //Extentions = new WpfObservableRangeCollection<string>();
             IndxElement.Identificator = 0;
             RootFolderPath = string.Empty;
         }
 
-        private void StaticModel_LoadEndEvent()
-        {
-            Extentions.Clear();
-            Extentions.AddRange(AllFiles.Select(t => t.Extension).Distinct());
-        }
+        //private void StaticModel_LoadEndEvent()
+        //{
+        //    Extentions.Clear();
+        //    Extentions.AddRange(AllFiles.Select(t => t.Extension).Distinct());
+        //}
 
         public IndxElements(string path)
         {
@@ -72,13 +72,13 @@ namespace IndexerWpf.Classes
             this.DateOfLastChange = DateTime.Now.ToString("G");
             File.WriteAllText(file_to_save, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
-        public void LoadInexes(string file_to_load)
+        public void LoadInexes()//string file_to_load)
         {
-            if (File.Exists(file_to_load))
+            if (File.Exists(RootFolderPath))
             {
                 try
                 {
-                    var a = JsonConvert.DeserializeObject<IndxElements>(File.ReadAllText(file_to_load));
+                    var a = JsonConvert.DeserializeObject<IndxElements>(File.ReadAllText(RootFolderPath));
                     RootFolderPath = a.RootFolderPath;
                     DateOfLastChange = a.DateOfLastChange;
                     AllFiles = a.AllFiles;
@@ -89,14 +89,14 @@ namespace IndexerWpf.Classes
                 catch (Exception e)
                 {
                     //return null;
-                    System.Windows.Forms.MessageBox.Show($"File {file_to_load} load error\n{e.Message}!", "Error load", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+                    System.Windows.Forms.MessageBox.Show($"File {RootFolderPath} load error\n{e.Message}!", "Error load", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
                     throw;
                 }
 
             }
             else
             {
-                System.Windows.Forms.MessageBox.Show($"File {file_to_load} was deleted!", "Error load", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+                System.Windows.Forms.MessageBox.Show($"File {RootFolderPath} was deleted!", "Error load", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
                 throw new Exception();
                 //return null;
             }
@@ -110,7 +110,7 @@ namespace IndexerWpf.Classes
             DateOfLastChange = null;
             RootFolderPath = null;
             //ID = -1;
-            StaticModel.LoadEndEvent -= StaticModel_LoadEndEvent;
+            //StaticModel.LoadEndEvent -= StaticModel_LoadEndEvent;
             GC.SuppressFinalize(this);
         }
     }

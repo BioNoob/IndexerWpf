@@ -100,44 +100,8 @@ namespace IndexerWpf
                     }
                 }
             }
-            //folder_tree.ClearSelection();
-            //folder_tree.UpdateLayout();
-            //folder_tree.SelectedItems = SelectedElements;
-
-
-            //List<IndxElement> b = new List<IndxElement>(a.SelectedItems.);
-            //e.AddedItems
-
-
-
-            //IndxElement b = (IndxElement)a.SelectedItem;
-            //if (b == null) return;
-            //if (b != lastSelected)
-            //{
-            //    if (lastSelected != null)
-            //    {
-            //        lastSelected.IsExpanded = false;
-            //        lastSelected.IsSelected = false;
-            //    }
-            //}
-            //b.IsExpanded = true;
-            //b.IsSelected = true;
-            //lastSelected = b;
-
-
-
-
         }
 
-        private void TreeViewSelectedItemChanged(object sender, RoutedEventArgs e)
-        {
-            //TreeViewItem item = sender as TreeViewItem;
-            //if (item != null)
-            //{
-            //    item.BringIntoView();
-            //    e.Handled = true;
-            //}
-        }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
         {
@@ -147,30 +111,7 @@ namespace IndexerWpf
             rgx.Left += this.Width / 2;
             e.Handled = true;
         }
-        private void OnListViewItemPreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            //Trace.WriteLine("Preview MouseRightButtonDown");
 
-            e.Handled = true;
-        }
-
-        private void folder_tree_PreviewSelectionChanged(object sender, PreviewSelectionChangedEventArgs e)
-        {
-            //TreeViewItem item = e.Item as TreeViewItem;
-            //if (item == null)
-            //    return;
-            //if (e.Selecting)
-            //{
-            //    if (!item.IsSelected)
-            //        item.BringIntoView();
-            //}
-            //else
-            //{
-            //    if (!item.IsSelected)
-            //        item.BringIntoView();
-            //}
-
-        }
         private void folder_tree_SelectionChanged(object sender, EventArgs e)
         {
 
@@ -209,6 +150,16 @@ namespace IndexerWpf
         private void SearchResult_GotFocus(object sender, RoutedEventArgs e)
         {
             FocusOnList = true;
+        }
+
+        private void Popup_Closed(object sender, EventArgs e)
+        {
+            Toggle.IsChecked = false;
+        }
+
+        private void TextBox_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Toggle.IsChecked = !Toggle.IsChecked;
         }
     }
 }

@@ -348,26 +348,28 @@
                             </bas:SelectIndxElementsWindow>
                         </Popup>
                     </Grid>-->
-                    <ToggleButton ClipToBounds="True" IsEnabled="{Binding Is_scanned}" Focusable="false" IsChecked="False">
+                    <ToggleButton ClipToBounds="True" IsEnabled="{Binding Is_scanned}" Focusable="false" IsChecked="False" x:Name="Toggle" >
                         <ToggleButton.Template>
                             <ControlTemplate TargetType="{x:Type ToggleButton}">
                                 <Border CornerRadius="0" Background="#FF3F3F3F" Padding="0" Margin="0"
                                                 BorderBrush="#FF97A0A5" BorderThickness="1,1,1.5,1" >
-                                    <Grid x:Name="Sats">
+                                    <Grid >
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="20"/>
                                         </Grid.ColumnDefinitions>
                                         <Path Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M0,0 L0,2 L4,6 L8,2 L8,0 L4,4 z" Grid.Column="1"/>
-                                        <TextBox VerticalContentAlignment="Center" HorizontalAlignment="Stretch"  Foreground="White" Background="Transparent" 
-                                                     Padding="0" Margin="5,0,0,0"  IsReadOnly="True" Text="{Binding SelectedExisted, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="0" BorderThickness="0,0,1,0"/>
-                                        <Popup IsOpen="{TemplateBinding IsChecked}" Placement="Bottom" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide" VerticalOffset="5" Width="{TemplateBinding ActualWidth}">
+                                        <TextBox VerticalContentAlignment="Center" HorizontalAlignment="Stretch"  Foreground="White" Background="Transparent"
+                                                 Padding="0" Margin="5,0,0,0"  IsReadOnly="True" Text="{Binding SelectedIndexsString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                 Grid.Column="0" BorderThickness="0,0,1,0" PreviewMouseDown="TextBox_PreviewMouseDown" />
+                                        <Popup IsOpen="{TemplateBinding IsChecked}" Placement="Bottom" AllowsTransparency="True" StaysOpen="False" Closed="Popup_Closed"
+                                               Focusable="False" PopupAnimation="Slide" VerticalOffset="5" Width="{TemplateBinding ActualWidth}">
                                             <Border  CornerRadius="0" BorderBrush="#FF97A0A5" Background="#FF3F3F3F" BorderThickness="1" Padding="0">
-                                                <ListView ItemsSource="{Binding SelectedIndexes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                <ListView ItemsSource="{Binding ListOfIndexes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                           Margin="2.5" ScrollViewer.VerticalScrollBarVisibility="Visible" Background="Transparent" BorderThickness="0">
                                                     <ListView.ItemTemplate>
                                                         <DataTemplate DataType="{x:Type local_cls:IndxElements}">
-                                                            <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding GetName}" Foreground="White"/>
+                                                            <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding GetName}" Foreground="White" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                                                         </DataTemplate>
                                                     </ListView.ItemTemplate>
                                                 </ListView>
@@ -379,6 +381,9 @@
                                     <Trigger Property="IsEnabled" Value="false">
                                         <Setter Property="Foreground" Value="#888888"/>
                                     </Trigger>
+                                    <!--<Trigger Property="ToggleButton.LostFocus" Value="false">
+                                        <Setter Property="IsChecked" Value="false"/>
+                                    </Trigger>-->
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
                         </ToggleButton.Template>
@@ -387,9 +392,9 @@
 
 
 
-                <Label Content="Index date" HorizontalAlignment="Stretch" Grid.Column="3" Margin="0,0,5,0"/>
+                <!--<Label Content="Index date" HorizontalAlignment="Stretch" Grid.Column="3" Margin="0,0,5,0"/>
                 <TextBox Text="{Binding Indexes.DateOfLastChange}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
-                     HorizontalAlignment="Right" Width="135" IsReadOnly="True" Grid.Column="4"/>
+                     HorizontalAlignment="Right" Width="135" IsReadOnly="True" Grid.Column="4"/>-->
                 <Button Margin="10,0,0,0" Grid.Column="5" ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding CloseWindowCommand}" Style="{StaticResource ImgButton}">
                     <Image Source="Resources/закрыть.png"/>
                 </Button>
@@ -411,10 +416,9 @@
                 </Grid.ColumnDefinitions>
                 <Controls:MultiSelectTreeView x:Name="folder_tree" Grid.RowSpan="3" Grid.Column="0" GotFocus="folder_tree_GotFocus"
                  ItemsSource="{Binding VisualFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                              SelectedItems="{Binding SelectedElements, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" 
-                                              PreviewSelectionChanged="folder_tree_PreviewSelectionChanged" SelectionChanged="folder_tree_SelectionChanged" 
-                                              >
+                 SelectedItems="{Binding SelectedElements, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                 SelectionChanged="folder_tree_SelectionChanged" FontFamily="Jura">
                     <Controls:MultiSelectTreeView.ItemContainerStyle>
                         <Style TargetType="{x:Type Controls:MultiSelectTreeViewItem}">
                             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
@@ -429,13 +433,31 @@
                                 <Image x:Name="treeImg"  Width="16" Height="16" Source="{Binding GetUriImg}" />
                                 <TextBlock Text="{Binding Name}" TextWrapping="Wrap" TextTrimming="WordEllipsis" Margin="5,0,0,0">
                                     <TextBlock.ToolTip>
-                                        <TextBlock Text="{Binding ParentName}"/>
+                                        <TextBlock Text="{Binding ParentName}" FontFamily="Jura"/>
                                     </TextBlock.ToolTip>
                                 <TextBlock.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="Open document" Command="{Binding OpenFileCommand}"/>
                                             <Separator Style="{StaticResource MenuSeparatorStyle}"/>
                                         <MenuItem Header="Open document folder" Command="{Binding OpenFolderCommand}"/>
+                                        <Separator Style="{StaticResource MenuSeparatorStyle}"/>
+                                            <MenuItem Header="Copy Selected Files" Command="{Binding Path=DataContext.SaveFilesCommand, Source={x:Reference Name=Window}}" StaysOpenOnClick="True"/>
+                                            <Border Width="auto" BorderBrush="#7F888888" BorderThickness="1.5" Background="Transparent" CornerRadius="5" Padding="5">
+                                                <TextBlock VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="TUT TEXT TOGO CHTO SCOPIROVANNO" Foreground="White"
+                                                           TextWrapping="WrapWithOverflow" />
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Path=DataContext.ShowPopUp, Source={x:Reference Name=Window}}" Value="false">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Path=DataContext.ShowPopUp, Source={x:Reference Name=Window}}" Value="true">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                            </Border>
                                     </ContextMenu>
                                 </TextBlock.ContextMenu>
                             </TextBlock>
@@ -453,13 +475,11 @@
                         RegEx supported
                     </Hyperlink>
                 </TextBlock>
-                <ComboBox Grid.Row="0" Grid.Column="3" Margin="10,0,0,0" ItemsSource="{Binding Indexes.Extentions}"  SelectedValue="{Binding SelectedFilter}" IsEnabled="{Binding Was_Loaded}"/>
+                <ComboBox Grid.Row="0" Grid.Column="3" Margin="10,0,0,0" ItemsSource="{Binding ListOfExtentionsSelectedIndexes, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"  SelectedValue="{Binding SelectedFilter}" IsEnabled="{Binding Was_Loaded}"/>
                 <ListView Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="10,2,0,0" ItemsSource="{Binding Searched}" SelectionChanged="ListView_SelectionChanged" SelectionMode="Extended"
                           x:Name="SearchResult" GotFocus="SearchResult_GotFocus">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="{x:Type ListViewItem}">
-                            <EventSetter Event="PreviewMouseRightButtonDown"
-                         Handler="OnListViewItemPreviewMouseRightButtonDown" />
                             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
                         </Style>
                     </ListView.ItemContainerStyle>
@@ -495,6 +515,9 @@
                                         </ContextMenu>
                                     </TextBlock.ContextMenu>
                                 </TextBlock>
+                                <StackPanel.ToolTip>
+                                    <TextBlock Text="{Binding FullPath}" FontFamily="Jura"/>
+                                </StackPanel.ToolTip>
                             </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -520,7 +543,7 @@
 
                 </ProgressBar>-->
                 <Button HorizontalAlignment="Right" Width="65" Content="Scan" Grid.Column="3" Command="{Binding StartScanCommand}" IsEnabled="{Binding Is_scanned}"
-                                   BorderBrush="White" Background="White" Foreground="Black" />
+                                   BorderBrush="White" Background="White" Foreground="Black" FontFamily="Jura"/>
             </Grid>
 
             <Border Background="#7F3F3F3F" Grid.ColumnSpan="2" Grid.RowSpan="3" ClipToBounds="True" CornerRadius="10" x:Name="borderspinner" Visibility="Collapsed" Opacity="100">
