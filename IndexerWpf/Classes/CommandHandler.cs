@@ -174,7 +174,9 @@ namespace IndexerWpf.Classes
             var clusters = new Dictionary<int, List<T>>();
             var lastIndex = -1;
             List<T> lastCluster = null;
-            foreach (T item in collection)
+
+            var buf = new List<T>(collection);
+            foreach (T item in buf)
             {
                 var index = IndexOf(item);
                 if (index < 0)

@@ -17,8 +17,9 @@ namespace IndexerWpf.Models
         public WpfObservableRangeCollection<IndxElement> SelectedElements { get => selectedElements; set => SetProperty(ref selectedElements, value); }
         public WpfObservableRangeCollection<IndxElements> ListOfIndexes { get => selectedIndexes; set => SetProperty(ref selectedIndexes, value); }
         public WpfObservableRangeCollection<IndxElements> ListOfSelectedIndexes { get => new WpfObservableRangeCollection<IndxElements>(ListOfIndexes.Where(t => t.IsSelected)); }
-        public WpfObservableRangeCollection<string> ListOfExtentionsSelectedIndexes { get {  return StaticModel.UnicExtentions; } }
-        
+        public WpfObservableRangeCollection<string> ListOfExtentionsSelectedIndexes { get { return StaticModel.UnicExtentions; } }
+
+        public string Copyied_items { get => copyieditems; set => SetProperty(ref copyieditems, value); }
 
         //public WpfObservableRangeCollection<string> ExistedIndexes { get => existedIndexs; set => SetProperty(ref existedIndexs, value); }
         public string SelectedIndexsString { get => selectedIndexsString; set { SetProperty(ref selectedIndexsString, value); /*if (!string.IsNullOrEmpty(value))*/ DoLoad(); } }
@@ -36,7 +37,7 @@ namespace IndexerWpf.Models
         public bool ShowPopUp { get => showpopup; set => SetProperty(ref showpopup, value); }
         //[JsonIgnore]
         public WpfObservableRangeCollection<IndxElement> VisualFolder { get => visualfolder; set { SetProperty(ref visualfolder, value); } }
-
+        private string copyieditems;
         private WpfObservableRangeCollection<IndxElement> selectedElements;
         private WpfObservableRangeCollection<IndxElements> selectedIndexes;
         private WpfObservableRangeCollection<IndxElement> visualfolder;
@@ -70,7 +71,7 @@ namespace IndexerWpf.Models
         private CommandHandler _closewindow;
         public CommandHandler CloseWindowCommand
         {
-            get 
+            get
             {
                 return _closewindow ?? (_closewindow = new CommandHandler(obj =>
                 {
@@ -90,12 +91,14 @@ namespace IndexerWpf.Models
                 return _savefiles ?? (_savefiles = new CommandHandler(obj =>
                 {
                     StringCollection paths = new StringCollection();
-
-                    paths.AddRange(Searched.Where(t => t.IsSelected).Select(t => t.FullPath).ToArray());
+                    var buf = StaticModel.ElIndx.Where(t => t.IsSelected).Select(t => t.Name).ToArray();
+                    paths.AddRange(StaticModel.ElIndx.Where(t => t.IsSelected).Select(t => t.FullPath).ToArray());
+                    Copyied_items = string.Empty;
+                    Copyied_items = string.Join("\n", buf);
                     Clipboard.SetFileDropList(paths);
                     ShowPopUp = true;
                 },
-                (obj) => Searched.Where(t => t.IsSelected).Count() > 0
+                (obj) => StaticModel.ElIndx.Where(t => t.IsSelected).Count() > 0//Searched.Where(t => t.IsSelected).Count() > 0
                 ));
             }
         }
@@ -149,7 +152,7 @@ namespace IndexerWpf.Models
 
             ListOfIndexes = new WpfObservableRangeCollection<IndxElements>();
             ListOfIndexes.CollectionChanged += ListOfIndexes_CollectionChanged;
-            //Indexes = new IndxElements();
+            Copyied_items = string.Empty;
             Searched = new WpfObservableRangeCollection<IndxElement>();
             VisualFolder = new WpfObservableRangeCollection<IndxElement>();
             SelectedElements = new WpfObservableRangeCollection<IndxElement>();
@@ -226,12 +229,12 @@ namespace IndexerWpf.Models
                     SelectedIndexsString += ", " + sender.GetName;
             else
             {
-                
+
                 var sselectedIndexsString = Regex.Replace(SelectedIndexsString, $@"(, )?{sender.GetName}", "");
                 sselectedIndexsString = Regex.Replace(sselectedIndexsString, $@"^(, )", "");
                 SelectedIndexsString = sselectedIndexsString;
             }
-                
+
         }
 
         private void StaticModel_LoadEndEvent()
@@ -262,13 +265,16 @@ namespace IndexerWpf.Models
         private void DoLoad(/*string name_of*/)
         {
             //List<string> paths = GetSelectedIndexes(name_of);
-            StaticModel.ElIndx.Clear();
+            //StaticModel.ElIndx.Clear();
+            List<IndxElement> t = new List<IndxElement>();
             foreach (var item in ListOfSelectedIndexes)
             {
                 try
                 {
                     if (item.AllFiles.Count <= 0)
                         item.LoadInexes();
+                    else
+                        StaticModel.ElIndx.AddRange(item.AllFiles);
                 }
                 catch (Exception)
                 {
@@ -276,9 +282,11 @@ namespace IndexerWpf.Models
                     item.IsSelected = false;
                     return;
                 }
-                
-                StaticModel.ElIndx.AddRange(item.AllFiles);
+                t.AddRange(item.AllFiles);
             }
+            StaticModel.ElIndx = new WpfObservableRangeCollection<IndxElement>(StaticModel.ElIndx.Distinct());
+            var B = StaticModel.ElIndx.Except(t);
+            StaticModel.ElIndx.RemoveRange(B);
             StaticModel.InvokeLoadEndEvent();
             Was_Loaded = true;
             if (!string.IsNullOrEmpty(Search_text))
@@ -499,7 +507,7 @@ namespace IndexerWpf.Models
         {
             //if (Prog_value < Prog_value_max)
             //{
-                Prog_value++;
+            Prog_value++;
             //}
         }
     }

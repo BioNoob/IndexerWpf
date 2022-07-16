@@ -436,28 +436,34 @@
                                         <TextBlock Text="{Binding ParentName}" FontFamily="Jura"/>
                                     </TextBlock.ToolTip>
                                 <TextBlock.ContextMenu>
-                                    <ContextMenu>
+                                    <ContextMenu Closed="ContextMenu_Closed">
                                         <MenuItem Header="Open document" Command="{Binding OpenFileCommand}"/>
-                                            <Separator Style="{StaticResource MenuSeparatorStyle}"/>
+                                        <Separator Style="{StaticResource MenuSeparatorStyle}"/>
                                         <MenuItem Header="Open document folder" Command="{Binding OpenFolderCommand}"/>
                                         <Separator Style="{StaticResource MenuSeparatorStyle}"/>
-                                            <MenuItem Header="Copy Selected Files" Command="{Binding Path=DataContext.SaveFilesCommand, Source={x:Reference Name=Window}}" StaysOpenOnClick="True"/>
-                                            <Border Width="auto" BorderBrush="#7F888888" BorderThickness="1.5" Background="Transparent" CornerRadius="5" Padding="5">
-                                                <TextBlock VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="TUT TEXT TOGO CHTO SCOPIROVANNO" Foreground="White"
-                                                           TextWrapping="WrapWithOverflow" />
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Path=DataContext.ShowPopUp, Source={x:Reference Name=Window}}" Value="false">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding Path=DataContext.ShowPopUp, Source={x:Reference Name=Window}}" Value="true">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                            </Border>
+                                        <MenuItem Header="Copy Selected Files" Command="{Binding Path=DataContext.SaveFilesCommand, Source={x:Reference Name=Window}}" StaysOpenOnClick="True"/>
+                                        <Border BorderBrush="#7F888888" BorderThickness="1.5" Background="Transparent" CornerRadius="5" Padding="5"
+                                                    Width="150">
+                                            <StackPanel Orientation="Vertical">
+                                                <Label Content="Copied.." FontSize="9" HorizontalContentAlignment="Left" VerticalContentAlignment="Stretch"
+                                                       HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="0"/>
+                                                <TextBlock VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="{Binding Path=DataContext.Copyied_items, Source={x:Reference Name=Window}}" 
+                                                       Foreground="White" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis" FontSize="9" /> 
+                                            </StackPanel>
+
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Path=DataContext.ShowPopUp, Source={x:Reference Name=Window}}" Value="false">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Path=DataContext.ShowPopUp, Source={x:Reference Name=Window}}" Value="true">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        </Border>
                                     </ContextMenu>
                                 </TextBlock.ContextMenu>
                             </TextBlock>
@@ -489,15 +495,19 @@
                                 <Image Source="{Binding GetUriImg}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,0,5,0"/>
                                 <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
                                     <TextBlock.ContextMenu>
-                                        <ContextMenu>
+                                        <ContextMenu Closed="ContextMenu_Closed">
                                             <MenuItem Header="Open document" Command="{Binding OpenFileCommand}"/>
                                             <Separator Style="{StaticResource MenuSeparatorStyle}"/>
                                             <MenuItem Header="Open document folder" Command="{Binding OpenFolderCommand}"/>
                                             <Separator Style="{StaticResource MenuSeparatorStyle}"/>
                                             <MenuItem Header="Copy Selected Files" Command="{Binding Path=DataContext.SaveFilesCommand, Source={x:Reference Name=Window}}" StaysOpenOnClick="True"/>
-                                            <Border Width="auto" BorderBrush="#7F888888" BorderThickness="1.5" Background="Transparent" CornerRadius="5" Padding="5">
-                                                <TextBlock VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="TUT TEXT TOGO CHTO SCOPIROVANNO" Foreground="White"
-                                                           TextWrapping="WrapWithOverflow" />
+                                            <Border Width="150" BorderBrush="#7F888888" BorderThickness="1.5" Background="Transparent" CornerRadius="5" Padding="5">
+                                                <StackPanel Orientation="Vertical">
+                                                    <Label Content="Copied.." FontSize="9" HorizontalContentAlignment="Left" VerticalContentAlignment="Stretch"
+                                                       HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="0"/>
+                                                    <TextBlock VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="{Binding Path=DataContext.Copyied_items, Source={x:Reference Name=Window}}" 
+                                                       Foreground="White" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis" FontSize="9" />
+                                                </StackPanel>
                                                 <Border.Style>
                                                     <Style TargetType="Border">
                                                         <Style.Triggers>

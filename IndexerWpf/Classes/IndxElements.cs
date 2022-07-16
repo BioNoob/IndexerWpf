@@ -82,6 +82,11 @@ namespace IndexerWpf.Classes
                     RootFolderPath = a.RootFolderPath;
                     DateOfLastChange = a.DateOfLastChange;
                     AllFiles = a.AllFiles;
+                    StaticModel.ElIndx.AddRange(AllFiles);
+                    foreach (var elem in AllFiles)
+                    {
+                        elem.Items = elem.buildtree();
+                    }
                     a.Dispose();
                     //Debug.WriteLine("DONE DESER");
                     //return a;

@@ -175,28 +175,39 @@ namespace IndexerWpf.Classes
             return Name;
         }
 
+        private IList<IndxElement> items = new ObservableCollection<IndxElement>();
         [JsonIgnore]
         public IList<IndxElement> Items
         {
             get
             {
-                IList<IndxElement> childNodes = new ObservableCollection<IndxElement>();
-                if (Tp == Type.folder)
-                {
-                    var a = StaticModel.ElIndx.Where(t => t.Prnt == Id);
-                    if (a != null)
-                    {
-                        foreach (var item in a)
-                        {
-                            childNodes.Add(item);
-                        }
-                    }
-                    return childNodes;
-                }
-                else
-                    return null;
+                return items;
+            }
+            set
+            {
+                SetProperty(ref items, value);
             }
         }
+
+        public IList<IndxElement> buildtree()
+        {
+            IList<IndxElement> childNodes = new ObservableCollection<IndxElement>();
+            if (Tp == Type.folder)
+            {
+                var a = StaticModel.ElIndx.Where(t => t.Prnt == Id);
+                if (a != null)
+                {
+                    foreach (var item in a)
+                    {
+                        childNodes.Add(item);
+                    }
+                }
+                return childNodes;
+            }
+            else
+                return null;
+        }
+
         [JsonIgnore]
         public string GetUriImg
         {

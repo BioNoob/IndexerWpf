@@ -161,5 +161,10 @@ namespace IndexerWpf
         {
             Toggle.IsChecked = !Toggle.IsChecked;
         }
+
+        private void ContextMenu_Closed(object sender, RoutedEventArgs e)
+        {
+            (this.DataContext as MainViewModel).ShowPopUp = false;
+        }
     }
 }
