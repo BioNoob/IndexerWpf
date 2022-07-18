@@ -25,7 +25,22 @@ namespace IndexerWpf
             InitializeComponent();
             this.MouseLeftButtonDown += delegate { this.DragMove(); };
             (DataContext as MainViewModel).PropertyChanged += MainWindow_PropertyChanged;
+            StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
         }
+
+        private void StaticModel_LoadEndEvent()
+        {
+            MainViewModel dtx = DataContext as MainViewModel;
+            count_first_load--;
+            if(count_first_load == 0)
+            {
+                dtx.ignore_scanned = false;
+                dtx.Is_scanned = false;
+                StaticModel.LoadEndEvent -= StaticModel_LoadEndEvent;
+            }
+
+        }
+
         bool fadeout = false;
         private void MainWindow_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
@@ -36,7 +51,8 @@ namespace IndexerWpf
                 {
                     opacityAnimation.From = 0.89;
                     opacityAnimation.To = 0;
-                    opacityAnimation.Duration = TimeSpan.FromSeconds(2);
+                    opacityAnimation.Duration = TimeSpan.FromSeconds(1);
+                    fadeout = true;
 
                 }
                 else if (!(DataContext as MainViewModel).Is_scanned)
@@ -44,8 +60,7 @@ namespace IndexerWpf
                     borderspinner.Visibility = Visibility.Visible;
                     opacityAnimation.From = 0;
                     opacityAnimation.To = 0.89;
-                    opacityAnimation.Duration = TimeSpan.FromSeconds(2);
-                    fadeout = true;
+                    opacityAnimation.Duration = TimeSpan.FromSeconds(1);
                 }
 
 
@@ -165,6 +180,24 @@ namespace IndexerWpf
         private void ContextMenu_Closed(object sender, RoutedEventArgs e)
         {
             (this.DataContext as MainViewModel).ShowPopUp = false;
+        }
+        int count_first_load = 0;
+        private void Window_ContentRendered(object sender, EventArgs e)
+        {
+            MainViewModel dtx = DataContext as MainViewModel;
+
+            dtx.Is_scanned = true;
+            dtx.ignore_scanned = true;
+            dtx.LoadListIndexes();
+
+            var lds = dtx.GetSelectedIndexes(dtx.Sets.LastIndex);
+            count_first_load = lds.Count;
+            foreach (var item in lds)
+            {
+                var a = dtx.ListOfIndexes.SingleOrDefault(t => t.GetName == item);
+                if (a != null)
+                    a.IsSelected = true;
+            }
         }
     }
 }

@@ -31,7 +31,7 @@ namespace IndexerWpf.Models
         public string Search_text { get => search_text; set { SetProperty(ref search_text, value); DoSearch(value); } }
         public WpfObservableRangeCollection<IndxElement> Searched { get => searched; set => SetProperty(ref searched, value); }
         public string SelectedFilter { get => selectedFilter; set { SetProperty(ref selectedFilter, value); DoSearch(Search_text); } }
-        public bool Was_Loaded { get => was_loaded; set => SetProperty(ref was_loaded, value); }
+        //public bool Was_Loaded { get => was_loaded; set => SetProperty(ref was_loaded, value); }
         public bool Is_scanned { get => is_scanned; set { SetProperty(ref is_scanned, !value); } }
         public Settings Sets { get => sets; set => SetProperty(ref sets, value); }
         public bool ShowPopUp { get => showpopup; set => SetProperty(ref showpopup, value); }
@@ -41,8 +41,8 @@ namespace IndexerWpf.Models
         private WpfObservableRangeCollection<IndxElement> selectedElements;
         private WpfObservableRangeCollection<IndxElements> selectedIndexes;
         private WpfObservableRangeCollection<IndxElement> visualfolder;
-        private bool was_loaded = false;
         private bool is_scanned = false;
+        public bool ignore_scanned = false;
         private bool showpopup = false;
         private IndxElement selectedfile = new IndxElement();
         //private IndxElements indexes = null;
@@ -141,8 +141,6 @@ namespace IndexerWpf.Models
             }
         }
 
-
-
         public MainViewModel()
         {
             Sets = new Settings();
@@ -163,16 +161,6 @@ namespace IndexerWpf.Models
             fbd.AutoUpgradeEnabled = true;
             fbd.RootFolder = Environment.SpecialFolder.Recent;
             Is_scanned = false;
-            LoadListIndexes();
-
-            var lds = GetSelectedIndexes(Sets.LastIndex);
-            foreach (var item in lds)
-            {
-                var a = ListOfIndexes.SingleOrDefault(t => t.GetName == item);
-                if (a != null)
-                    a.IsSelected = true;
-
-            }
             //SelectedIndexsString = Sets.LastIndex;
 
             //Prog_value = 0;
@@ -197,7 +185,7 @@ namespace IndexerWpf.Models
 
         }
 
-        private void LoadListIndexes()
+        public void LoadListIndexes()
         {
             ListOfIndexes.Clear();
             //Indexes.Clear();
@@ -250,7 +238,7 @@ namespace IndexerWpf.Models
         }
 
         //https://docs.microsoft.com/en-us/dotnet/standard/parallel-programming/how-to-iterate-file-directories-with-the-parallel-class?redirectedfrom=MSDN ??
-        private List<string> GetSelectedIndexes(string name_of)
+        public List<string> GetSelectedIndexes(string name_of)
         {
             List<string> paths = new List<string>();
             if (name_of.Contains(","))
@@ -262,17 +250,19 @@ namespace IndexerWpf.Models
                 paths.Add(name_of);
             return paths;
         }
-        private void DoLoad(/*string name_of*/)
+        private async void DoLoad(/*string name_of*/)
         {
             //List<string> paths = GetSelectedIndexes(name_of);
-            //StaticModel.ElIndx.Clear();
+            StaticModel.ElIndx.Clear();
             List<IndxElement> t = new List<IndxElement>();
+            if(!ignore_scanned)
+            Is_scanned = true;
             foreach (var item in ListOfSelectedIndexes)
             {
                 try
                 {
                     if (item.AllFiles.Count <= 0)
-                        item.LoadInexes();
+                        _ = await Task.Run(() => item.LoadInexes());
                     else
                         StaticModel.ElIndx.AddRange(item.AllFiles);
                 }
@@ -284,49 +274,17 @@ namespace IndexerWpf.Models
                 }
                 t.AddRange(item.AllFiles);
             }
-            StaticModel.ElIndx = new WpfObservableRangeCollection<IndxElement>(StaticModel.ElIndx.Distinct());
-            var B = StaticModel.ElIndx.Except(t);
-            StaticModel.ElIndx.RemoveRange(B);
+            //StaticModel.ElIndx = new WpfObservableRangeCollection<IndxElement>(StaticModel.ElIndx.Distinct());
+            //var B = StaticModel.ElIndx.Except(t);
+            //StaticModel.ElIndx.RemoveRange(B);
             StaticModel.InvokeLoadEndEvent();
-            Was_Loaded = true;
+            //Was_Loaded = true;
             if (!string.IsNullOrEmpty(Search_text))
                 DoSearch(Search_text);
             //Prog_value_max = Indexes.TotalFiles;
             Prog_value = StaticModel.ElIndx.Count;
-
-            //foreach (var item in paths)
-            //{
-            //    //string full_nm = $"{Def_path}\\{item.Trim()}.json";
-            //    try
-            //    {
-
-            //        Indexes.LoadInexes(full_nm);
-            //        //Костыль
-            //        Indexes = Indexes;
-            //    }
-            //    catch (Exception)
-            //    {
-            //        //И ТУУУУУУТ
-            //        //var ind = ExistedIndexes.IndexOf(name_of);
-            //        //ExistedIndexes.Remove(name_of);
-            //        //if (ind > 0)
-            //        //    SelectedExisted = ExistedIndexes.ElementAt(ind - 1);
-            //        //else
-            //        //    SelectedExisted = null;
-            //        //return;
-            //    }
-
-            //    StaticModel.InvokeLoadEndEvent();
-            //    if (Indexes != null)
-            //    {
-            //        Was_Loaded = true;
-            //        if (!string.IsNullOrEmpty(Search_text))
-            //            DoSearch(Search_text);
-            //        Prog_value_max = Indexes.TotalFiles;
-            //        Prog_value = Indexes.TotalFiles;
-
-            //    }
-            //}
+            if(!ignore_scanned)
+            Is_scanned = false;
         }
         //Сохранение полюбому в конце парсинга. Нет ситуации где бы оно не сохранилось. Если только отказаться перезаписывать
         private bool DoSave(IndxElements elements)
@@ -373,11 +331,11 @@ namespace IndexerWpf.Models
         private async void Worker(string path)
         {
             Is_scanned = true;
-            Was_Loaded = false;
+            //Was_Loaded = false;
             var indx = await DoScan(path);
             if (indx == null)
             {
-                Was_Loaded = true;
+                //Was_Loaded = true;
                 Is_scanned = false;
                 StaticModel.InvokeLoadEndEvent();
                 return;
@@ -395,7 +353,7 @@ namespace IndexerWpf.Models
             //SetProperty(ref selectedexisted, nm, "SelectedExisted");
 
 
-            Was_Loaded = true;
+            //Was_Loaded = true;
             Is_scanned = false;
             StaticModel.InvokeLoadEndEvent();
         }

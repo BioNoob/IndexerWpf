@@ -17,7 +17,7 @@
         MinHeight="350" MinWidth="550"
         Name="Window"
         Height="{Binding Sets.WindowSise.X, Mode=TwoWay}" Width="{Binding Sets.WindowSise.Y, Mode=TwoWay}"
-        Top="{Binding Sets.WindowLastPos.Y, Mode=TwoWay}" Left="{Binding Sets.WindowLastPos.X, Mode=TwoWay}">
+        Top="{Binding Sets.WindowLastPos.Y, Mode=TwoWay}" Left="{Binding Sets.WindowLastPos.X, Mode=TwoWay}" ContentRendered="Window_ContentRendered" >
     <Window.DataContext>
         <local:MainViewModel/>
     </Window.DataContext>
@@ -116,7 +116,6 @@
             </Setter>
         </Style>
         <Style TargetType="TextBox" BasedOn="{StaticResource DefaultStyle}"/>
-        <Style TargetType="ListView" BasedOn="{StaticResource DefaultStyle}"/>
         <Style TargetType="TreeView" BasedOn="{StaticResource DefaultStyle}"/>
         <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="{x:Type ToggleButton}">
             <Grid>
@@ -286,7 +285,36 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
+        <Style TargetType="ListView" BasedOn="{StaticResource DefaultStyle}"/>
+        <Style TargetType="ListView" BasedOn="{StaticResource DefaultStyle}" x:Key="HidedEnabled">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListView">
+                        <Border Name="Border">
+                            <ScrollViewer>
+                                <ItemsPresenter />
+                            </ScrollViewer>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter TargetName="Border" Property="Background">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="Transparent" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="true">
+                                <Setter TargetName="Border" Property="Background">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="Transparent" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <WindowChrome.WindowChrome>
         <WindowChrome 
@@ -344,16 +372,17 @@
                                                      Padding="0" Margin="0"  IsReadOnly="True" Text="{Binding SelectedExisted, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Grid.Column="0" BorderThickness="0,0,1,0"/>
                         <Popup IsOpen="True" Placement="Bottom" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide" VerticalOffset="5" Width="{Binding ActualWidth, ElementName=Sats}">
                             <bas:SelectIndxElementsWindow Padding="0" Margin="0">
+                    
 
                             </bas:SelectIndxElementsWindow>
                         </Popup>
                     </Grid>-->
-                    <ToggleButton ClipToBounds="True" IsEnabled="{Binding Is_scanned}" Focusable="false" IsChecked="False" x:Name="Toggle" >
+                    <ToggleButton ClipToBounds="True" IsEnabled="{Binding Is_scanned}" Focusable="false" IsChecked="False" x:Name="Toggle">
                         <ToggleButton.Template>
                             <ControlTemplate TargetType="{x:Type ToggleButton}">
                                 <Border CornerRadius="0" Background="#FF3F3F3F" Padding="0" Margin="0"
-                                                BorderBrush="#FF97A0A5" BorderThickness="1,1,1.5,1" >
-                                    <Grid >
+                                                BorderBrush="#FF97A0A5" BorderThickness="1,1,1.5,1">
+                                    <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="20"/>
@@ -363,28 +392,22 @@
                                                  Padding="0" Margin="5,0,0,0"  IsReadOnly="True" Text="{Binding SelectedIndexsString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                  Grid.Column="0" BorderThickness="0,0,1,0" PreviewMouseDown="TextBox_PreviewMouseDown" />
                                         <Popup IsOpen="{TemplateBinding IsChecked}" Placement="Bottom" AllowsTransparency="True" StaysOpen="False" Closed="Popup_Closed"
+                                                
                                                Focusable="False" PopupAnimation="Slide" VerticalOffset="5" Width="{TemplateBinding ActualWidth}">
                                             <Border  CornerRadius="0" BorderBrush="#FF97A0A5" Background="#FF3F3F3F" BorderThickness="1" Padding="0">
-                                                <ListView ItemsSource="{Binding ListOfIndexes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                          Margin="2.5" ScrollViewer.VerticalScrollBarVisibility="Visible" Background="Transparent" BorderThickness="0">
+                                                <ListView ItemsSource="{Binding ListOfIndexes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{TemplateBinding IsEnabled}"
+                                                          Margin="2.5" ScrollViewer.VerticalScrollBarVisibility="Visible"  BorderThickness="0" Style="{StaticResource HidedEnabled}">
                                                     <ListView.ItemTemplate>
                                                         <DataTemplate DataType="{x:Type local_cls:IndxElements}">
-                                                            <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding GetName}" Foreground="White" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                                                            <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding GetName}" Foreground="White" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsEnabled="{TemplateBinding IsEnabled}"/>
                                                         </DataTemplate>
                                                     </ListView.ItemTemplate>
+
                                                 </ListView>
                                             </Border>
                                         </Popup>
                                     </Grid>
                                 </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsEnabled" Value="false">
-                                        <Setter Property="Foreground" Value="#888888"/>
-                                    </Trigger>
-                                    <!--<Trigger Property="ToggleButton.LostFocus" Value="false">
-                                        <Setter Property="IsChecked" Value="false"/>
-                                    </Trigger>-->
-                                </ControlTemplate.Triggers>
                             </ControlTemplate>
                         </ToggleButton.Template>
                     </ToggleButton>
@@ -474,16 +497,16 @@
                 </Controls:MultiSelectTreeView>
                 <Image Source="Resources/поиск.png" Width="24" Height="24" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10,0,0,0" />
                 <TextBox Grid.Row="0" Grid.Column="2" Margin="10,0,0,0" Text="{Binding Search_text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                     HorizontalContentAlignment="Left" VerticalContentAlignment="Center" IsEnabled="{Binding Was_Loaded}"/>
+                     HorizontalContentAlignment="Left" VerticalContentAlignment="Center" IsEnabled="{Binding Is_scanned}"/>
                 <TextBlock Grid.Row="1" Grid.Column="2" Margin="0,2,0,0" FontSize="10" VerticalAlignment="Center" HorizontalAlignment="Center"
                            >
                     <Hyperlink NavigateUri="https://regex101.com/" RequestNavigate="Hyperlink_RequestNavigate" >
                         RegEx supported
                     </Hyperlink>
                 </TextBlock>
-                <ComboBox Grid.Row="0" Grid.Column="3" Margin="10,0,0,0" ItemsSource="{Binding ListOfExtentionsSelectedIndexes, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"  SelectedValue="{Binding SelectedFilter}" IsEnabled="{Binding Was_Loaded}"/>
+                <ComboBox Grid.Row="0" Grid.Column="3" Margin="10,0,0,0" ItemsSource="{Binding ListOfExtentionsSelectedIndexes, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"  SelectedValue="{Binding SelectedFilter}" IsEnabled="{Binding Is_scanned}"/>
                 <ListView Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="10,2,0,0" ItemsSource="{Binding Searched}" SelectionChanged="ListView_SelectionChanged" SelectionMode="Extended"
-                          x:Name="SearchResult" GotFocus="SearchResult_GotFocus">
+                          x:Name="SearchResult" GotFocus="SearchResult_GotFocus" IsEnabled="{Binding Is_scanned}">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="{x:Type ListViewItem}">
                             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>

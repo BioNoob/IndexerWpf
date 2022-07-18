@@ -72,7 +72,7 @@ namespace IndexerWpf.Classes
             this.DateOfLastChange = DateTime.Now.ToString("G");
             File.WriteAllText(file_to_save, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
-        public void LoadInexes()//string file_to_load)
+        public bool LoadInexes()//string file_to_load)
         {
             if (File.Exists(RootFolderPath))
             {
@@ -89,7 +89,7 @@ namespace IndexerWpf.Classes
                     }
                     a.Dispose();
                     //Debug.WriteLine("DONE DESER");
-                    //return a;
+                    return true;
                 }
                 catch (Exception e)
                 {
