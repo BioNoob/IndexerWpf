@@ -17,7 +17,7 @@ namespace IndexerWpf.Models
         public WpfObservableRangeCollection<IndxElement> SelectedElements { get => selectedElements; set => SetProperty(ref selectedElements, value); }
         public WpfObservableRangeCollection<IndxElements> ListOfIndexes { get => selectedIndexes; set => SetProperty(ref selectedIndexes, value); }
         public WpfObservableRangeCollection<IndxElements> ListOfSelectedIndexes { get => new WpfObservableRangeCollection<IndxElements>(ListOfIndexes.Where(t => t.IsSelected)); }
-        public WpfObservableRangeCollection<string> ListOfExtentionsSelectedIndexes { get { return StaticModel.UnicExtentions; } }
+        public WpfObservableRangeCollection<string> ListOfExtentionsSelectedIndexes { get { return new WpfObservableRangeCollection<string>(ListOfSelectedIndexes.SelectMany(t => t.AllFiles).Select(t => t.Extension).Distinct()); /*StaticModel.UnicExtentions; */} }
 
         public string Copyied_items { get => copyieditems; set => SetProperty(ref copyieditems, value); }
 
@@ -44,7 +44,7 @@ namespace IndexerWpf.Models
         private bool is_scanned = false;
         public bool ignore_scanned = false;
         private bool showpopup = false;
-        private IndxElement selectedfile = new IndxElement();
+        private IndxElement selectedfile = null;
         //private IndxElements indexes = null;
         private double prog_val;
         //private double prog_val_max;
@@ -253,10 +253,10 @@ namespace IndexerWpf.Models
         private async void DoLoad(/*string name_of*/)
         {
             //List<string> paths = GetSelectedIndexes(name_of);
-            StaticModel.ElIndx.Clear();
+            //StaticModel.ElIndx.Clear();
             List<IndxElement> t = new List<IndxElement>();
-            if(!ignore_scanned)
-            Is_scanned = true;
+            if (!ignore_scanned)
+                Is_scanned = true;
             foreach (var item in ListOfSelectedIndexes)
             {
                 try
@@ -283,8 +283,8 @@ namespace IndexerWpf.Models
                 DoSearch(Search_text);
             //Prog_value_max = Indexes.TotalFiles;
             Prog_value = StaticModel.ElIndx.Count;
-            if(!ignore_scanned)
-            Is_scanned = false;
+            if (!ignore_scanned)
+                Is_scanned = false;
         }
         //Сохранение полюбому в конце парсинга. Нет ситуации где бы оно не сохранилось. Если только отказаться перезаписывать
         private bool DoSave(IndxElements elements)
@@ -382,21 +382,21 @@ namespace IndexerWpf.Models
             //}
 
             //создаем корневую ноду по корневому каталогу
-            IndxElement root = new IndxElement(Path.GetFullPath(path)) { Tp = IndxElement.Type.folder, Prnt = null };
+            IndxElement root = new IndxElement(Path.GetFullPath(path), indexes) { Tp = IndxElement.Type.folder, Prnt = null };
             indexes.AllFiles.Add(root);
             await Task.Run(() =>
             {
-                foreach (var item in LoadFiles(path, root))
+                foreach (var item in LoadFiles(path, root, indexes))
                 {
                     indexes.AllFiles.Add(item);
                 }
-                foreach (var item in LoadSubDirectories(path, root))
+                foreach (var item in LoadSubDirectories(path, root, indexes))
                 {
                     indexes.AllFiles.Add(item);
                 }
+                GC.Collect();
             });
             //ListOfIndexes.Add(indexes);
-            GC.Collect();
             return indexes;
         }
         /// <summary>
@@ -405,7 +405,7 @@ namespace IndexerWpf.Models
         /// <param name="dir">каталог</param>
         /// <param name="td">предыдущая нода</param>
         /// <returns>Лист найденных элементов</returns>
-        private List<IndxElement> LoadFiles(string dir, /*TreeNode td,*/ IndxElement parfolder)
+        private List<IndxElement> LoadFiles(string dir, IndxElement parfolder, IndxElements tree)
         {
             List<IndxElement> lie = new List<IndxElement>();
             try
@@ -415,7 +415,7 @@ namespace IndexerWpf.Models
                 {
                     //FileInfo fi = new FileInfo(file);
                     Path.GetFullPath(file);
-                    lie.Add(new IndxElement(Path.GetFullPath(file)/*fi.FullName*/) { Tp = IndxElement.Type.file, Prnt = parfolder.Id });
+                    lie.Add(new IndxElement(Path.GetFullPath(file), tree) { Tp = IndxElement.Type.file, Prnt = parfolder.Id });
                     UpdateProgress();
 
                 }
@@ -435,7 +435,7 @@ namespace IndexerWpf.Models
         /// <param name="dir">каталог</param>
         /// <param name="td">предыдущая нода</param>
         /// <returns>Лист найденных элементов</returns>
-        private List<IndxElement> LoadSubDirectories(string dir, /*TreeNode td, */IndxElement parfolder)
+        private List<IndxElement> LoadSubDirectories(string dir, IndxElement parfolder, IndxElements tree)
         {
             List<IndxElement> ie = new List<IndxElement>();
             //string[] subdirectoryEntries = Directory.GetDirectories(dir);
@@ -445,10 +445,10 @@ namespace IndexerWpf.Models
 
                 foreach (string subdirectory in subs)
                 {
-                    IndxElement newparent = new IndxElement() { FullPath = Path.GetFullPath(subdirectory), Tp = IndxElement.Type.folder, Prnt = parfolder.Id };
+                    IndxElement newparent = new IndxElement(Path.GetFullPath(subdirectory), tree) { Tp = IndxElement.Type.folder, Prnt = parfolder.Id };
                     ie.Add(newparent);
-                    ie.AddRange(LoadFiles(subdirectory, newparent));
-                    ie.AddRange(LoadSubDirectories(subdirectory, newparent));
+                    ie.AddRange(LoadFiles(subdirectory, newparent, tree));
+                    ie.AddRange(LoadSubDirectories(subdirectory, newparent, tree));
                     UpdateProgress();
                 }
             }

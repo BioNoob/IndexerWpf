@@ -35,7 +35,11 @@ namespace IndexerWpf.Classes
         public int Id { get => id; set { SetProperty(ref id, value); } }
 
         [JsonIgnore]
-        public IndxElement Parent { get => StaticModel.ElIndx.FirstOrDefault(t => t.Id == Prnt); }
+        public IndxElement Parent { get => ParentTree.AllFiles.FirstOrDefault(t => t.Id == Prnt); }//StaticModel.ElIndx.FirstOrDefault(t => t.Id == Prnt); }
+
+        [JsonIgnore]
+        public IndxElements ParentTree { private set => SetProperty(ref parentTree, value); get => parentTree; }
+        private IndxElements parentTree;
 
         [JsonIgnore]
         public string ParentName { get => Parent == null ? this.Name : Parent.Name; }
@@ -62,11 +66,13 @@ namespace IndexerWpf.Classes
 
         public IndxElement()
         {
+            ParentTree = null;
             Init();
         }
-        public IndxElement(string path)
+        public IndxElement(string path, IndxElements parent_tree)
         {
             FullPath = path;
+            ParentTree = parent_tree;
             Init();
         }
         private void Init()
@@ -194,7 +200,8 @@ namespace IndexerWpf.Classes
             IList<IndxElement> childNodes = new ObservableCollection<IndxElement>();
             if (Tp == Type.folder)
             {
-                var a = StaticModel.ElIndx.Where(t => t.Prnt == Id);
+                //var a = StaticModel.ElIndx.Where(t => t.Prnt == Id);
+                var a = ParentTree.AllFiles.Where(t => t.Prnt == id);
                 if (a != null)
                 {
                     foreach (var item in a)
