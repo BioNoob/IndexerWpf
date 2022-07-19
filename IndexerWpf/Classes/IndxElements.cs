@@ -14,7 +14,7 @@ namespace IndexerWpf.Classes
         private string dateOfLastChange;
         private bool isSelected;
         //private WpfObservableRangeCollection<string> extentions;
-        
+
         public event IsSelecetdChange IsSelectedChangedEvent;
         public delegate void IsSelecetdChange(IndxElements sender, bool state);
 
@@ -85,6 +85,8 @@ namespace IndexerWpf.Classes
                     //StaticModel.ElIndx.AddRange(AllFiles);
                     foreach (var elem in AllFiles)
                     {
+                        if (elem.ParentTree == null)
+                            elem.ParentTree = this;
                         elem.Items = elem.buildtree();
                     }
                     a.Dispose();

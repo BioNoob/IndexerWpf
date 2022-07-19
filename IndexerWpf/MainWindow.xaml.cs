@@ -26,13 +26,14 @@ namespace IndexerWpf
             this.MouseLeftButtonDown += delegate { this.DragMove(); };
             (DataContext as MainViewModel).PropertyChanged += MainWindow_PropertyChanged;
             StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
+            Toggle.IsChecked = false;
         }
 
         private void StaticModel_LoadEndEvent()
         {
             MainViewModel dtx = DataContext as MainViewModel;
             count_first_load--;
-            if(count_first_load == 0)
+            if (count_first_load == 0)
             {
                 dtx.ignore_scanned = false;
                 dtx.Is_scanned = false;
@@ -87,34 +88,35 @@ namespace IndexerWpf
 
         private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var a = sender as ListView;
-            var added = e.AddedItems.OfType<IndxElement>().ToList();
-            var deleted = e.RemovedItems.OfType<IndxElement>().ToList();
-            if (added != null)
-            {
-                foreach (var item in added)
-                {
-                    if (!SelectedElements.Contains(item))
-                    {
-                        SelectedElements.Add(item);
-                        item.IsSelected = true;
-                        item.IsExpanded = true;
-                    }
-                }
+            //var a = sender as ListView;
+            //var added = e.AddedItems.OfType<IndxElement>().ToList();
+            //added.FirstOrDefault().IsExpanded = true;
+            //var deleted = e.RemovedItems.OfType<IndxElement>().ToList();
+            //if (added != null)
+            //{
+            //    foreach (var item in added)
+            //    {
+            //        if (!SelectedElements.Contains(item))
+            //        {
+            //            SelectedElements.Add(item);
+            //            item.IsSelected = true;
+            //            item.IsExpanded = true;
+            //        }
+            //    }
 
-            }
-            if (deleted != null)
-            {
-                foreach (var item in deleted)
-                {
-                    if (SelectedElements.Contains(item))
-                    {
-                        SelectedElements.Remove(item);
-                        item.IsSelected = false;
-                        item.IsExpanded = false;
-                    }
-                }
-            }
+            //}
+            //if (deleted != null)
+            //{
+            //    foreach (var item in deleted)
+            //    {
+            //        if (SelectedElements.Contains(item))
+            //        {
+            //            SelectedElements.Remove(item);
+            //            item.IsSelected = false;
+            //            item.IsExpanded = false;
+            //        }
+            //    }
+            //}
         }
 
 
@@ -130,31 +132,11 @@ namespace IndexerWpf
         private void folder_tree_SelectionChanged(object sender, EventArgs e)
         {
 
-            MultiSelectTreeView a = sender as MultiSelectTreeView;
-            //List<MultiSelectTreeViewItem> expandedTVI = new List<MultiSelectTreeViewItem>();
-            //foreach (MultiSelectTreeViewItem item in a.Items)
-            //{
-            //    if (item.HasItems && item.IsExpanded) //if it has children, and the parent is expanded
-            //    {
-            //        foreach (MultiSelectTreeViewItem child in item.Items)
-            //            expandedTVI.Add(child); //add the child to the list
-            //    }
-
-            //    expandedTVI.Add(item); //always add the parent to the list
-            //}
-            //a.
-            if (a.LastSelectedItem == null) return;
-            a.FocusItem(a.LastSelectedItem, true);
-            if(FocusOnList)
-            SearchResult.Focus();
-            ////a.BringIntoView();
-
-            //a.BringItemIntoView(a.LastSelectedItem);
-
-            //if (item == null)
-            //    return;
-            //if (item.IsSelected)
-            //    item.BringIntoView();
+            //MultiSelectTreeView a = sender as MultiSelectTreeView;
+            //if (a.LastSelectedItem == null) return;
+            //a.FocusItem(a.LastSelectedItem, true);
+            //if(FocusOnList)
+            //SearchResult.Focus();
         }
 
         private void folder_tree_GotFocus(object sender, RoutedEventArgs e)
@@ -169,12 +151,19 @@ namespace IndexerWpf
 
         private void Popup_Closed(object sender, EventArgs e)
         {
-            Toggle.IsChecked = false;
+            //Toggle.IsChecked = false;
+            if (Toggle.IsChecked == true)
+                Toggle.IsChecked = false;
+            Debug.WriteLine("CLOSED");
+            
         }
 
         private void TextBox_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            Toggle.IsChecked = !Toggle.IsChecked;
+            if (e.ChangedButton == MouseButton.Left)
+                if (Toggle.IsChecked != true)
+                    Toggle.IsChecked = true;
+            //Toggle.IsChecked = !Toggle.IsChecked;
         }
 
         private void ContextMenu_Closed(object sender, RoutedEventArgs e)

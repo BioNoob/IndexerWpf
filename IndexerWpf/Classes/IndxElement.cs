@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using IndexerWpf.Classes;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using IndexerWpf.Models;
 using Newtonsoft.Json;
+using System.Windows.Input;
 #pragma warning disable CS0660
 #pragma warning disable CS0661
 namespace IndexerWpf.Classes
@@ -27,7 +29,28 @@ namespace IndexerWpf.Classes
         public string FullPath { get => fullPath; set { SetProperty(ref fullPath, value); } }
 
 
-        public Type Tp { get => tp; set { SetProperty(ref tp, value); } }
+        public Type Tp
+        {
+            get => tp;
+            set
+            {
+                SetProperty(ref tp, value);
+                {
+                    switch (value)
+                    {
+                        case Type.folder:
+                            GetUriImg = "/Resources/папка.png";
+                            break;
+                        case Type.file:
+                            GetUriImg = "/Resources/док.png";
+                            break;
+                        default:
+                            GetUriImg = "";
+                            break;
+                    }
+                }
+            }
+        }
 
         //public IndxElement? Prnt { get; set; }
         public int? Prnt { get => prnt; set { SetProperty(ref prnt, value); } }
@@ -38,7 +61,7 @@ namespace IndexerWpf.Classes
         public IndxElement Parent { get => ParentTree.AllFiles.FirstOrDefault(t => t.Id == Prnt); }//StaticModel.ElIndx.FirstOrDefault(t => t.Id == Prnt); }
 
         [JsonIgnore]
-        public IndxElements ParentTree { private set => SetProperty(ref parentTree, value); get => parentTree; }
+        public IndxElements ParentTree { set => SetProperty(ref parentTree, value); get => parentTree; }
         private IndxElements parentTree;
 
         [JsonIgnore]
@@ -54,7 +77,11 @@ namespace IndexerWpf.Classes
                 // Expand all the way up to the root.
                 if (isExpanded && Parent != null)
                     Parent.IsExpanded = value;
-                SetProperty(nameof(GetUriImg));
+                if (Tp == Type.folder)
+                    if (value)
+                        GetUriImg = "/Resources/опен.png";
+                    else
+                        GetUriImg = "/Resources/папка.png";
             }
         }
         [JsonIgnore]
@@ -215,24 +242,12 @@ namespace IndexerWpf.Classes
                 return null;
         }
 
+        private string getUriImg;
         [JsonIgnore]
         public string GetUriImg
         {
-            get
-            {
-                switch (Tp)
-                {
-                    case Type.folder:
-                        if (IsExpanded)
-                            return "/Resources/опен.png";
-                        else
-                            return "/Resources/папка.png";
-                    case Type.file:
-                        return "/Resources/док.png";
-                    default:
-                        return "";
-                }
-            }
+            set => SetProperty(ref getUriImg, value);
+            get => getUriImg;
         }
     }
 }
