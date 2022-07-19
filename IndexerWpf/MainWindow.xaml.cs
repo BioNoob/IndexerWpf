@@ -1,18 +1,11 @@
 ﻿using IndexerWpf.Classes;
+using IndexerWpf.Models;
 using System;
-using System.Reflection;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Navigation;
-using IndexerWpf.Models;
 using System.Windows.Media.Animation;
-using System.Windows.Input;
-using System.Diagnostics;
-using System.Collections.Generic;
-using System.Linq;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows.Media;
+using System.Windows.Navigation;
 
 namespace IndexerWpf
 {
@@ -26,7 +19,7 @@ namespace IndexerWpf
             this.MouseLeftButtonDown += delegate { this.DragMove(); };
             (DataContext as MainViewModel).PropertyChanged += MainWindow_PropertyChanged;
             StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
-            Toggle.IsChecked = false;
+            //Toggle.IsChecked = false;
         }
 
         private void StaticModel_LoadEndEvent()
@@ -149,22 +142,30 @@ namespace IndexerWpf
             FocusOnList = true;
         }
 
-        private void Popup_Closed(object sender, EventArgs e)
-        {
-            //Toggle.IsChecked = false;
-            if (Toggle.IsChecked == true)
-                Toggle.IsChecked = false;
-            Debug.WriteLine("CLOSED");
-            
-        }
+        //private void Popup_Closed(object sender, EventArgs e)
+        //{
+        //    //Toggle.IsChecked = false;
+        //    //if (Toggle.IsChecked == true)
+        //    //    Toggle.IsChecked = false;
+        //    Debug.WriteLine("CLOSED");
 
-        private void TextBox_PreviewMouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton == MouseButton.Left)
-                if (Toggle.IsChecked != true)
-                    Toggle.IsChecked = true;
-            //Toggle.IsChecked = !Toggle.IsChecked;
-        }
+
+        //}
+
+        //private void TextBox_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        //{
+        //    //if (e.ChangedButton == MouseButton.Left)
+        //    //{
+        //    //    if (Toggle.IsChecked != true)
+        //    //        Toggle.IsChecked = true;
+        //    //    if (Toggle.IsChecked == true)
+        //    //        Toggle.IsChecked = false;
+        //    //}
+                
+        //    //e.Handled = true;
+        //    //Toggle.IsChecked = !Toggle.IsChecked;
+        //    //e.Handled = true;
+        //}
 
         private void ContextMenu_Closed(object sender, RoutedEventArgs e)
         {
