@@ -1,7 +1,5 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-#pragma warning disable CS0660
-#pragma warning disable CS0661
 namespace IndexerWpf.Classes
 {
     public class Proper : INotifyPropertyChanged

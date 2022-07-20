@@ -1,17 +1,10 @@
-﻿using IndexerWpf.Classes;
-using System;
-using System.Linq;
+﻿using System;
 using System.Text.RegularExpressions;
 
 namespace IndexerWpf.Models
 {
     public static class StaticModel
     {
-        //private static WpfObservableRangeCollection<IndxElement> elIndx = new WpfObservableRangeCollection<IndxElement>();
-
-        //public static WpfObservableRangeCollection<IndxElement> ElIndx { get => elIndx; set { elIndx = value; } }
-
-        //public static WpfObservableRangeCollection<string> UnicExtentions { get => new WpfObservableRangeCollection<string>(ElIndx.Select(t => t.Extension).Distinct()); }
 
         public delegate void LoadEnd();
         public static event LoadEnd LoadEndEvent;

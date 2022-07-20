@@ -1,13 +1,11 @@
-﻿using IndexerWpf.Classes;
-using IndexerWpf.Models;
+﻿using IndexerWpf.Models;
 using System;
+using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
 using System.Windows.Navigation;
-using System.Windows.Threading;
 
 namespace IndexerWpf
 {
@@ -21,66 +19,9 @@ namespace IndexerWpf
             this.MouseLeftButtonDown += delegate { this.DragMove(); };
             (DataContext as MainViewModel).PropertyChanged += MainWindow_PropertyChanged;
             StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
-            AddHandler(TreeViewItem.ExpandedEvent, new RoutedEventHandler(treeItemExpanded), true);
             //Toggle.IsChecked = false;
         }
-        //https://stackoverflow.com/questions/1221180/cwpf-how-to-make-an-asynchronous-treeview-without-freezing-the-ui
-        private void treeItemExpanded(object sender, RoutedEventArgs e)
-        {
-            // Get the source
-            var item = e.OriginalSource as TreeViewItem;
 
-            // If the item source is a Simple TreeViewItem
-            if (item == null)
-            // then Nothing
-            { return; }
-
-            if (item.Name == "root")
-            {
-                // Load Children ( populate the treeview )
-                ThreadPool.QueueUserWorkItem(delegate
-                {
-                    List<Server> servers = Server.GetServers();
-
-                    Dispatcher.BeginInvoke(DispatcherPriority.Background, (ThreadStart)delegate
-                    {
-                        root.Items.Clear();
-
-                        // Fill the treeview with the servers
-                        root.ItemsSource = servers;
-                    });
-                });
-            }
-
-            // Get data from item as Folder (also works for Server)
-            Folder treeViewElement = item.DataContext as Folder;
-
-            // If there is no data
-            if (treeViewElement == null)
-            {
-                return;
-            }
-            // Load Children ( populate the treeview )
-            ThreadPool.QueueUserWorkItem(delegate
-            {
-
-                // Clear the Children list
-                var children = treeViewElement.GetChildren();
-
-                // Populate the treeview thanks to the bind
-
-                Dispatcher.BeginInvoke(DispatcherPriority.Background, (ThreadStart)delegate
-                {
-                    treeViewElement.Children.Clear();
-
-                    foreach (Folder folder in children)
-                    {
-                        treeViewElement.Children.Add(folder);
-                    }
-
-                });
-            });
-        }
 
         private void StaticModel_LoadEndEvent()
         {
@@ -175,14 +116,16 @@ namespace IndexerWpf
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
         {
-            RegexHelpWindow rgx = new RegexHelpWindow();
-            rgx.Owner = this;
+            RegexHelpWindow rgx = new RegexHelpWindow
+            {
+                Owner = this
+            };
             rgx.Show();
             rgx.Left += this.Width / 2;
             e.Handled = true;
         }
 
-        private void folder_tree_SelectionChanged(object sender, EventArgs e)
+        private void Folder_tree_SelectionChanged(object sender, EventArgs e)
         {
 
             //MultiSelectTreeView a = sender as MultiSelectTreeView;
@@ -192,7 +135,7 @@ namespace IndexerWpf
             //SearchResult.Focus();
         }
 
-        private void folder_tree_GotFocus(object sender, RoutedEventArgs e)
+        private void Folder_tree_GotFocus(object sender, RoutedEventArgs e)
         {
             FocusOnList = false;
         }
@@ -244,7 +187,7 @@ namespace IndexerWpf
             count_first_load = lds.Count;
             foreach (var item in lds)
             {
-                var a = dtx.ListOfIndexes.SingleOrDefault(t => t.GetName == item);
+                var a = dtx.ListOfIndexes.SingleOrDefault(t => Path.GetFileNameWithoutExtension(t.JsonFileName) == item);
                 if (a != null)
                     a.IsSelected = true;
                 else

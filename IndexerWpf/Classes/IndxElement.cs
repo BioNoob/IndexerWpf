@@ -10,7 +10,6 @@ using System.Windows.Input;
 using System.Diagnostics.CodeAnalysis;
 
 #pragma warning disable CS0660
-#pragma warning disable CS0661
 namespace IndexerWpf.Classes
 {
     //public class IndxElement : Proper
@@ -297,25 +296,19 @@ namespace IndexerWpf.Classes
             {
                 SetProperty(ref tp, value);
                 {
-                    switch (value)
+                    GetUriImg = value switch
                     {
-                        case Type.folder:
-                            GetUriImg = "/Resources/папка.png";
-                            break;
-                        case Type.file:
-                            GetUriImg = "/Resources/док.png";
-                            break;
-                        default:
-                            GetUriImg = "";
-                            break;
-                    }
+                        Type.folder => "/Resources/папка.png",
+                        Type.file => "/Resources/док.png",
+                        _ => "",
+                    };
                 }
             }
         }
         public string FullPath { get => fullPath; set { SetProperty(ref fullPath, value); } }
         public WpfObservableRangeCollection<IndxElementNew> ChildElements { get => childElements; set => SetProperty(ref childElements, value); }
 
-
+        [JsonIgnore]
         public int CountElements { get => ChildElements != null ? ChildElements.Sum(t => t.CountElements) + 1 : 1; }
 
         [JsonIgnore]
@@ -398,12 +391,12 @@ namespace IndexerWpf.Classes
         {
             get
             {
-                return _openfolder ?? (_openfolder = new CommandHandler(obj =>
+                return _openfolder ??= new CommandHandler(obj =>
                 {
                     OpenFolder();
                 },
                 (obj) => !string.IsNullOrEmpty(FullPath)
-                ));
+                );
             }
         }
         [JsonIgnore]
@@ -413,12 +406,12 @@ namespace IndexerWpf.Classes
         {
             get
             {
-                return _openfile ?? (_openfile = new CommandHandler(obj =>
+                return _openfile ??= new CommandHandler(obj =>
                 {
                     OpenFile();
                 },
                 (obj) => !string.IsNullOrEmpty(FullPath) && Tp == Type.file
-                ));
+                );
             }
         }
         public IEnumerable<IndxElementNew> Descendants(/*this IndxElementNew root*/)

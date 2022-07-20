@@ -223,6 +223,13 @@
                                     </Setter.Value>
                                 </Setter>
                             </Trigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="Border" Property="Background">
+                                    <Setter.Value>
+                                        <SolidColorBrush Color="Transparent" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
                             <Trigger Property="IsEnabled" Value="true">
                                 <Setter TargetName="Border" Property="Background">
                                     <Setter.Value>
@@ -262,28 +269,16 @@
                             ClickMode="Press">
                             </ToggleButton>
                             <ContentPresenter Name="ContentSite" IsHitTestVisible="False"  Content="{TemplateBinding SelectionBoxItem}"
-                            ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                            ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-                            Margin="10,0,23,3"
+                                              Grid.Column="2" 
+                            Margin="10,0,25,0" 
                             VerticalAlignment="Center"
                             HorizontalAlignment="Left" />
-                            <TextBox x:Name="PART_EditableTextBox"
-                            Style="{x:Null}" 
-                            Template="{StaticResource ComboBoxTextBox}" 
-                            HorizontalAlignment="Left" 
-                            VerticalAlignment="Center" 
-                            Margin="10,3,23,3"
-                            Focusable="True" 
-                            Background="#FF3F3F3F"
-                            Foreground="Green"
-                            Visibility="Hidden"
-                            IsReadOnly="{TemplateBinding IsReadOnly}"/>
                             <Popup 
                             Name="Popup"
                             Placement="Bottom"
                             IsOpen="{TemplateBinding IsDropDownOpen}"
                             AllowsTransparency="True" 
-                            Focusable="False"
+                            Focusable="False" VerticalOffset="2.5"
                             PopupAnimation="Slide">
                                 <Grid Name="DropDown"
                               SnapsToDevicePixels="True"                
@@ -294,30 +289,21 @@
                                         Background="#FF3F3F3F"
                                         BorderThickness="1"
                                         BorderBrush="#FF97A0A5"/>
-                                    <ScrollViewer Margin="6,6,3,3" SnapsToDevicePixels="True" CanContentScroll="True">
-                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    <ScrollViewer Margin="2.5" SnapsToDevicePixels="True" CanContentScroll="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
                                     </ScrollViewer>
                                 </Grid>
                             </Popup>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="HasItems" Value="false">
-                                <Setter TargetName="DropDownBorder" Property="MinHeight" Value="95"/>
+                                <Setter TargetName="DropDownBorder" Property="MinHeight" Value="20"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="false">
                                 <Setter Property="Foreground" Value="#888888"/>
                             </Trigger>
                             <Trigger Property="IsGrouping" Value="true">
                                 <Setter Property="ScrollViewer.CanContentScroll" Value="false"/>
-                            </Trigger>
-                            <Trigger SourceName="Popup" Property="Popup.AllowsTransparency" Value="true">
-                                <Setter TargetName="DropDownBorder" Property="CornerRadius" Value="0"/>
-                                <Setter TargetName="DropDownBorder" Property="Margin" Value="0,2,0,0"/>
-                            </Trigger>
-                            <Trigger Property="IsEditable"  Value="true">
-                                <Setter Property="IsTabStop" Value="false"/>
-                                <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible"/>
-                                <Setter TargetName="ContentSite" Property="Visibility" Value="Hidden"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -382,40 +368,46 @@
                             Placement="Bottom"
                             IsOpen="{TemplateBinding IsDropDownOpen}"
                             AllowsTransparency="True" 
-                            Focusable="False"
+                            Focusable="False" VerticalOffset="2.5"
                             PopupAnimation="Slide">
-                                <Grid Name="DropDown"
+                                <!--<Grid Name="DropDown"
                               SnapsToDevicePixels="True"                
                               MinWidth="{TemplateBinding ActualWidth}"
+                              MaxHeight="{TemplateBinding MaxDropDownHeight}">-->
+                                <Border  CornerRadius="0" BorderBrush="#FF97A0A5" Background="#FF3F3F3F" BorderThickness="1" Padding="0" x:Name="DropDownBorderx"
+                                             MinWidth="{TemplateBinding ActualWidth}"
                               MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                    <Border  CornerRadius="0" BorderBrush="#FF97A0A5" Background="#FF3F3F3F" BorderThickness="1" Padding="0" x:Name="DropDownBorder">
-                                        <ListView ItemsSource="{Binding ListOfIndexes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{TemplateBinding IsEnabled}" 
-                                                      KeyboardNavigation.DirectionalNavigation="Contained" 
-                                                      Margin="2.5" ScrollViewer.VerticalScrollBarVisibility="Auto" BorderThickness="0" Style="{StaticResource HidedEnabled}">
-                                            <ListView.ItemTemplate>
-                                                <DataTemplate DataType="{x:Type local_cls:IndxElements}">
-                                                    <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding GetName}" Foreground="White" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsEnabled="{TemplateBinding IsEnabled}"/>
-                                                </DataTemplate>
-                                            </ListView.ItemTemplate>
-                                        </ListView>
-                                    </Border>
-                                </Grid>
+                                    <ListView ItemsSource="{Binding ListOfIndexes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{TemplateBinding IsEnabled}" 
+                                                      KeyboardNavigation.DirectionalNavigation="Contained" Style="{StaticResource HidedEnabled}"
+                                                      Margin="2.5" ScrollViewer.VerticalScrollBarVisibility="Auto" >
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type local_cls:IndxElements}">
+                                                <CheckBox IsChecked="{Binding IsSelected}" Foreground="White" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center" 
+                                                              HorizontalAlignment="Stretch"
+                                                              IsEnabled="{TemplateBinding IsEnabled}"  x:Name="CheckBx">
+                                                    <TextBlock Text="{Binding GetName}" HorizontalAlignment="Stretch"/>
+                                                </CheckBox>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="Focusable" Value="false"/>
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                    </ListView>
+                                </Border>
+                                <!--</Grid>-->
                             </Popup>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="HasItems" Value="false">
-                                <Setter TargetName="DropDownBorder" Property="MinHeight" Value="95"/>
+                                <Setter TargetName="DropDownBorderx" Property="MinHeight" Value="50"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="false">
                                 <Setter Property="Foreground" Value="#888888"/>
                             </Trigger>
-                            <Trigger Property="IsGrouping" Value="true">
-                                <Setter Property="ScrollViewer.CanContentScroll" Value="false"/>
-                            </Trigger>
-                            <Trigger SourceName="Popup" Property="Popup.AllowsTransparency" Value="true">
-                                <Setter TargetName="DropDownBorder" Property="CornerRadius" Value="0"/>
-                                <Setter TargetName="DropDownBorder" Property="Margin" Value="0,2,0,0"/>
-                            </Trigger>
+
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -423,7 +415,7 @@
             <Setter Property="ItemContainerStyle">
                 <Setter.Value>
                     <Style TargetType="ComboBoxItem">
-                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                         <Setter Property="VerticalContentAlignment" Value="Center" />
                     </Style>
                 </Setter.Value>
@@ -590,11 +582,12 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*" MinWidth="250"/>
                 </Grid.ColumnDefinitions>
-                <Controls:MultiSelectTreeView x:Name="folder_tree" Grid.RowSpan="3" Grid.Column="0" GotFocus="folder_tree_GotFocus"
-                 ItemsSource="{Binding ListOfRootInSelectedIndexes, UpdateSourceTrigger=PropertyChanged}"
-                 
+                <Controls:MultiSelectTreeView x:Name="folder_tree" Grid.RowSpan="3" Grid.Column="0" GotFocus="Folder_tree_GotFocus"
+                 ItemsSource="{Binding ListOfRootInSelectedIndexes, UpdateSourceTrigger=PropertyChanged, IsAsync=True}"
+                 VirtualizingStackPanel.IsVirtualizing="True"
+
                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" 
-                 SelectionChanged="folder_tree_SelectionChanged" FontFamily="Jura">
+                 SelectionChanged="Folder_tree_SelectionChanged" FontFamily="Jura">
                     <Controls:MultiSelectTreeView.ItemContainerStyle>
                         <Style TargetType="{x:Type Controls:MultiSelectTreeViewItem}">
                             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />

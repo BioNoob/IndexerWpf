@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.IO;
 using System.Drawing;
 
 namespace IndexerWpf.Classes
@@ -40,25 +38,9 @@ namespace IndexerWpf.Classes
             Properties.Settings.Default.LastIndex = LastIndex;
             Properties.Settings.Default.FolderIndexesDefPath = FolderIndexesDefPath;
             Properties.Settings.Default.Save();
-            //File.WriteAllText(Directory.GetCurrentDirectory() +"\\settings.json", JsonConvert.SerializeObject(this, Formatting.Indented));
         }
         public void LoadSettings()
         {
-            //if (File.Exists(Directory.GetCurrentDirectory() + "\\settings.json"))
-            //{
-            //    try
-            //    {
-            //        FolderIndexesDefPath = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(Directory.GetCurrentDirectory() + "\\settings.json")).FolderIndexesDefPath;
-            //    }
-            //    catch (Exception)
-            //    {
-            //        FolderIndexesDefPath = string.Empty;
-            //    }
-            //}
-            //else
-            //{
-            //    FolderIndexesDefPath = string.Empty;
-            //}
             FolderIndexesDefPath = Properties.Settings.Default.FolderIndexesDefPath;
             LastIndex = Properties.Settings.Default.LastIndex;
             WindowSise = new CustomPoint() {X = Properties.Settings.Default.LastSize.Width, Y = Properties.Settings.Default.LastSize.Height };

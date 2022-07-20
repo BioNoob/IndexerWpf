@@ -578,8 +578,8 @@ namespace IndexerWpf.Classes
         /// <returns></returns>
         private static bool ContainsAny(IEnumerable<T> collection)
         {
-            using (IEnumerator<T> enumerator = collection.GetEnumerator())
-                return enumerator.MoveNext();
+            using IEnumerator<T> enumerator = collection.GetEnumerator();
+            return enumerator.MoveNext();
         }
 
         /// <summary>
@@ -763,41 +763,6 @@ namespace IndexerWpf.Classes
             }
         }
     }
-    //public class CommandHandler : ICommand
-    //{
-    //    /// <summary>
-    //    /// Wires CanExecuteChanged event 
-    //    /// </summary>
-    //    public event EventHandler CanExecuteChanged
-    //    {
-    //        add { CommandManager.RequerySuggested += value; }
-    //        remove { CommandManager.RequerySuggested -= value; }
-    //    }
-
-    //    public bool CanExecute(object parameter)
-    //    {
-    //        return this.canExecute == null || this.canExecute(parameter);
-    //    }
-
-    //    public void Execute(object parameter)
-    //    {
-    //        this.execute(parameter);
-    //    }
-
-    //    private Action<object> execute;
-    //    private Func<object, bool> canExecute;
-
-    //    /// <summary>
-    //    /// Creates instance of the command handler
-    //    /// </summary>
-    //    /// <param name="action">Action to be executed by the command</param>
-    //    /// <param name="canExecute">A bolean property to containing current permissions to execute the command</param>
-    //    public CommandHandler(Action<object> execute, Func<object, bool> canExecute = null)
-    //    {
-    //        this.execute = execute;
-    //        this.canExecute = canExecute;
-    //    }
-    //}
 
     public class CommandHandler : ICommand
     {
@@ -820,20 +785,51 @@ namespace IndexerWpf.Classes
 
         public void Execute(object parameter)
         {
-            if (_execute != null)
-                _execute(parameter);
+            _execute?.Invoke(parameter);
         }
     }
+    public class ProcessingFileException : Exception
+    {
 
+        public ProcessingFileException(/*Exception innerException,*/ TypeOfError type, string path_to_Json)
+            //: base(GetMessage(type), innerException)
+        {
+            Path_to_Json = path_to_Json;
+            ErrorType = type;
+        }
+        public string Path_to_Json = string.Empty;
+        public TypeOfError ErrorType = TypeOfError.SomeThing;
+        public enum TypeOfError
+        {
+            Deleted,
+            Invalid,
+            SomeThing
+        }
+
+        public string GetMessage(TypeOfError type)
+        {
+            switch (type)
+            {
+                case TypeOfError.Deleted:
+                    return $"File {Path_to_Json} is deleted";
+
+                case TypeOfError.Invalid:
+                    return $"File {Path_to_Json} is invalid";
+            }
+
+            return $"Unknown TypeOfService: {type}";
+        }
+
+    }
     public class ExtendedTreeView : TreeView
     {
         public ExtendedTreeView()
             : base()
         {
-            this.SelectedItemChanged += new RoutedPropertyChangedEventHandler<object>(___ICH);
+            this.SelectedItemChanged += new RoutedPropertyChangedEventHandler<object>(ICH);
         }
 
-        void ___ICH(object sender, RoutedPropertyChangedEventArgs<object> e)
+        void ICH(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             if (SelectedItem != null)
             {
@@ -854,11 +850,10 @@ namespace IndexerWpf.Classes
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             object result = value;
-            double parameterValue;
 
             if (value != null && targetType == typeof(double) &&
                 double.TryParse((string)parameter,
-                NumberStyles.Float, culture, out parameterValue))
+                NumberStyles.Float, culture, out double parameterValue))
             {
                 result = (double)value + parameterValue;
             }
@@ -879,7 +874,7 @@ namespace IndexerWpf.Classes
 
     public class EncryptedStringPropertyResolver : DefaultContractResolver
     {
-        private byte[] encryptionKeyBytes;
+        private readonly byte[] encryptionKeyBytes;
 
         public EncryptedStringPropertyResolver(string encryptionKey)
         {
@@ -887,11 +882,9 @@ namespace IndexerWpf.Classes
                 throw new ArgumentNullException("encryptionKey");
 
             // Hash the key to ensure it is exactly 256 bits long, as required by AES-256
-            using (SHA256Managed sha = new SHA256Managed())
-            {
-                this.encryptionKeyBytes =
-                    sha.ComputeHash(Encoding.UTF8.GetBytes(encryptionKey));
-            }
+            using SHA256Managed sha = new SHA256Managed();
+            encryptionKeyBytes =
+                sha.ComputeHash(Encoding.UTF8.GetBytes(encryptionKey));
         }
 
         protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
@@ -915,8 +908,8 @@ namespace IndexerWpf.Classes
 
         class EncryptedStringValueProvider : IValueProvider
         {
-            PropertyInfo targetProperty;
-            private byte[] encryptionKey;
+            readonly PropertyInfo targetProperty;
+            private readonly byte[] encryptionKey;
 
             public EncryptedStringValueProvider(PropertyInfo targetProperty, byte[] encryptionKey)
             {
@@ -932,22 +925,20 @@ namespace IndexerWpf.Classes
                 string value = (string)targetProperty.GetValue(target);
                 byte[] buffer = Encoding.UTF8.GetBytes(value);
 
-                using (MemoryStream inputStream = new MemoryStream(buffer, false))
-                using (MemoryStream outputStream = new MemoryStream())
-                using (AesManaged aes = new AesManaged { Key = encryptionKey })
+                using MemoryStream inputStream = new MemoryStream(buffer, false);
+                using MemoryStream outputStream = new MemoryStream();
+                using AesManaged aes = new AesManaged { Key = encryptionKey };
+                byte[] iv = aes.IV;  // first access generates a new IV
+                outputStream.Write(iv, 0, iv.Length);
+                outputStream.Flush();
+
+                ICryptoTransform encryptor = aes.CreateEncryptor(encryptionKey, iv);
+                using (CryptoStream cryptoStream = new CryptoStream(outputStream, encryptor, CryptoStreamMode.Write))
                 {
-                    byte[] iv = aes.IV;  // first access generates a new IV
-                    outputStream.Write(iv, 0, iv.Length);
-                    outputStream.Flush();
-
-                    ICryptoTransform encryptor = aes.CreateEncryptor(encryptionKey, iv);
-                    using (CryptoStream cryptoStream = new CryptoStream(outputStream, encryptor, CryptoStreamMode.Write))
-                    {
-                        inputStream.CopyTo(cryptoStream);
-                    }
-
-                    return Convert.ToBase64String(outputStream.ToArray());
+                    inputStream.CopyTo(cryptoStream);
                 }
+
+                return Convert.ToBase64String(outputStream.ToArray());
             }
 
             // SetValue gets called by Json.Net during deserialization.
@@ -957,26 +948,24 @@ namespace IndexerWpf.Classes
             {
                 byte[] buffer = Convert.FromBase64String((string)value);
 
-                using (MemoryStream inputStream = new MemoryStream(buffer, false))
-                using (MemoryStream outputStream = new MemoryStream())
-                using (AesManaged aes = new AesManaged { Key = encryptionKey })
+                using MemoryStream inputStream = new MemoryStream(buffer, false);
+                using MemoryStream outputStream = new MemoryStream();
+                using AesManaged aes = new AesManaged { Key = encryptionKey };
+                byte[] iv = new byte[16];
+                int bytesRead = inputStream.Read(iv, 0, 16);
+                if (bytesRead < 16)
                 {
-                    byte[] iv = new byte[16];
-                    int bytesRead = inputStream.Read(iv, 0, 16);
-                    if (bytesRead < 16)
-                    {
-                        throw new CryptographicException("IV is missing or invalid.");
-                    }
-
-                    ICryptoTransform decryptor = aes.CreateDecryptor(encryptionKey, iv);
-                    using (CryptoStream cryptoStream = new CryptoStream(inputStream, decryptor, CryptoStreamMode.Read))
-                    {
-                        cryptoStream.CopyTo(outputStream);
-                    }
-
-                    string decryptedValue = Encoding.UTF8.GetString(outputStream.ToArray());
-                    targetProperty.SetValue(target, decryptedValue);
+                    throw new CryptographicException("IV is missing or invalid.");
                 }
+
+                ICryptoTransform decryptor = aes.CreateDecryptor(encryptionKey, iv);
+                using (CryptoStream cryptoStream = new CryptoStream(inputStream, decryptor, CryptoStreamMode.Read))
+                {
+                    cryptoStream.CopyTo(outputStream);
+                }
+
+                string decryptedValue = Encoding.UTF8.GetString(outputStream.ToArray());
+                targetProperty.SetValue(target, decryptedValue);
             }
 
         }

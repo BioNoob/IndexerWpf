@@ -1,4 +1,5 @@
 ﻿using IndexerWpf.Classes;
+using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -7,9 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows.Controls.Primitives;
 using System.Windows.Forms;
-using System.Windows.Threading;
 
 namespace IndexerWpf.Models
 {
@@ -53,7 +52,7 @@ namespace IndexerWpf.Models
         private string selectedIndexsString;
         private Settings sets;
         private CommandHandler _openfolder;
-        private FolderBrowserDialog fbd;
+        private readonly FolderBrowserDialog fbd;
 
         public CommandHandler OpenIndexFolderCommand
         {
@@ -97,7 +96,7 @@ namespace IndexerWpf.Models
                     Clipboard.SetFileDropList(paths);
                     ShowPopUp = true;
                 },
-                (obj) => true//ListOfElementsInSelectedIndexes.Count(t => t.IsSelected) > 0//Searched.Where(t => t.IsSelected).Count() > 0
+                (obj) => true
                 );
             }
         }
@@ -106,7 +105,7 @@ namespace IndexerWpf.Models
         {
             get
             {
-                return _changedir ?? (_changedir = new CommandHandler(obj =>
+                return _changedir ??= new CommandHandler(obj =>
                 {
 
                     fbd.SelectedPath = Def_path;
@@ -117,7 +116,7 @@ namespace IndexerWpf.Models
                     }
                 },
                 (obj) => true
-                ));
+                );
             }
         }
         private CommandHandler _startscan;
@@ -125,7 +124,7 @@ namespace IndexerWpf.Models
         {
             get
             {
-                return _startscan ?? (_startscan = new CommandHandler(obj =>
+                return _startscan ??= new CommandHandler(obj =>
                 {
                     if (fbd.ShowDialog() == DialogResult.OK)
                     {
@@ -136,7 +135,7 @@ namespace IndexerWpf.Models
                     }
                 },
                 (obj) => Is_scanned
-                ));
+                );
             }
         }
         private CommandHandler _showontree;
@@ -144,7 +143,7 @@ namespace IndexerWpf.Models
         {
             get
             {
-                return _showontree ?? (_showontree = new CommandHandler(obj =>
+                return _showontree ??= new CommandHandler(obj =>
                 {
                     //Is_scanned = true;
                     //_= await Task.Run(() =>
@@ -154,10 +153,10 @@ namespace IndexerWpf.Models
                     //return true;
                     //}
                     //);
-                    //Is_scanned = false;
+                   
                 },
                 (obj) => true
-                ));
+                );
             }
         }
         public MainViewModel()
@@ -173,30 +172,14 @@ namespace IndexerWpf.Models
             Searched = new WpfObservableRangeCollection<IndxElementNew>();
 
             StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
-            fbd = new FolderBrowserDialog();
-            fbd.ShowNewFolderButton = true;
-            fbd.AutoUpgradeEnabled = true;
-            fbd.RootFolder = Environment.SpecialFolder.Recent;
+            fbd = new FolderBrowserDialog
+            {
+                ShowNewFolderButton = true,
+                AutoUpgradeEnabled = true,
+                RootFolder = Environment.SpecialFolder.Recent
+            };
             Is_scanned = false;
         }
-
-        //private void ListOfIndexes_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        // {
-        //foreach (var Indx in e.NewItems)
-        //{
-        //    if (e.Action == NotifyCollectionChangedAction.Add)
-        //    {
-        //        StaticModel.ElIndx.AddRange((Indx as IndxElements).AllFiles);
-        //    }
-        //    else if (e.Action == NotifyCollectionChangedAction.Remove)
-        //    {
-        //        foreach (var element in (Indx as IndxElements).AllFiles)
-        //        {
-        //            StaticModel.ElIndx.Remove(element);
-        //        }
-        //    }
-        //}
-        //}
 
         public void LoadListIndexes()
         {
@@ -210,7 +193,7 @@ namespace IndexerWpf.Models
                 {
                     foreach (var item in fls.Where(t => Path.GetExtension(t) == ".json"))
                     {
-                        var q = new IndxElements(item);
+                        var q = new IndxElements() { JsonFileName = item };
                         q.IsSelectedChangedEvent += Q_IsSelectedChangedEvent;
                         ListOfIndexes.Add(q);
                     }
@@ -262,9 +245,30 @@ namespace IndexerWpf.Models
                 {
                     if (item.RootElement.CountElements - 1 <= 0)
                         _ = await Task.Run(() => item.LoadInexes());
+                        //    .ContinueWith(t =>
+                        //{
+                        //    if (t.Exception != null) throw t.Exception.InnerException;
+                        //}, default
+                        //  , TaskContinuationOptions.OnlyOnFaulted
+                        //  , TaskScheduler.FromCurrentSynchronizationContext());
                 }
-                catch (Exception)
+                catch (ProcessingFileException e)
                 {
+                    switch (e.ErrorType)
+                    {
+                        case ProcessingFileException.TypeOfError.Deleted:
+                            MessageBox.Show($"File {e.Path_to_Json} was deleted!", "Error load", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            break;
+                        case ProcessingFileException.TypeOfError.Invalid:
+                            if (MessageBox.Show($"File {e.Path_to_Json} load error\n{e.Message}\nDelete a file?", "Error load", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
+                                FileSystem.DeleteFile(e.Path_to_Json, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);
+                                //File.Delete(e.Path_to_Json);
+                            break;
+                        case ProcessingFileException.TypeOfError.SomeThing:
+                            break;
+                        default:
+                            break;
+                    }
                     ListOfIndexes.Remove(item);
                     item.IsSelected = false;
                     return;

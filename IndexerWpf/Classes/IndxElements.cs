@@ -3,8 +3,6 @@ using System.IO;
 using System.Linq;
 using IndexerWpf.Models;
 using Newtonsoft.Json;
-#pragma warning disable CS0660
-#pragma warning disable CS0661
 namespace IndexerWpf.Classes
 {
     public class IndxElements : Proper, IDisposable, IEquatable<IndxElements>
@@ -18,7 +16,7 @@ namespace IndexerWpf.Classes
         public delegate void IsSelecetdChange(IndxElements sender, bool state);
 
         [JsonIgnore]
-        public string GetName { get => Path.GetFileNameWithoutExtension(RootFolderPath); }
+        public string GetName { get => Path.GetFileNameWithoutExtension(JsonFileName); }
         [JsonIgnore]
         public int TotalFiles { get => RootElement.CountElements - 1; }//-1 = self; }
         [JsonIgnore]
@@ -27,7 +25,8 @@ namespace IndexerWpf.Classes
         public string RootFolderPath { get => rootFolderPath; set { SetProperty(ref rootFolderPath, value); } }
         public string DateOfLastChange { get => dateOfLastChange; set => SetProperty(ref dateOfLastChange, value); }
         public IndxElementNew RootElement { get => allFiles; set { SetProperty(ref allFiles, value); } }
-
+        [JsonIgnore]
+        public string JsonFileName { get; set; }
         public IndxElements()
         {
             IsSelected = false;
@@ -53,37 +52,37 @@ namespace IndexerWpf.Classes
         }
         public bool LoadInexes()//string file_to_load)
         {
-            if (File.Exists(RootFolderPath))
+            if (File.Exists(JsonFileName))
             {
                 try
                 {
-                    var a = JsonConvert.DeserializeObject<IndxElements>(File.ReadAllText(RootFolderPath));
+                    var a = JsonConvert.DeserializeObject<IndxElements>(File.ReadAllText(JsonFileName));
                     RootFolderPath = a.RootFolderPath;
                     DateOfLastChange = a.DateOfLastChange;
                     RootElement = a.RootElement;
+                    if (string.IsNullOrEmpty(RootElement.FullPath))
+                        throw new ProcessingFileException(ProcessingFileException.TypeOfError.Invalid, JsonFileName);
                     //StaticModel.ElIndx.AddRange(AllFiles);
                     var all_elem = RootElement.Descendants();
                     foreach (var elem in all_elem)
                     {
-                        if(elem.ChildElements != null)
-                        elem.ChildElements.ToList().ForEach(t => t.Parent = elem);
+                        if (elem.ChildElements != null)
+                            elem.ChildElements.ToList().ForEach(t => t.Parent = elem);
                     }
                     a.Dispose();
                     //Debug.WriteLine("DONE DESER");
                     return true;
                 }
-                catch (Exception e)
+                catch (ProcessingFileException e)
                 {
                     //return null;
-                    System.Windows.Forms.MessageBox.Show($"File {RootFolderPath} load error\n{e.Message}!", "Error load", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
-                    throw;
+                    throw e;
                 }
 
             }
             else
             {
-                System.Windows.Forms.MessageBox.Show($"File {RootFolderPath} was deleted!", "Error load", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
-                throw new Exception();
+                throw new ProcessingFileException(ProcessingFileException.TypeOfError.Deleted, JsonFileName);
                 //return null;
             }
         }
