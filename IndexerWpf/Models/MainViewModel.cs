@@ -369,22 +369,6 @@ namespace IndexerWpf.Models
             //получаем количество файлов
             Prog_value = 0;
 
-
-            //var dirs = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
-
-            //Prog_value_max = dirs.Length;
-
-            //var fileNames = Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories);
-
-            //Prog_value_max = fileNames.Count();
-            //if (Prog_value_max > 100000)
-            //{
-            //    MessageBox.Show($"Too many files ({Prog_value_max})\n Please use internal directories!", "Too many files", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            //    Prog_value = 1;
-            //    Prog_value_max = 1;
-            //    return false;
-            //}
-
             //создаем корневую ноду по корневому каталогу
             IndxElement root = new IndxElement(Path.GetFullPath(path), indexes) { Tp = IndxElement.Type.folder, Prnt = null };
             indexes.AllFiles.Add(root);

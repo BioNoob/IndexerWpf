@@ -7,6 +7,7 @@ using System.Linq;
 using IndexerWpf.Models;
 using Newtonsoft.Json;
 using System.Windows.Input;
+using static IndexerWpf.Classes.IndxElement;
 #pragma warning disable CS0660
 #pragma warning disable CS0661
 namespace IndexerWpf.Classes
@@ -249,5 +250,166 @@ namespace IndexerWpf.Classes
             set => SetProperty(ref getUriImg, value);
             get => getUriImg;
         }
+    }
+
+
+
+    public class IndxElementNew : Proper
+    {
+        public IndxElementNew()
+        {
+            Id = Identificator++;
+        }
+        public IndxElementNew(string _fullpath, Type tp, IndxElementNew prnt)
+        {
+            if (tp != Type.file)
+                ChildElements = new WpfObservableRangeCollection<IndxElementNew>();
+            else
+                ChildElements = null;
+
+            Tp = tp;
+            FullPath = _fullpath;
+            Id = Identificator++;
+            Parent = prnt;
+        }
+
+        public static int Identificator = 0;
+        private string fullPath;
+        private Type tp;
+        private int id;
+        private string getUriImg;
+        private WpfObservableRangeCollection<IndxElementNew> childElements;
+        private IndxElementNew parent;
+        private bool isSelected;
+        private bool isExpanded;
+
+        public int Id { get => id; set { SetProperty(ref id, value); } }
+        public Type Tp
+        {
+            get => tp;
+            set
+            {
+                SetProperty(ref tp, value);
+                {
+                    switch (value)
+                    {
+                        case Type.folder:
+                            GetUriImg = "/Resources/папка.png";
+                            break;
+                        case Type.file:
+                            GetUriImg = "/Resources/док.png";
+                            break;
+                        default:
+                            GetUriImg = "";
+                            break;
+                    }
+                }
+            }
+        }
+        public string FullPath { get => fullPath; set { SetProperty(ref fullPath, value); } }
+        public WpfObservableRangeCollection<IndxElementNew> ChildElements { get => childElements; set => SetProperty(ref childElements, value); }
+
+
+
+
+        [JsonIgnore]
+        public bool IsSelected
+        {
+            get => isSelected;
+            set => SetProperty(ref isSelected, value);
+        }
+        [JsonIgnore]
+        public bool IsExpanded
+        {
+            get => isExpanded;
+            set
+            {
+                if (value != isExpanded)
+                    SetProperty(ref isExpanded, value);
+                // Expand all the way up to the root.
+                if (isExpanded && Parent != null)
+                    Parent.IsExpanded = value;
+                if (Tp == Type.folder)
+                    if (value)
+                        GetUriImg = "/Resources/опен.png";
+                    else
+                        GetUriImg = "/Resources/папка.png";
+            }
+        }
+        [JsonIgnore]
+        public IndxElementNew Parent { get => parent; set => SetProperty(ref parent, value); }
+        [JsonIgnore]
+        public string GetUriImg
+        {
+            set => SetProperty(ref getUriImg, value);
+            get => getUriImg;
+        }
+        [JsonIgnore]
+        public string Name => Path.GetFileName(FullPath);
+        [JsonIgnore]
+        public string Extension
+        {
+            get
+            {
+                if (Tp == Type.file)
+                {
+                    var ext = Path.GetExtension(FullPath);
+                    if (string.IsNullOrWhiteSpace(ext))
+                    {
+                        return "*";
+                    }
+                    else
+                    {
+                        return ext.ToLower();
+                    }
+                }
+                else
+                    return "*";
+            }
+        }
+        [JsonIgnore]
+        public string DirPath => Path.GetDirectoryName(FullPath);
+        public void OpenFolder()
+        {
+            Process.Start("explorer.exe", $"/select, {FullPath}");
+        }
+        public void OpenFile()
+        {
+            Process pr = new Process();
+            pr.StartInfo.FileName = FullPath;
+            pr.StartInfo.UseShellExecute = true;
+            pr.Start();
+        }
+        [JsonIgnore]
+        private CommandHandler _openfolder;
+        [JsonIgnore]
+        public CommandHandler OpenFolderCommand
+        {
+            get
+            {
+                return _openfolder ?? (_openfolder = new CommandHandler(obj =>
+                {
+                    OpenFolder();
+                },
+                (obj) => !string.IsNullOrEmpty(FullPath)
+                ));
+            }
+        }
+        [JsonIgnore]
+        private CommandHandler _openfile;
+        [JsonIgnore]
+        public CommandHandler OpenFileCommand
+        {
+            get
+            {
+                return _openfile ?? (_openfile = new CommandHandler(obj =>
+                {
+                    OpenFile();
+                },
+                (obj) => !string.IsNullOrEmpty(FullPath) && Tp == Type.file
+                ));
+            }
+        }
+
     }
 }
