@@ -7,31 +7,26 @@ using Newtonsoft.Json;
 #pragma warning disable CS0661
 namespace IndexerWpf.Classes
 {
-    public class IndxElements : Proper, IDisposable
+    public class IndxElements : Proper, IDisposable, IEquatable<IndxElements>
     {
-        private WpfObservableRangeCollection<IndxElement> allFiles;
+        private IndxElementNew allFiles;
         private string rootFolderPath;
         private string dateOfLastChange;
         private bool isSelected;
-        //private WpfObservableRangeCollection<string> extentions;
 
         public event IsSelecetdChange IsSelectedChangedEvent;
         public delegate void IsSelecetdChange(IndxElements sender, bool state);
 
         [JsonIgnore]
         public string GetName { get => Path.GetFileNameWithoutExtension(RootFolderPath); }
-
+        [JsonIgnore]
+        public int TotalFiles { get => RootElement.CountElements - 1; }//-1 = self; }
         [JsonIgnore]
         public bool IsSelected { get => isSelected; set { SetProperty(ref isSelected, value); IsSelectedChangedEvent?.Invoke(this, value); } }
-        [JsonIgnore]
-        public int TotalFiles { get => AllFiles.Count(t => t.Tp == IndxElement.Type.file); }
-
-        //[JsonIgnore]
-        //public WpfObservableRangeCollection<string> Extentions { get => extentions; set { SetProperty(ref extentions, value); } }
 
         public string RootFolderPath { get => rootFolderPath; set { SetProperty(ref rootFolderPath, value); } }
         public string DateOfLastChange { get => dateOfLastChange; set => SetProperty(ref dateOfLastChange, value); }
-        public WpfObservableRangeCollection<IndxElement> AllFiles { get => allFiles; set { SetProperty(ref allFiles, value); } }
+        public IndxElementNew RootElement { get => allFiles; set { SetProperty(ref allFiles, value); } }
 
         public IndxElements()
         {
@@ -42,25 +37,9 @@ namespace IndexerWpf.Classes
 
         private void Init()
         {
-            AllFiles = new WpfObservableRangeCollection<IndxElement>();
-            //Extentions = new WpfObservableRangeCollection<string>();
-            //StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
-            IndxElement.Identificator = 0;
+            RootElement = new IndxElementNew();
+            IndxElementNew.Identificator = 0;
         }
-
-        public void Clear()
-        {
-            AllFiles = new WpfObservableRangeCollection<IndxElement>();
-            //Extentions = new WpfObservableRangeCollection<string>();
-            IndxElement.Identificator = 0;
-            RootFolderPath = string.Empty;
-        }
-
-        //private void StaticModel_LoadEndEvent()
-        //{
-        //    Extentions.Clear();
-        //    Extentions.AddRange(AllFiles.Select(t => t.Extension).Distinct());
-        //}
 
         public IndxElements(string path)
         {
@@ -81,13 +60,13 @@ namespace IndexerWpf.Classes
                     var a = JsonConvert.DeserializeObject<IndxElements>(File.ReadAllText(RootFolderPath));
                     RootFolderPath = a.RootFolderPath;
                     DateOfLastChange = a.DateOfLastChange;
-                    AllFiles = a.AllFiles;
+                    RootElement = a.RootElement;
                     //StaticModel.ElIndx.AddRange(AllFiles);
-                    foreach (var elem in AllFiles)
+                    var all_elem = RootElement.Descendants();
+                    foreach (var elem in all_elem)
                     {
-                        if (elem.ParentTree == null)
-                            elem.ParentTree = this;
-                        elem.Items = elem.buildtree();
+                        if(elem.ChildElements != null)
+                        elem.ChildElements.ToList().ForEach(t => t.Parent = elem);
                     }
                     a.Dispose();
                     //Debug.WriteLine("DONE DESER");
@@ -111,7 +90,7 @@ namespace IndexerWpf.Classes
 
         public void Dispose()
         {
-            AllFiles = null;
+            RootElement = null;
             //VisualFolder = null;
             //Extentions = null;
             DateOfLastChange = null;
@@ -119,6 +98,11 @@ namespace IndexerWpf.Classes
             //ID = -1;
             //StaticModel.LoadEndEvent -= StaticModel_LoadEndEvent;
             GC.SuppressFinalize(this);
+        }
+        public bool Equals(IndxElements other)
+        {
+            return this.RootElement == other.RootElement &&
+                   this.RootFolderPath == other.RootFolderPath;
         }
     }
 }

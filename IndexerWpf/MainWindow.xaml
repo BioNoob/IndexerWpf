@@ -591,25 +591,26 @@
                     <ColumnDefinition Width="*" MinWidth="250"/>
                 </Grid.ColumnDefinitions>
                 <Controls:MultiSelectTreeView x:Name="folder_tree" Grid.RowSpan="3" Grid.Column="0" GotFocus="folder_tree_GotFocus"
-                 ItemsSource="{Binding VisualFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                 SelectedItems="{Binding SelectedElements, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 ItemsSource="{Binding ListOfRootInSelectedIndexes, UpdateSourceTrigger=PropertyChanged}"
+                 
                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" 
                  SelectionChanged="folder_tree_SelectionChanged" FontFamily="Jura">
                     <Controls:MultiSelectTreeView.ItemContainerStyle>
                         <Style TargetType="{x:Type Controls:MultiSelectTreeViewItem}">
                             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
                             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                            <!--<EventSetter Event="Selected" Handler="TreeViewSelectedItemChanged" />-->
+                            <!--<EventSetter Event="Selected" Handler="TreeViewSelectedItemChanged" />
+                            SelectedItems="{Binding SelectedElements, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"-->
                             <!-- https://github.com/ygoe/MultiSelectTreeView -->
                         </Style>
                     </Controls:MultiSelectTreeView.ItemContainerStyle>
                     <Controls:MultiSelectTreeView.Resources>
-                        <HierarchicalDataTemplate DataType="{x:Type local_cls:IndxElement}" ItemsSource="{Binding Items}">
+                        <HierarchicalDataTemplate DataType="{x:Type local_cls:IndxElementNew}" ItemsSource="{Binding ChildElements}">
                             <StackPanel Orientation="Horizontal">
                                 <Image x:Name="treeImg"  Width="16" Height="16" Source="{Binding GetUriImg}" />
                                 <TextBlock Text="{Binding Name}" TextWrapping="Wrap" TextTrimming="WordEllipsis" Margin="5,0,0,0">
                                     <TextBlock.ToolTip>
-                                        <TextBlock Text="{Binding ParentName}" FontFamily="Jura"/>
+                                        <TextBlock Text="{Binding Parent.Name}" FontFamily="Jura"/>
                                     </TextBlock.ToolTip>
                                 <TextBlock.ContextMenu>
                                     <ContextMenu Closed="ContextMenu_Closed">
@@ -678,12 +679,14 @@
                             </Style>
                         </ListView.ItemContainerStyle>
                         <ListView.ItemTemplate>
-                            <DataTemplate DataType="{x:Type local_cls:IndxElement}">
+                            <DataTemplate DataType="{x:Type local_cls:IndxElementNew}">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch">
                                     <Image Source="{Binding GetUriImg}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,0,5,0"/>
                                     <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
                                         <TextBlock.ContextMenu>
                                             <ContextMenu Closed="ContextMenu_Closed">
+                                                <MenuItem Header="Show on tree" Command="{Binding Path=DataContext.ShowOnTreeCommand, Source={x:Reference Name=Window}}"/>
+                                                <Separator Style="{StaticResource MenuSeparatorStyle}"/>
                                                 <MenuItem Header="Open document" Command="{Binding OpenFileCommand}"/>
                                                 <Separator Style="{StaticResource MenuSeparatorStyle}"/>
                                                 <MenuItem Header="Open document folder" Command="{Binding OpenFolderCommand}"/>

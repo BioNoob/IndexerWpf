@@ -2,24 +2,84 @@
 using IndexerWpf.Models;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
 using System.Windows.Navigation;
+using System.Windows.Threading;
 
 namespace IndexerWpf
 {
     public partial class MainWindow : Window
     {
         public bool FocusOnList = false;
-        public WpfObservableRangeCollection<IndxElement> SelectedElements { get => (this.DataContext as MainViewModel).SelectedElements; }
+        //public WpfObservableRangeCollection<IndxElement> SelectedElements { get => (this.DataContext as MainViewModel).SelectedElements; }
         public MainWindow()
         {
             InitializeComponent();
             this.MouseLeftButtonDown += delegate { this.DragMove(); };
             (DataContext as MainViewModel).PropertyChanged += MainWindow_PropertyChanged;
             StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
+            AddHandler(TreeViewItem.ExpandedEvent, new RoutedEventHandler(treeItemExpanded), true);
             //Toggle.IsChecked = false;
+        }
+        //https://stackoverflow.com/questions/1221180/cwpf-how-to-make-an-asynchronous-treeview-without-freezing-the-ui
+        private void treeItemExpanded(object sender, RoutedEventArgs e)
+        {
+            // Get the source
+            var item = e.OriginalSource as TreeViewItem;
+
+            // If the item source is a Simple TreeViewItem
+            if (item == null)
+            // then Nothing
+            { return; }
+
+            if (item.Name == "root")
+            {
+                // Load Children ( populate the treeview )
+                ThreadPool.QueueUserWorkItem(delegate
+                {
+                    List<Server> servers = Server.GetServers();
+
+                    Dispatcher.BeginInvoke(DispatcherPriority.Background, (ThreadStart)delegate
+                    {
+                        root.Items.Clear();
+
+                        // Fill the treeview with the servers
+                        root.ItemsSource = servers;
+                    });
+                });
+            }
+
+            // Get data from item as Folder (also works for Server)
+            Folder treeViewElement = item.DataContext as Folder;
+
+            // If there is no data
+            if (treeViewElement == null)
+            {
+                return;
+            }
+            // Load Children ( populate the treeview )
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+
+                // Clear the Children list
+                var children = treeViewElement.GetChildren();
+
+                // Populate the treeview thanks to the bind
+
+                Dispatcher.BeginInvoke(DispatcherPriority.Background, (ThreadStart)delegate
+                {
+                    treeViewElement.Children.Clear();
+
+                    foreach (Folder folder in children)
+                    {
+                        treeViewElement.Children.Add(folder);
+                    }
+
+                });
+            });
         }
 
         private void StaticModel_LoadEndEvent()
@@ -187,6 +247,8 @@ namespace IndexerWpf
                 var a = dtx.ListOfIndexes.SingleOrDefault(t => t.GetName == item);
                 if (a != null)
                     a.IsSelected = true;
+                else
+                    dtx.Is_scanned = false;
             }
         }
     }

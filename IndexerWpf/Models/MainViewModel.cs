@@ -9,47 +9,46 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Controls.Primitives;
 using System.Windows.Forms;
+using System.Windows.Threading;
 
 namespace IndexerWpf.Models
 {
     public class MainViewModel : Proper
     {
-        public WpfObservableRangeCollection<IndxElement> SelectedElements { get => selectedElements; set => SetProperty(ref selectedElements, value); }
         public WpfObservableRangeCollection<IndxElements> ListOfIndexes { get => selectedIndexes; set => SetProperty(ref selectedIndexes, value); }
         public WpfObservableRangeCollection<IndxElements> ListOfSelectedIndexes { get => new WpfObservableRangeCollection<IndxElements>(ListOfIndexes.Where(t => t.IsSelected)); }
-        public WpfObservableRangeCollection<string> ListOfExtentionsSelectedIndexes { get { return new WpfObservableRangeCollection<string>(ListOfElementsInSelectedIndexes.Select(t => t.Extension).Distinct()); /*StaticModel.UnicExtentions; */} }
-        public WpfObservableRangeCollection<IndxElement> ListOfElementsInSelectedIndexes { get => new WpfObservableRangeCollection<IndxElement>(ListOfSelectedIndexes.SelectMany(t => t.AllFiles)); }
+        public WpfObservableRangeCollection<string> ListOfExtentionsSelectedIndexes => new WpfObservableRangeCollection<string>(ListOfElementsInSelectedIndexes.Select(t => t.Extension).Distinct());
+        public WpfObservableRangeCollection<IndxElementNew> ListOfElementsInSelectedIndexes
+        {
+            get
+            {
+                List<IndxElementNew> list = new List<IndxElementNew>();
+                foreach (var item in ListOfSelectedIndexes.SelectMany(t => t.RootElement.ChildElements))
+                {
+                    list.AddRange(item.Descendants());
+                }
+                return new WpfObservableRangeCollection<IndxElementNew>(list);
+            }
+        }
+        public WpfObservableRangeCollection<IndxElementNew> ListOfRootInSelectedIndexes => new WpfObservableRangeCollection<IndxElementNew>(ListOfSelectedIndexes.Select(t => t.RootElement));
         public string Copyied_items { get => copyieditems; set => SetProperty(ref copyieditems, value); }
-
-        //public WpfObservableRangeCollection<string> ExistedIndexes { get => existedIndexs; set => SetProperty(ref existedIndexs, value); }
         public string SelectedIndexsString { get => selectedIndexsString; set { SetProperty(ref selectedIndexsString, value); /*if (!string.IsNullOrEmpty(value))*/ DoLoad(); } }
-        //public IndxElements Indexes { get => indexes; set { StaticModel.ElIndx = value.AllFiles; SetProperty(ref indexes, value); } }
-        public IndxElement Selectedfile { get => selectedfile; set => SetProperty(ref selectedfile, value); }
         public double Prog_value { get => prog_val; set => SetProperty(ref prog_val, value); }
-        //public double Prog_value_max { get => prog_val_max; set => SetProperty(ref prog_val_max, value); }// { prog_val = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Prog_value_max")); } }
         public string Def_path { get => Sets.FolderIndexesDefPath; }
         public string Search_text { get => search_text; set { SetProperty(ref search_text, value); DoSearch(value); } }
-        public WpfObservableRangeCollection<IndxElement> Searched { get => searched; set => SetProperty(ref searched, value); }
+        public WpfObservableRangeCollection<IndxElementNew> Searched { get => searched; set => SetProperty(ref searched, value); }
         public string SelectedFilter { get => selectedFilter; set { SetProperty(ref selectedFilter, value); DoSearch(Search_text); } }
-        //public bool Was_Loaded { get => was_loaded; set => SetProperty(ref was_loaded, value); }
         public bool Is_scanned { get => is_scanned; set { SetProperty(ref is_scanned, !value); } }
         public Settings Sets { get => sets; set => SetProperty(ref sets, value); }
         public bool ShowPopUp { get => showpopup; set => SetProperty(ref showpopup, value); }
-        //[JsonIgnore]
-        public WpfObservableRangeCollection<IndxElement> VisualFolder { get => visualfolder; set { SetProperty(ref visualfolder, value); } }
         private string copyieditems;
-        private WpfObservableRangeCollection<IndxElement> selectedElements;
         private WpfObservableRangeCollection<IndxElements> selectedIndexes;
-        private WpfObservableRangeCollection<IndxElement> visualfolder;
+        private WpfObservableRangeCollection<IndxElementNew> searched;
         private bool is_scanned = false;
         public bool ignore_scanned = false;
         private bool showpopup = false;
-        private IndxElement selectedfile = null;
-        //private IndxElements indexes = null;
         private double prog_val;
-        //private double prog_val_max;
         private string search_text;
-        private WpfObservableRangeCollection<IndxElement> searched;
         private string selectedFilter;
         private string selectedIndexsString;
         private Settings sets;
@@ -140,7 +139,27 @@ namespace IndexerWpf.Models
                 ));
             }
         }
-
+        private CommandHandler _showontree;
+        public CommandHandler ShowOnTreeCommand
+        {
+            get
+            {
+                return _showontree ?? (_showontree = new CommandHandler(obj =>
+                {
+                    //Is_scanned = true;
+                    //_= await Task.Run(() =>
+                    //{
+                    ListOfElementsInSelectedIndexes.Where(t => !t.IsSelected).ToList().ForEach(t => t.IsExpanded = false);
+                    ListOfElementsInSelectedIndexes.Where(t => t.IsSelected).ToList().ForEach(t => t.IsExpanded = true);
+                    //return true;
+                    //}
+                    //);
+                    //Is_scanned = false;
+                },
+                (obj) => true
+                ));
+            }
+        }
         public MainViewModel()
         {
             Sets = new Settings();
@@ -149,11 +168,9 @@ namespace IndexerWpf.Models
                 Sets.FolderIndexesDefPath = Directory.GetCurrentDirectory() + "\\indexes";
 
             ListOfIndexes = new WpfObservableRangeCollection<IndxElements>();
-            ListOfIndexes.CollectionChanged += ListOfIndexes_CollectionChanged;
+            //ListOfIndexes.CollectionChanged += ListOfIndexes_CollectionChanged;
             Copyied_items = string.Empty;
-            Searched = new WpfObservableRangeCollection<IndxElement>();
-            VisualFolder = new WpfObservableRangeCollection<IndxElement>();
-            SelectedElements = new WpfObservableRangeCollection<IndxElement>();
+            Searched = new WpfObservableRangeCollection<IndxElementNew>();
 
             StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
             fbd = new FolderBrowserDialog();
@@ -161,35 +178,29 @@ namespace IndexerWpf.Models
             fbd.AutoUpgradeEnabled = true;
             fbd.RootFolder = Environment.SpecialFolder.Recent;
             Is_scanned = false;
-            //SelectedIndexsString = Sets.LastIndex;
-
-            //Prog_value = 0;
         }
 
-        private void ListOfIndexes_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            //foreach (var Indx in e.NewItems)
-            //{
-            //    if (e.Action == NotifyCollectionChangedAction.Add)
-            //    {
-            //        StaticModel.ElIndx.AddRange((Indx as IndxElements).AllFiles);
-            //    }
-            //    else if (e.Action == NotifyCollectionChangedAction.Remove)
-            //    {
-            //        foreach (var element in (Indx as IndxElements).AllFiles)
-            //        {
-            //            StaticModel.ElIndx.Remove(element);
-            //        }
-            //    }
-            //}
-
-        }
+        //private void ListOfIndexes_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        // {
+        //foreach (var Indx in e.NewItems)
+        //{
+        //    if (e.Action == NotifyCollectionChangedAction.Add)
+        //    {
+        //        StaticModel.ElIndx.AddRange((Indx as IndxElements).AllFiles);
+        //    }
+        //    else if (e.Action == NotifyCollectionChangedAction.Remove)
+        //    {
+        //        foreach (var element in (Indx as IndxElements).AllFiles)
+        //        {
+        //            StaticModel.ElIndx.Remove(element);
+        //        }
+        //    }
+        //}
+        //}
 
         public void LoadListIndexes()
         {
             ListOfIndexes.Clear();
-            //Indexes.Clear();
-            VisualFolder.Clear();
             if (!Directory.Exists(Def_path))
                 Directory.CreateDirectory(Def_path);
             else
@@ -201,7 +212,7 @@ namespace IndexerWpf.Models
                     {
                         var q = new IndxElements(item);
                         q.IsSelectedChangedEvent += Q_IsSelectedChangedEvent;
-                        ListOfIndexes.Add(q); //Path.GetFileNameWithoutExtension(item));
+                        ListOfIndexes.Add(q);
                     }
 
                 }
@@ -209,7 +220,7 @@ namespace IndexerWpf.Models
         }
 
         private void Q_IsSelectedChangedEvent(IndxElements sender, bool state)
-        { //ВОЗМОЖНО ПРИ СНЯТИИ ВЫДЕЛЕНИЯ ЧИСТИТЬ ЭЛЕМЕНТЫ ЧТОБ ПАМЯТЬ ЖИЛА
+        {
             if (state)
                 if (string.IsNullOrEmpty(SelectedIndexsString))
                     SelectedIndexsString += sender.GetName;
@@ -227,14 +238,8 @@ namespace IndexerWpf.Models
 
         private void StaticModel_LoadEndEvent()
         {
-            VisualFolder.Clear();
-            foreach (var item in ListOfSelectedIndexes)
-            {
-                VisualFolder.AddRange(item.AllFiles.Where(t => t.Prnt == null));
-            }
             SetProperty(nameof(ListOfExtentionsSelectedIndexes));
-            //var t = ListOfExtentionsSelectedIndexes;
-            //VisualFolder.AddRange(Indexes.AllFiles.Where(t => t.Prnt == null));
+            SetProperty(nameof(ListOfRootInSelectedIndexes));
         }
 
         //https://docs.microsoft.com/en-us/dotnet/standard/parallel-programming/how-to-iterate-file-directories-with-the-parallel-class?redirectedfrom=MSDN ??
@@ -242,29 +247,21 @@ namespace IndexerWpf.Models
         {
             List<string> paths = new List<string>();
             if (name_of.Contains(","))
-            {
-                //name_of = name_of.Replace(" ", "");
                 paths.AddRange(name_of.Split(", "));
-            }
             else
                 paths.Add(name_of);
             return paths;
         }
-        private async void DoLoad(/*string name_of*/)
+        private async void DoLoad()
         {
-            //List<string> paths = GetSelectedIndexes(name_of);
-            //StaticModel.ElIndx.Clear();
-            //List<IndxElement> t = new List<IndxElement>();
             if (!ignore_scanned)
                 Is_scanned = true;
             foreach (var item in ListOfSelectedIndexes)
             {
                 try
                 {
-                    if (item.AllFiles.Count <= 0)
+                    if (item.RootElement.CountElements - 1 <= 0)
                         _ = await Task.Run(() => item.LoadInexes());
-                    //else
-                    //    StaticModel.ElIndx.AddRange(item.AllFiles);
                 }
                 catch (Exception)
                 {
@@ -272,16 +269,10 @@ namespace IndexerWpf.Models
                     item.IsSelected = false;
                     return;
                 }
-                //t.AddRange(item.AllFiles);
             }
-            //StaticModel.ElIndx = new WpfObservableRangeCollection<IndxElement>(StaticModel.ElIndx.Distinct());
-            //var B = StaticModel.ElIndx.Except(t);
-            //StaticModel.ElIndx.RemoveRange(B);
             StaticModel.InvokeLoadEndEvent();
-            //Was_Loaded = true;
             if (!string.IsNullOrEmpty(Search_text))
                 DoSearch(Search_text);
-            //Prog_value_max = Indexes.TotalFiles;
             Prog_value = ListOfElementsInSelectedIndexes.Count;
             if (!ignore_scanned)
                 Is_scanned = false;
@@ -307,10 +298,10 @@ namespace IndexerWpf.Models
                 if (!string.IsNullOrEmpty(text) && text.Length > 1)
                 {
                     Searched.Clear();
-                    List<IndxElement> res = new List<IndxElement>();
+                    List<IndxElementNew> res = new List<IndxElementNew>();
                     if (StaticModel.IsValidRegex(text))
                     {
-                        var reg = new Regex(@$"^{text}$", RegexOptions.IgnoreCase);
+                        var reg = new Regex(@$"{text}", RegexOptions.IgnoreCase);
                         res = ListOfElementsInSelectedIndexes.Where(t => reg.IsMatch(t.Name)).ToList();
                     }
 
@@ -322,8 +313,10 @@ namespace IndexerWpf.Models
                     else
                     {
                         Searched.AddRange(res);
-                        Searched.AddRange(ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase)));
+                        var res_simple = ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase)).ToList();
+                        Searched.AddRange(res_simple);
                     }
+                    Searched = new WpfObservableRangeCollection<IndxElementNew>(Searched.Distinct());
                 }
                 else
                     Searched.Clear();
@@ -331,11 +324,9 @@ namespace IndexerWpf.Models
         private async void Worker(string path)
         {
             Is_scanned = true;
-            //Was_Loaded = false;
             var indx = await DoScan(path);
             if (indx == null)
             {
-                //Was_Loaded = true;
                 Is_scanned = false;
                 StaticModel.InvokeLoadEndEvent();
                 return;
@@ -344,53 +335,27 @@ namespace IndexerWpf.Models
             {
                 ListOfIndexes.Add(indx);
                 indx.IsSelectedChangedEvent += Q_IsSelectedChangedEvent;
-            }    
+            }
             indx.IsSelected = true;
-            //Debug.WriteLine("DONE");
+
             DoSave(indx);
-
-            //ТУУУУТ!
-            //var nm = Path.GetFileNameWithoutExtension(Indexes.RootFolderPath);
-
-            //if (!ExistedIndexes.Contains(nm))
-            //    ExistedIndexes.Add(nm);
-            //SetProperty(ref selectedexisted, nm, "SelectedExisted");
-
-
-            //Was_Loaded = true;
             Is_scanned = false;
             StaticModel.InvokeLoadEndEvent();
         }
         private async Task<IndxElements> DoScan(string path)
         {
-            Search_text = string.Empty;
-            //Indexes.Dispose();
             var indexes = new IndxElements(path);
             //получаем количество файлов
-            Prog_value = 0;
-
+            //Prog_value = 0;
             //создаем корневую ноду по корневому каталогу
-            IndxElement root = new IndxElement(Path.GetFullPath(path), indexes) { Tp = IndxElement.Type.folder, Prnt = null };
-            indexes.AllFiles.Add(root);
+            IndxElementNew root = new IndxElementNew(Path.GetFullPath(path), IndxElementNew.Type.folder, null);
+            indexes.RootElement = root;
             await Task.Run(() =>
             {
-                foreach (var item in LoadFiles(path, root, indexes))
-                {
-                    indexes.AllFiles.Add(item);
-                }
-                foreach (var item in LoadSubDirectories(path, root, indexes))
-                {
-                    indexes.AllFiles.Add(item);
-                }
-                foreach (var elem in indexes.AllFiles)
-                {
-                    if (elem.ParentTree == null)
-                        elem.ParentTree = indexes;
-                    elem.Items = elem.buildtree();
-                }
+                indexes.RootElement.ChildElements.AddRange(LoadFiles(path, root));
+                indexes.RootElement.ChildElements.AddRange(LoadSubDirectories(path, root));
                 GC.Collect();
             });
-            //ListOfIndexes.Add(indexes);
             return indexes;
         }
         /// <summary>
@@ -399,17 +364,16 @@ namespace IndexerWpf.Models
         /// <param name="dir">каталог</param>
         /// <param name="td">предыдущая нода</param>
         /// <returns>Лист найденных элементов</returns>
-        private List<IndxElement> LoadFiles(string dir, IndxElement parfolder, IndxElements tree)
+        private List<IndxElementNew> LoadFiles(string dir, IndxElementNew parfolder)
         {
-            List<IndxElement> lie = new List<IndxElement>();
+            List<IndxElementNew> lie = new List<IndxElementNew>();
             try
             {
                 var Files = Directory.EnumerateFiles(dir, "*.*");
                 foreach (string file in Files)
                 {
-                    //FileInfo fi = new FileInfo(file);
                     Path.GetFullPath(file);
-                    lie.Add(new IndxElement(Path.GetFullPath(file), tree) { Tp = IndxElement.Type.file, Prnt = parfolder.Id });
+                    lie.Add(new IndxElementNew(Path.GetFullPath(file), IndxElementNew.Type.file, parfolder));
                     UpdateProgress();
 
                 }
@@ -429,38 +393,31 @@ namespace IndexerWpf.Models
         /// <param name="dir">каталог</param>
         /// <param name="td">предыдущая нода</param>
         /// <returns>Лист найденных элементов</returns>
-        private List<IndxElement> LoadSubDirectories(string dir, IndxElement parfolder, IndxElements tree)
+        private List<IndxElementNew> LoadSubDirectories(string dir, IndxElementNew parfolder)
         {
-            List<IndxElement> ie = new List<IndxElement>();
-            //string[] subdirectoryEntries = Directory.GetDirectories(dir);
+            List<IndxElementNew> ie = new List<IndxElementNew>();
             try
             {
                 var subs = Directory.EnumerateDirectories(dir);
 
                 foreach (string subdirectory in subs)
                 {
-                    IndxElement newparent = new IndxElement(Path.GetFullPath(subdirectory), tree) { Tp = IndxElement.Type.folder, Prnt = parfolder.Id };
+                    IndxElementNew newparent = new IndxElementNew(Path.GetFullPath(subdirectory), IndxElementNew.Type.folder, parfolder);
+                    newparent.ChildElements.AddRange(LoadFiles(subdirectory, newparent));
+                    newparent.ChildElements.AddRange(LoadSubDirectories(subdirectory, newparent));
                     ie.Add(newparent);
-                    ie.AddRange(LoadFiles(subdirectory, newparent, tree));
-                    ie.AddRange(LoadSubDirectories(subdirectory, newparent, tree));
                     UpdateProgress();
                 }
             }
             catch (UnauthorizedAccessException)
             {
-
                 return ie;
-
             }
-
             return ie;
         }
         private void UpdateProgress()
         {
-            //if (Prog_value < Prog_value_max)
-            //{
             Prog_value++;
-            //}
         }
     }
 }
