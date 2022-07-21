@@ -8,6 +8,7 @@ using IndexerWpf.Models;
 using Newtonsoft.Json;
 using System.Windows.Input;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 
 #pragma warning disable CS0660
 namespace IndexerWpf.Classes
@@ -356,7 +357,22 @@ namespace IndexerWpf.Classes
             get => getUriImg;
         }
         [JsonIgnore]
-        public string Name => Path.GetFileName(FullPath);
+        public string Name 
+        { 
+            get 
+            {
+                if(Tp == Type.file)
+                //if (string.IsNullOrEmpty(FullPath))
+                    return Path.GetFileNameWithoutExtension(FullPath);
+                else
+                {
+                    //Regex pattern = new Regex(@":|\\+|\/+");
+                    return new Regex(@":|\\+|\/+").Replace(new DirectoryInfo(FullPath).Name, "");
+                }
+                //var a = Path.GetPathRoot(RootFolderPath);
+
+            } 
+        }
         [JsonIgnore]
         public string Extension
         {

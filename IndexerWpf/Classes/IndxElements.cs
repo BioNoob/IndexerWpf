@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 using IndexerWpf.Models;
 using Newtonsoft.Json;
 namespace IndexerWpf.Classes
@@ -15,19 +19,50 @@ namespace IndexerWpf.Classes
 
         public event IsSelecetdChange IsSelectedChangedEvent;
         public delegate void IsSelecetdChange(IndxElements sender, bool state);
-
+        public event CountFilesChanged CountFilesChangedEvent;
+        public delegate void CountFilesChanged(int val);
         [JsonIgnore]
-        public string GetName { get => string.IsNullOrEmpty(RootFolderPath) ? Path.GetFileNameWithoutExtension(JsonFileName) : Path.GetDirectoryName(RootFolderPath); }
+        public string GetName
+        {
+            get
+            {
+
+
+                if (string.IsNullOrEmpty(RootFolderPath))
+                    return Path.GetFileNameWithoutExtension(JsonFileName);
+
+                //var a = Path.GetPathRoot(RootFolderPath);
+                Regex pattern = new Regex(@":|\\+|\/+");
+                return pattern.Replace(new DirectoryInfo(RootFolderPath).Name, "");
+
+                //var b = q.Name;
+                //return Path.GetDirectoryName(RootFolderPath);
+                //if (!string.IsNullOrEmpty(Path.GetDirectoryName(RootFolderPath)))
+                //{
+                //    var q = new DirectoryInfo(RootFolderPath);
+                //    var b = q.Name;
+                //    return Path.GetDirectoryName(RootFolderPath);
+                //}
+                //else
+                //{
+                //    var a = Path.GetPathRoot(RootFolderPath);
+                //    Regex pattern = new Regex(@":|\\+|\/+");
+                //    return pattern.Replace(a, "");
+                //}
+            }
+
+        }
         [JsonIgnore]
         public int TotalFiles { get => RootElement.CountElements - 1; }//-1 = self; }
         [JsonIgnore]
         public bool IsSelected { get => isSelected; set { SetProperty(ref isSelected, value); IsSelectedChangedEvent?.Invoke(this, value); } }
+        [JsonIgnore]
+        public string JsonFileName { get; set; }
 
         public string RootFolderPath { get => rootFolderPath; set { SetProperty(ref rootFolderPath, value); } }
         public string DateOfLastChange { get => dateOfLastChange; set => SetProperty(ref dateOfLastChange, value); }
         public IndxElementNew RootElement { get => allFiles; set { SetProperty(ref allFiles, value); } }
-        [JsonIgnore]
-        public string JsonFileName { get; set; }
+
         public IndxElements()
         {
             IsSelected = false;
@@ -51,13 +86,14 @@ namespace IndexerWpf.Classes
             this.DateOfLastChange = DateTime.Now.ToString("G");
             File.WriteAllText(file_to_save, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
-        public bool LoadInexes(CancellationTokenSource token)//string file_to_load)
+        public async Task<bool> LoadInexes(CancellationTokenSource token)//string file_to_load)
         {
             if (File.Exists(JsonFileName))
             {
                 try
                 {
-                    var a = JsonConvert.DeserializeObject<IndxElements>(File.ReadAllText(JsonFileName));
+                    string json = await File.ReadAllTextAsync(JsonFileName);
+                    var a = JsonConvert.DeserializeObject<IndxElements>(json);
                     RootFolderPath = a.RootFolderPath;
                     DateOfLastChange = a.DateOfLastChange;
                     RootElement = a.RootElement;
@@ -67,18 +103,18 @@ namespace IndexerWpf.Classes
                     var all_elem = RootElement.AllLowerElements;//Descendants();
                     foreach (var elem in all_elem)
                     {
-                        if(token.IsCancellationRequested)
+                        if (token.IsCancellationRequested)
                             throw new ProcessingFileException(ProcessingFileException.TypeOfError.CancelTask, null);
                         if (elem.ChildElements != null)
                             elem.ChildElements.ToList().ForEach(t => t.Parent = elem);
                     }
+                   // UpdateProgress();
                     a.Dispose();
                     //Debug.WriteLine("DONE DESER");
                     return true;
                 }
                 catch (ProcessingFileException e)
                 {
-                    //return null;
                     throw e;
                 }
 
@@ -89,16 +125,34 @@ namespace IndexerWpf.Classes
                 //return null;
             }
         }
-
+        public bool DoScan(CancellationTokenSource token)
+        {
+            //var indexes = new IndxElements(path);
+            //получаем количество файлов
+            //Prog_value = 0;
+            //создаем корневую ноду по корневому каталогу
+            try
+            {
+                RootElement = new IndxElementNew(Path.GetFullPath(RootFolderPath), IndxElementNew.Type.folder, null);
+                LoadFiles(RootFolderPath, RootElement, token);
+                LoadSubDirectories(RootFolderPath, RootElement, token);
+                //RootElement.ChildElements.AddRange(LoadFiles(RootFolderPath, RootElement, token));
+                //RootElement.ChildElements.AddRange(LoadSubDirectories(RootFolderPath, RootElement, token));
+                GC.Collect();
+            }
+            catch (ProcessingFileException e)
+            {
+                throw e;
+            }
+            return true;
+        }
         public void Dispose()
         {
             RootElement = null;
-            //VisualFolder = null;
-            //Extentions = null;
             DateOfLastChange = null;
             RootFolderPath = null;
-            //ID = -1;
-            //StaticModel.LoadEndEvent -= StaticModel_LoadEndEvent;
+            IsSelectedChangedEvent = null;
+            CountFilesChangedEvent = null;
             GC.SuppressFinalize(this);
         }
         public bool Equals(IndxElements other)
@@ -109,6 +163,88 @@ namespace IndexerWpf.Classes
         public override string ToString()
         {
             return GetName;
+        }
+        /// <summary>
+        /// Ищем файлы в указанном каталоге
+        /// </summary>
+        /// <param name="dir">каталог</param>
+        /// <param name="td">предыдущая нода</param>
+        /// <returns>Лист найденных элементов</returns>
+        private void LoadFiles(string dir, IndxElementNew parfolder, CancellationTokenSource token)
+        {
+            //List<IndxElementNew> lie = new List<IndxElementNew>();
+            try
+            {
+                var Files = Directory.EnumerateFiles(dir, "*.*");
+                foreach (string file in Files)
+                {
+                    if (token.IsCancellationRequested)
+                        throw new ProcessingFileException(ProcessingFileException.TypeOfError.CancelTask, null);
+                    parfolder.ChildElements.Add(new IndxElementNew(Path.GetFullPath(file), IndxElementNew.Type.file, parfolder));
+                }
+
+            }
+            catch (UnauthorizedAccessException)
+            {
+
+                //return lie;
+
+            }
+
+           // return lie;
+        }
+        /// <summary>
+        /// Парсим поддериктории (Рекурсивная штука)
+        /// </summary>
+        /// <param name="dir">каталог</param>
+        /// <param name="td">предыдущая нода</param>
+        /// <returns>Лист найденных элементов</returns>
+        private void LoadSubDirectories(string dir, IndxElementNew parfolder, CancellationTokenSource token)
+        {
+            //List<IndxElementNew> ie = new List<IndxElementNew>();
+            try
+            {
+                var subs = Directory.EnumerateDirectories(dir);
+                foreach (string subdirectory in subs)
+                {
+                    if (token.IsCancellationRequested)
+                        throw new ProcessingFileException(ProcessingFileException.TypeOfError.CancelTask, null);
+                    IndxElementNew newparent = new IndxElementNew(Path.GetFullPath(subdirectory), IndxElementNew.Type.folder, parfolder);
+                    parfolder.ChildElements.Add(newparent);
+                    LoadFiles(subdirectory, newparent, token);
+                    LoadSubDirectories(subdirectory, newparent, token);
+                    UpdateProgress();
+                    //newparent.ChildElements.AddRange();
+                    //newparent.ChildElements.AddRange(;
+                    //ie.Add(newparent);
+                    //UpdateProgress();
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                //return ie;
+            }
+            //return ie;
+        }
+        private void UpdateProgress()
+        {
+            CountFilesChangedEvent?.Invoke(TotalFiles);
+        }
+        //Сохранение полюбому в конце парсинга. Нет ситуации где бы оно не сохранилось. Если только отказаться перезаписывать
+        public bool DoSave(string folder_to_saave_path)
+        {
+            string to_save = GetName /*new DirectoryInfo(Indexes.RootFolderPath).Name/* + DateTime.Now.ToString("ddMMy_HHmm")*/ + ".json";
+            string full_to_save = folder_to_saave_path + "\\" + to_save;
+            JsonFileName = full_to_save;
+            if (new FileInfo(full_to_save).Exists)
+                if (MessageBox.Show($"Overwrite File\n{to_save} ?\n(No = cancel save)", "Already exist", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    SaveIndexes(full_to_save);
+                else
+                    return false;
+            else
+                SaveIndexes(full_to_save);
+            return true;
+
         }
     }
 }

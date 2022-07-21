@@ -612,7 +612,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Label HorizontalAlignment="Left" Content="Files count" Grid.Column="0"/>
-                <TextBox Margin="5,0,5,0" Text="{Binding Prog_value}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Column="1" HorizontalAlignment="Left" Width="60" IsReadOnly="True"/>
+                <TextBox Margin="5,0,5,0" Text="{Binding Prog_value, Mode=OneWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Column="1" HorizontalAlignment="Left" Width="60" IsReadOnly="True"/>
                 <Button HorizontalAlignment="Right" Width="65" Content="Scan" Grid.Column="3" Command="{Binding StartScanCommand}" IsEnabled="{Binding Is_scanned}"
                                    BorderBrush="White" Background="White" Foreground="Black" FontFamily="Jura"/>
             </Grid>
@@ -693,9 +693,9 @@
                             </Image.Triggers>
                         </Image>
                         <Border BorderBrush="Black" Width="153" Height="153" VerticalAlignment="Center" HorizontalAlignment="Center" BorderThickness="3" CornerRadius="100" Padding="0"/>
-                        <Border Background="#D7cc0000" CornerRadius="10" Width="40" Height="40" Padding="2" VerticalAlignment="Top" HorizontalAlignment="Right" Visibility="Visible"
+                        <Border Background="#D7cc0000" CornerRadius="10" Width="40" Height="40" Padding="2" VerticalAlignment="Top" HorizontalAlignment="Right"
                     Grid.ColumnSpan="2" Grid.RowSpan="3">
-                            <Button  ToolTip="Cancel scanning" Command="{Binding CancelActionCommand}" Click="Button_Click" Padding="8" Style="{StaticResource ImgButton}"
+                            <Button  ToolTip="Cancel scanning" Command="{Binding CancelActionCommand}" Padding="8" Style="{StaticResource ImgButton}"
                          VerticalAlignment="Center" HorizontalAlignment="Center" Width="40" Height="40" Grid.ColumnSpan="2" Grid.RowSpan="3" Background="Transparent">
                                 <Image x:Name="sas" Source="Resources/закрыть.png"/>
                                 <!--<Button.Triggers>
@@ -714,7 +714,7 @@
                             <Border.Style>
                                 <Style TargetType="Border">
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Path=DataContext.Is_LongOperation, Source={x:Reference Name=Window}}" Value="false">
+                                        <DataTrigger Binding="{Binding Path=DataContext.Is_LongOperation, RelativeSource={RelativeSource AncestorType=Window}}" Value="false">
                                             <Setter Property="Visibility" Value="Hidden"/>
                                         </DataTrigger>
                                     </Style.Triggers>
