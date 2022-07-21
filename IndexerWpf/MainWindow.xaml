@@ -38,7 +38,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style TargetType="{x:Type Button}" x:Key="ImgButton" BasedOn="{StaticResource DefaultStyle}">
             <Setter Property="Background" Value="#FF3F3F3F" />
             <Setter Property="BorderBrush" Value="#FF3F3F3F" />
@@ -155,30 +154,8 @@
                   Background="#FF3F3F3F" 
                   BorderBrush="#FF97A0A5"
                   BorderThickness="0,0,1,0" />
-                <!--<Path Margin="-2,0,0,0"
-                  x:Name="Arrow"
-                  Grid.Column="1"     
-                  Fill="White"
-                  HorizontalAlignment="Center"
-                  VerticalAlignment="Center"
-                  Data="M0,0 L0,2 L4,6 L8,2 L8,0 L4,4 z"
-                />-->
                 <Polyline Grid.Column="1" Style="{StaticResource PolyRow}" x:Name="Rower"/>
             </Grid>
-            <!--<ControlTemplate.Triggers>
-            <Trigger Property="ToggleButton.IsMouseOver" Value="true">
-                <Setter TargetName="Border" Property="Background" Value="#808080" />
-            </Trigger>
-            <Trigger Property="ToggleButton.IsChecked" Value="true">
-                <Setter TargetName="Border" Property="Background" Value="#E0E0E0" />
-            </Trigger>
-            <Trigger Property="IsEnabled" Value="False">
-                <Setter TargetName="Border" Property="Background" Value="#EEEEEE" />
-                <Setter TargetName="Border" Property="BorderBrush" Value="#AAAAAA" />
-                <Setter Property="Foreground" Value="#888888"/>
-                <Setter TargetName="Arrow" Property="Fill" Value="#888888" />
-            </Trigger>
-        </ControlTemplate.Triggers>-->
             <ControlTemplate.Triggers>
                 <EventTrigger RoutedEvent="ToggleButton.Unchecked">
                     <!--<EventTrigger.EnterActions>-->
@@ -352,17 +329,6 @@
                             <TextBox VerticalContentAlignment="Center" HorizontalAlignment="Left"  Foreground="White" Background="Transparent" Width="Auto"
                                                  Padding="0" Margin="5,0,0,0"  IsReadOnly="True" Text="{Binding SelectedIndexsString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                  Grid.Column="0" BorderThickness="0" />
-                            <!--<TextBox x:Name="PART_EditableTextBox"
-                            Style="{x:Null}" 
-                            Template="{StaticResource ComboBoxTextBox}" 
-                            HorizontalAlignment="Left" 
-                            VerticalAlignment="Center" 
-                            Margin="10,3,23,3"
-                            Focusable="True" 
-                            Background="#FF3F3F3F"
-                            Foreground="Green"
-                            Visibility="Hidden"
-                            IsReadOnly="{TemplateBinding IsReadOnly}"/>-->
                             <Popup 
                             Name="Popup"
                             Placement="Bottom"
@@ -370,10 +336,6 @@
                             AllowsTransparency="True" 
                             Focusable="False" VerticalOffset="2.5"
                             PopupAnimation="Slide">
-                                <!--<Grid Name="DropDown"
-                              SnapsToDevicePixels="True"                
-                              MinWidth="{TemplateBinding ActualWidth}"
-                              MaxHeight="{TemplateBinding MaxDropDownHeight}">-->
                                 <Border  CornerRadius="0" BorderBrush="#FF97A0A5" Background="#FF3F3F3F" BorderThickness="1" Padding="0" x:Name="DropDownBorderx"
                                              MinWidth="{TemplateBinding ActualWidth}"
                               MaxHeight="{TemplateBinding MaxDropDownHeight}">
@@ -448,7 +410,6 @@
             </Setter>
         </Style>
         <Style TargetType="ListView" BasedOn="{StaticResource DefaultStyle}"/>
-
     </Window.Resources>
     <WindowChrome.WindowChrome>
         <WindowChrome 
@@ -485,7 +446,6 @@
                             <Separator Style="{StaticResource MenuSeparatorStyle}"/>
                             <MenuItem IsEnabled="False"  ToolTip="{Binding Def_path}" ToolTipService.ShowOnDisabled="True">
                                 <MenuItem.Header>
-                                    <!-- Header="{Binding Def_path}" -->
                                     <TextBlock Text="{Binding Def_path}" TextTrimming="WordEllipsis" Width="{Binding Path=Width,RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type MenuItem}}}"
                                                Foreground="#FF97A0A5" FontSize="10" />
                                 </MenuItem.Header>
@@ -494,84 +454,12 @@
                     </Button.ContextMenu>
                 </Button>
                 <Label Content="Avalibale indexes" HorizontalAlignment="Stretch" Grid.Column="1"/>
-                <!--<ToggleButton Margin="10,0,10,0" HorizontalAlignment="Stretch" Grid.Column="2" IsEnabled="{Binding Is_scanned}" Focusable="false" IsChecked="False" x:Name="Toggle"
-                              ClickMode="Press">
-                    <ToggleButton.Template>
-                        <ControlTemplate TargetType="{x:Type ToggleButton}">
-                            <Border CornerRadius="0" Background="#FF3F3F3F" Padding="0" Margin="0"
-                                                BorderBrush="#FF97A0A5" BorderThickness="1,1,1.5,1">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="20"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Border BorderThickness="1,0,0,0"  Grid.Column="1" BorderBrush="#FF97A0A5">
-                                        <Polyline x:Name="Pather" Style="{StaticResource PolyRow}"/>
-                                    </Border>
-                                   
-                                    --><!--<Path Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M0,0 L0,2 L4,6 L8,2 L8,0 L4,4 z" Grid.Column="1" Name="Pather"/>--><!--
-                                    <TextBox VerticalContentAlignment="Center" HorizontalAlignment="Left"  Foreground="White" Background="Transparent" Width="Auto"
-                                                 Padding="0" Margin="5,0,0,0"  IsReadOnly="True" Text="{Binding SelectedIndexsString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                 Grid.Column="0" BorderThickness="0" PreviewMouseDown="TextBox_PreviewMouseDown" />
-                                    <Popup IsOpen="{TemplateBinding IsChecked}" Placement="Bottom" AllowsTransparency="True" StaysOpen="False" Closed="Popup_Closed"
-                                               Focusable="False" PopupAnimation="Slide" VerticalOffset="5" Width="{TemplateBinding ActualWidth}">
-                                        <Border  CornerRadius="0" BorderBrush="#FF97A0A5" Background="#FF3F3F3F" BorderThickness="1" Padding="0">
-                                            <ListView ItemsSource="{Binding ListOfIndexes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{TemplateBinding IsEnabled}" 
-                                                      KeyboardNavigation.DirectionalNavigation="Contained" 
-                                                          Margin="2.5" ScrollViewer.VerticalScrollBarVisibility="Auto" BorderThickness="0" Style="{StaticResource HidedEnabled}">
-                                                <ListView.ItemTemplate>
-                                                    <DataTemplate DataType="{x:Type local_cls:IndxElements}">
-                                                        <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding GetName}" Foreground="White" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsEnabled="{TemplateBinding IsEnabled}"/>
-                                                    </DataTemplate>
-                                                </ListView.ItemTemplate>
-                                            </ListView>
-                                        </Border>
-                                    </Popup>
-                                </Grid>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <EventTrigger RoutedEvent="ToggleButton.Unchecked">
-                                    --><!--<EventTrigger.EnterActions>--><!--
-                                    <BeginStoryboard>
-                                        <Storyboard >
-                                            <DoubleAnimation
-                                                Storyboard.TargetName="Pather"
-                        Storyboard.TargetProperty="(Polyline.RenderTransform).(RotateTransform.Angle)"
-                        From="180" To="0" Duration="0:0:0.5"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                    --><!--</EventTrigger.EnterActions>--><!--
-                                </EventTrigger>
-                                <EventTrigger RoutedEvent="ToggleButton.Checked">
-                                    --><!--<EventTrigger.EnterActions>--><!--
-                                        <BeginStoryboard>
-                                            <Storyboard >
-                                                <DoubleAnimation
-                                                Storyboard.TargetName="Pather"
-                        Storyboard.TargetProperty="(Polyline.RenderTransform).(RotateTransform.Angle)"
-                        From="0" To="180" Duration="0:0:0.5"/>
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    --><!--</EventTrigger.EnterActions>--><!--
-                                </EventTrigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </ToggleButton.Template>
-                </ToggleButton>-->
                 <ComboBox Margin="10,0,10,0" HorizontalAlignment="Stretch" Grid.Column="2" IsEnabled="{Binding Is_scanned}" Style="{StaticResource stasik}" ItemsSource="{Binding ListOfIndexes}"/>
-                <!--</Border>-->
-
-
-
-                <!--<Label Content="Index date" HorizontalAlignment="Stretch" Grid.Column="3" Margin="0,0,5,0"/>
-                <TextBox Text="{Binding Indexes.DateOfLastChange}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
-                     HorizontalAlignment="Right" Width="135" IsReadOnly="True" Grid.Column="4"/>-->
                 <Button Margin="10,0,0,0" Grid.Column="3" ClipToBounds="True"  HorizontalAlignment="Right" Width="25" Command="{Binding CloseWindowCommand}" Style="{StaticResource ImgButton}">
                     <Image Source="Resources/закрыть.png"/>
                 </Button>
                 <Border Grid.Row="1" BorderThickness="0,1" Grid.ColumnSpan="4" BorderBrush="White" HorizontalAlignment="Stretch" Padding="0" 
                     ClipToBounds="True" Height="1" Margin="0,5,0,0" />
-
             </Grid>
             <Grid Grid.Row="1" Margin="10,5,10,0">
                 <Grid.RowDefinitions>
@@ -585,12 +473,11 @@
                 <Controls:MultiSelectTreeView x:Name="folder_tree" Grid.RowSpan="3" Grid.Column="0" GotFocus="Folder_tree_GotFocus"
                  ItemsSource="{Binding ListOfRootInSelectedIndexes, UpdateSourceTrigger=PropertyChanged, IsAsync=True}"
                  VirtualizingStackPanel.IsVirtualizing="True"
-
                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0" ScrollViewer.HorizontalScrollBarVisibility="Auto" 
-                 SelectionChanged="Folder_tree_SelectionChanged" FontFamily="Jura">
+                 FontFamily="Jura" LayoutUpdated="folder_tree_LayoutUpdated"  >
                     <Controls:MultiSelectTreeView.ItemContainerStyle>
                         <Style TargetType="{x:Type Controls:MultiSelectTreeViewItem}">
-                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
                             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                             <!--<EventSetter Event="Selected" Handler="TreeViewSelectedItemChanged" />
                             SelectedItems="{Binding SelectedElements, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"-->
@@ -638,7 +525,6 @@
                                 </TextBlock.ContextMenu>
                             </TextBlock>
                             </StackPanel>
-
                         </HierarchicalDataTemplate>
                     </Controls:MultiSelectTreeView.Resources>
                 </Controls:MultiSelectTreeView>
@@ -665,7 +551,7 @@
 
                     <ComboBox Grid.Row="0" Grid.Column="2" Margin="10,0,0,0" ItemsSource="{Binding ListOfExtentionsSelectedIndexes, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"  SelectedValue="{Binding SelectedFilter}" IsEnabled="{Binding Is_scanned}"/>
                     <ListView Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,3,0,0" ItemsSource="{Binding Searched}" SelectionChanged="ListView_SelectionChanged" SelectionMode="Extended"
-                          x:Name="SearchResult" GotFocus="SearchResult_GotFocus" IsEnabled="{Binding Is_scanned}">
+                          x:Name="SearchResult" IsEnabled="{Binding Is_scanned}">
                         <ListView.ItemContainerStyle>
                             <Style TargetType="{x:Type ListViewItem}">
                                 <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
@@ -717,8 +603,6 @@
                         </ListView.ItemTemplate>
                     </ListView>
                 </Grid>
-
-                <!--<indexerwpf:MultiCombo Height="500" Grid.RowSpan="2"/>-->
             </Grid>
             <Grid Grid.Row="2" Margin="10,5,10,5">
                 <Grid.ColumnDefinitions>
@@ -729,21 +613,12 @@
                 </Grid.ColumnDefinitions>
                 <Label HorizontalAlignment="Left" Content="Files count" Grid.Column="0"/>
                 <TextBox Margin="5,0,5,0" Text="{Binding Prog_value}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Column="1" HorizontalAlignment="Left" Width="60" IsReadOnly="True"/>
-                <!--<ProgressBar ClipToBounds="True" HorizontalAlignment="Stretch" Grid.Column="2" Margin="5,0,10,0" Maximum="{Binding Prog_value_max}" Value="{Binding Prog_value}">
-                    <ProgressBar.Foreground>
-                        <LinearGradientBrush EndPoint="0,0.5" StartPoint="1,0.5">
-                            <GradientStop Color="#FF4990FB" Offset="0"/>
-                            <GradientStop Color="#FF124BA1" Offset="1"/>
-                        </LinearGradientBrush>
-                    </ProgressBar.Foreground>
-
-                </ProgressBar>-->
                 <Button HorizontalAlignment="Right" Width="65" Content="Scan" Grid.Column="3" Command="{Binding StartScanCommand}" IsEnabled="{Binding Is_scanned}"
                                    BorderBrush="White" Background="White" Foreground="Black" FontFamily="Jura"/>
             </Grid>
 
-            <Border Background="#7F3F3F3F" Grid.ColumnSpan="2" Grid.RowSpan="3" ClipToBounds="True" CornerRadius="10" x:Name="borderspinner" Visibility="Collapsed" Opacity="100">
-                <Grid Grid.RowSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Border Background="#7F3F3F3F" Grid.ColumnSpan="2" Grid.RowSpan="3" ClipToBounds="True" CornerRadius="10" x:Name="borderspinner" Visibility="Visible" Opacity="100">
+                <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
                     <Border BorderBrush="Transparent" Width="153" Height="153" VerticalAlignment="Center" HorizontalAlignment="Center" CornerRadius="100" Padding="0">
                         <Border.Background>
                             <RadialGradientBrush>
@@ -817,28 +692,37 @@
                                 </EventTrigger>
                             </Image.Triggers>
                         </Image>
+                        <Border BorderBrush="Black" Width="153" Height="153" VerticalAlignment="Center" HorizontalAlignment="Center" BorderThickness="3" CornerRadius="100" Padding="0"/>
+                        <Border Background="#D7cc0000" CornerRadius="10" Width="40" Height="40" Padding="2" VerticalAlignment="Top" HorizontalAlignment="Right" Visibility="Visible"
+                    Grid.ColumnSpan="2" Grid.RowSpan="3">
+                            <Button  ToolTip="Cancel scanning" Command="{Binding CancelActionCommand}" Click="Button_Click" Padding="8" Style="{StaticResource ImgButton}"
+                         VerticalAlignment="Center" HorizontalAlignment="Center" Width="40" Height="40" Grid.ColumnSpan="2" Grid.RowSpan="3" Background="Transparent">
+                                <Image x:Name="sas" Source="Resources/закрыть.png"/>
+                                <!--<Button.Triggers>
+                        <EventTrigger RoutedEvent="Button.Click">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation
+                        Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)" Storyboard.TargetName="sas"
+                        To="45" Duration="0:0:2"  />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Button.Triggers>-->
+
+                            </Button>
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=DataContext.Is_LongOperation, Source={x:Reference Name=Window}}" Value="false">
+                                            <Setter Property="Visibility" Value="Hidden"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                        </Border>
                     </Grid>
-                    <Border BorderBrush="Black" Width="153" Height="153" VerticalAlignment="Center" HorizontalAlignment="Center" BorderThickness="3" CornerRadius="100" Padding="0"/>
                 </Grid>
-                <!--<Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Opacity" Value="100"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Is_scanned}" Value="false">
-    
-                                <DataTrigger.EnterActions>
-                                    <BeginStoryboard Storyboard="{StaticResource VsetToOne}"/>
-                                </DataTrigger.EnterActions>
-                                 
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Is_scanned}" Value="true">
-                                <DataTrigger.EnterActions>
-                                    <BeginStoryboard Storyboard="{StaticResource VsetToZero}"/>
-                                </DataTrigger.EnterActions>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>-->
             </Border>
         </Grid>
     </Border>

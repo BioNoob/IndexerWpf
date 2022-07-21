@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using IndexerWpf.Models;
 using Newtonsoft.Json;
 namespace IndexerWpf.Classes
@@ -16,7 +17,7 @@ namespace IndexerWpf.Classes
         public delegate void IsSelecetdChange(IndxElements sender, bool state);
 
         [JsonIgnore]
-        public string GetName { get => Path.GetFileNameWithoutExtension(JsonFileName); }
+        public string GetName { get => string.IsNullOrEmpty(RootFolderPath) ? Path.GetFileNameWithoutExtension(JsonFileName) : Path.GetDirectoryName(RootFolderPath); }
         [JsonIgnore]
         public int TotalFiles { get => RootElement.CountElements - 1; }//-1 = self; }
         [JsonIgnore]
@@ -50,7 +51,7 @@ namespace IndexerWpf.Classes
             this.DateOfLastChange = DateTime.Now.ToString("G");
             File.WriteAllText(file_to_save, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
-        public bool LoadInexes()//string file_to_load)
+        public bool LoadInexes(CancellationTokenSource token)//string file_to_load)
         {
             if (File.Exists(JsonFileName))
             {
@@ -63,9 +64,11 @@ namespace IndexerWpf.Classes
                     if (string.IsNullOrEmpty(RootElement.FullPath))
                         throw new ProcessingFileException(ProcessingFileException.TypeOfError.Invalid, JsonFileName);
                     //StaticModel.ElIndx.AddRange(AllFiles);
-                    var all_elem = RootElement.Descendants();
+                    var all_elem = RootElement.AllLowerElements;//Descendants();
                     foreach (var elem in all_elem)
                     {
+                        if(token.IsCancellationRequested)
+                            throw new ProcessingFileException(ProcessingFileException.TypeOfError.CancelTask, null);
                         if (elem.ChildElements != null)
                             elem.ChildElements.ToList().ForEach(t => t.Parent = elem);
                     }
@@ -102,6 +105,10 @@ namespace IndexerWpf.Classes
         {
             return this.RootElement == other.RootElement &&
                    this.RootFolderPath == other.RootFolderPath;
+        }
+        public override string ToString()
+        {
+            return GetName;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using IndexerWpf.Models;
+﻿using IndexerWpf.Classes;
+using IndexerWpf.Models;
 using System;
 using System.IO;
 using System.Linq;
@@ -19,9 +20,16 @@ namespace IndexerWpf
             this.MouseLeftButtonDown += delegate { this.DragMove(); };
             (DataContext as MainViewModel).PropertyChanged += MainWindow_PropertyChanged;
             StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
+            StaticModel.ItemIsExpandChange += StaticModel_ItemIsExpandChange;
             //Toggle.IsChecked = false;
         }
-
+        IndxElementNew needfocus = null;
+        private void StaticModel_ItemIsExpandChange(IndxElementNew item)
+        {
+            //if(item.ChildElements == null)
+            //folder_tree.FocusItem(item, true);
+            needfocus = item;
+        }
 
         private void StaticModel_LoadEndEvent()
         {
@@ -125,16 +133,6 @@ namespace IndexerWpf
             e.Handled = true;
         }
 
-        private void Folder_tree_SelectionChanged(object sender, EventArgs e)
-        {
-
-            //MultiSelectTreeView a = sender as MultiSelectTreeView;
-            //if (a.LastSelectedItem == null) return;
-            //a.FocusItem(a.LastSelectedItem, true);
-            //if(FocusOnList)
-            //SearchResult.Focus();
-        }
-
         private void Folder_tree_GotFocus(object sender, RoutedEventArgs e)
         {
             FocusOnList = false;
@@ -193,6 +191,21 @@ namespace IndexerWpf
                 else
                     dtx.Is_scanned = false;
             }
+        }
+
+        private void folder_tree_LayoutUpdated(object sender, EventArgs e)
+        {
+            if(needfocus != null)
+            {
+                folder_tree.FocusItem(needfocus, true);
+                needfocus = null;  
+            }
+                
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

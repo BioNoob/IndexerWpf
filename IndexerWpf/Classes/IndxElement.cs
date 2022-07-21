@@ -264,6 +264,7 @@ namespace IndexerWpf.Classes
         public IndxElementNew()
         {
             Id = Identificator++;
+            allLowerElements = null;
         }
         public IndxElementNew(string _fullpath, Type tp, IndxElementNew prnt)
         {
@@ -276,6 +277,7 @@ namespace IndexerWpf.Classes
             FullPath = _fullpath;
             Id = Identificator++;
             Parent = prnt;
+            allLowerElements = null;
         }
 
         public static int Identificator = 0;
@@ -284,6 +286,7 @@ namespace IndexerWpf.Classes
         private int id;
         private string getUriImg;
         private WpfObservableRangeCollection<IndxElementNew> childElements;
+        private WpfObservableRangeCollection<IndxElementNew> allLowerElements;
         private IndxElementNew parent;
         private bool isSelected;
         private bool isExpanded;
@@ -324,11 +327,19 @@ namespace IndexerWpf.Classes
             set
             {
                 if (value != isExpanded)
+                {
                     SetProperty(ref isExpanded, value);
+                    if (value && IsSelected)
+                        StaticModel.InvokeItemIsExpandChange(this);
+                }
+
                 // Expand all the way up to the root.
+
                 if (isExpanded && Parent != null)
                     if (Parent.IsExpanded != value)
                         Parent.IsExpanded = value;
+                if (!isExpanded && ChildElements != null)
+                    AllLowerElements.ToList().ForEach(t => { if (t.isExpanded != value) t.IsExpanded = value; });
                 if (Tp == Type.folder)
                     if (value)
                         GetUriImg = "/Resources/опен.png";
@@ -373,6 +384,8 @@ namespace IndexerWpf.Classes
         }
         [JsonIgnore]
         public string DirPath => Path.GetDirectoryName(FullPath);
+        [JsonIgnore]
+        public WpfObservableRangeCollection<IndxElementNew> AllLowerElements { get => allLowerElements ??= new WpfObservableRangeCollection<IndxElementNew>(Descendants()); }/*; set => SetProperty(ref allLowerElements, value); }*/
         public void OpenFolder()
         {
             Process.Start("explorer.exe", $"/select, {FullPath}");
@@ -414,7 +427,9 @@ namespace IndexerWpf.Classes
                 );
             }
         }
-        public IEnumerable<IndxElementNew> Descendants(/*this IndxElementNew root*/)
+
+
+        private IEnumerable<IndxElementNew> Descendants(/*this IndxElementNew root*/)
         {
             var nodes = new Stack<IndxElementNew>(new[] { this });
             while (nodes.Any())
@@ -482,6 +497,10 @@ namespace IndexerWpf.Classes
             int a = FullPath == null ? 0 : FullPath.GetHashCode();
             int s = Tp.GetHashCode();
             return w ^ a ^ s;
+        }
+        public override string ToString()
+        {
+            return Name;
         }
     }
 }

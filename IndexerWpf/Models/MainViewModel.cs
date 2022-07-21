@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -24,7 +25,7 @@ namespace IndexerWpf.Models
                 List<IndxElementNew> list = new List<IndxElementNew>();
                 foreach (var item in ListOfSelectedIndexes.SelectMany(t => t.RootElement.ChildElements))
                 {
-                    list.AddRange(item.Descendants());
+                    list.AddRange(item.AllLowerElements);//Descendants());
                 }
                 return new WpfObservableRangeCollection<IndxElementNew>(list);
             }
@@ -38,12 +39,14 @@ namespace IndexerWpf.Models
         public WpfObservableRangeCollection<IndxElementNew> Searched { get => searched; set => SetProperty(ref searched, value); }
         public string SelectedFilter { get => selectedFilter; set { SetProperty(ref selectedFilter, value); DoSearch(Search_text); } }
         public bool Is_scanned { get => is_scanned; set { SetProperty(ref is_scanned, !value); } }
+        public bool Is_LongOperation { get => is_LongOperation; set { SetProperty(ref is_LongOperation, !value); } }
         public Settings Sets { get => sets; set => SetProperty(ref sets, value); }
         public bool ShowPopUp { get => showpopup; set => SetProperty(ref showpopup, value); }
         private string copyieditems;
         private WpfObservableRangeCollection<IndxElements> selectedIndexes;
         private WpfObservableRangeCollection<IndxElementNew> searched;
         private bool is_scanned = false;
+        private bool is_LongOperation = false;
         public bool ignore_scanned = false;
         private bool showpopup = false;
         private double prog_val;
@@ -119,6 +122,20 @@ namespace IndexerWpf.Models
                 );
             }
         }
+        public CancellationTokenSource CancelToken = new CancellationTokenSource();
+        private CommandHandler _cancelActionCommandn;
+        public CommandHandler CancelActionCommand
+        {
+            get
+            {
+                return _cancelActionCommandn ??= new CommandHandler(obj =>
+                {
+                    CancelToken?.Cancel();
+                },
+                (obj) => true//Is_LongOperation
+                );
+            }
+        }
         private CommandHandler _startscan;
         public CommandHandler StartScanCommand
         {
@@ -148,12 +165,12 @@ namespace IndexerWpf.Models
                     //Is_scanned = true;
                     //_= await Task.Run(() =>
                     //{
-                    ListOfElementsInSelectedIndexes.Where(t => !t.IsSelected).ToList().ForEach(t => t.IsExpanded = false);
+                    ListOfElementsInSelectedIndexes.Where(t => !t.IsSelected).ToList().ForEach(t => { if (!t.IsExpanded) t.IsExpanded = false; }); ;
                     ListOfElementsInSelectedIndexes.Where(t => t.IsSelected).ToList().ForEach(t => t.IsExpanded = true);
                     //return true;
                     //}
                     //);
-                   
+
                 },
                 (obj) => true
                 );
@@ -235,22 +252,30 @@ namespace IndexerWpf.Models
                 paths.Add(name_of);
             return paths;
         }
-        private async void DoLoad()
+        private void DoLoad()
         {
             if (!ignore_scanned)
                 Is_scanned = true;
+            List<Task> TaskList = new List<Task>();
             foreach (var item in ListOfSelectedIndexes)
             {
                 try
                 {
                     if (item.RootElement.CountElements - 1 <= 0)
-                        _ = await Task.Run(() => item.LoadInexes());
-                        //    .ContinueWith(t =>
-                        //{
-                        //    if (t.Exception != null) throw t.Exception.InnerException;
-                        //}, default
-                        //  , TaskContinuationOptions.OnlyOnFaulted
-                        //  , TaskScheduler.FromCurrentSynchronizationContext());
+                    {
+                        var LastTask = new Task(() => item.LoadInexes(CancelToken), CancelToken.Token);
+
+                        LastTask.Start();
+                        TaskList.Add(LastTask);
+                    }
+                    //_ = await Task.Run(() => item.LoadInexes());
+
+                    //    .ContinueWith(t =>
+                    //{
+                    //    if (t.Exception != null) throw t.Exception.InnerException;
+                    //}, default
+                    //  , TaskContinuationOptions.OnlyOnFaulted
+                    //  , TaskScheduler.FromCurrentSynchronizationContext());
                 }
                 catch (ProcessingFileException e)
                 {
@@ -262,18 +287,24 @@ namespace IndexerWpf.Models
                         case ProcessingFileException.TypeOfError.Invalid:
                             if (MessageBox.Show($"File {e.Path_to_Json} load error\n{e.Message}\nDelete a file?", "Error load", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
                                 FileSystem.DeleteFile(e.Path_to_Json, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);
-                                //File.Delete(e.Path_to_Json);
+                            //File.Delete(e.Path_to_Json);
                             break;
-                        case ProcessingFileException.TypeOfError.SomeThing:
-                            break;
+                        case ProcessingFileException.TypeOfError.CancelTask:
+                            if (!ignore_scanned)
+                                Is_scanned = false; 
+                            item.IsSelected = false;
+                            return;
                         default:
                             break;
                     }
+                    if (!ignore_scanned)
+                        Is_scanned = false;
                     ListOfIndexes.Remove(item);
                     item.IsSelected = false;
                     return;
                 }
             }
+            Task.WaitAll(TaskList.ToArray());
             StaticModel.InvokeLoadEndEvent();
             if (!string.IsNullOrEmpty(Search_text))
                 DoSearch(Search_text);
@@ -286,6 +317,7 @@ namespace IndexerWpf.Models
         {
             string to_save = Path.GetFileName(elements.RootFolderPath) /*new DirectoryInfo(Indexes.RootFolderPath).Name/* + DateTime.Now.ToString("ddMMy_HHmm")*/ + ".json";
             string full_to_save = Def_path + "\\" + to_save;
+            elements.JsonFileName = full_to_save;
             if (new FileInfo(full_to_save).Exists)
                 if (MessageBox.Show($"Overwrite File\n{to_save} ?\n(No = cancel save)", "Already exist", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                     elements.SaveIndexes(full_to_save);
@@ -327,14 +359,27 @@ namespace IndexerWpf.Models
         }
         private async void Worker(string path)
         {
+            Is_LongOperation = true;
             Is_scanned = true;
-            var indx = await DoScan(path);
+            IndxElements indx = null;
+            try
+            {
+                indx = await DoScan(path);
+            }
+            catch (ProcessingFileException)
+            {
+                indx = null; 
+            }
+
             if (indx == null)
             {
                 Is_scanned = false;
                 StaticModel.InvokeLoadEndEvent();
+                Is_LongOperation = false;
                 return;
             }
+            Is_LongOperation = false;
+            var _ = Task.Run(() => DoSave(indx));
             if (!ListOfIndexes.Contains(indx))
             {
                 ListOfIndexes.Add(indx);
@@ -342,7 +387,7 @@ namespace IndexerWpf.Models
             }
             indx.IsSelected = true;
 
-            DoSave(indx);
+
             Is_scanned = false;
             StaticModel.InvokeLoadEndEvent();
         }
@@ -354,12 +399,19 @@ namespace IndexerWpf.Models
             //создаем корневую ноду по корневому каталогу
             IndxElementNew root = new IndxElementNew(Path.GetFullPath(path), IndxElementNew.Type.folder, null);
             indexes.RootElement = root;
-            await Task.Run(() =>
+            try
             {
-                indexes.RootElement.ChildElements.AddRange(LoadFiles(path, root));
-                indexes.RootElement.ChildElements.AddRange(LoadSubDirectories(path, root));
-                GC.Collect();
-            });
+                await Task.Run(() =>
+                {
+                    indexes.RootElement.ChildElements.AddRange(LoadFiles(path, root));
+                    indexes.RootElement.ChildElements.AddRange(LoadSubDirectories(path, root));
+                    GC.Collect();
+                }, CancelToken.Token);
+            }
+            catch (ProcessingFileException e)
+            {
+                throw e;
+            }
             return indexes;
         }
         /// <summary>
@@ -376,6 +428,8 @@ namespace IndexerWpf.Models
                 var Files = Directory.EnumerateFiles(dir, "*.*");
                 foreach (string file in Files)
                 {
+                    if (CancelToken.IsCancellationRequested)
+                        throw new ProcessingFileException(ProcessingFileException.TypeOfError.CancelTask, null);
                     Path.GetFullPath(file);
                     lie.Add(new IndxElementNew(Path.GetFullPath(file), IndxElementNew.Type.file, parfolder));
                     UpdateProgress();
@@ -406,6 +460,8 @@ namespace IndexerWpf.Models
 
                 foreach (string subdirectory in subs)
                 {
+                    if (CancelToken.IsCancellationRequested)
+                        throw new ProcessingFileException(ProcessingFileException.TypeOfError.CancelTask, null);
                     IndxElementNew newparent = new IndxElementNew(Path.GetFullPath(subdirectory), IndxElementNew.Type.folder, parfolder);
                     newparent.ChildElements.AddRange(LoadFiles(subdirectory, newparent));
                     newparent.ChildElements.AddRange(LoadSubDirectories(subdirectory, newparent));

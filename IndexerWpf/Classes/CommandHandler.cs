@@ -803,6 +803,7 @@ namespace IndexerWpf.Classes
         {
             Deleted,
             Invalid,
+            CancelTask,
             SomeThing
         }
 
@@ -815,6 +816,8 @@ namespace IndexerWpf.Classes
 
                 case TypeOfError.Invalid:
                     return $"File {Path_to_Json} is invalid";
+                case TypeOfError.CancelTask:
+                    return $"Task was canceled";
             }
 
             return $"Unknown TypeOfService: {type}";

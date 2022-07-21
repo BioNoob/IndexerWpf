@@ -1,11 +1,17 @@
-﻿using System;
+﻿using IndexerWpf.Classes;
+using System;
 using System.Text.RegularExpressions;
 
 namespace IndexerWpf.Models
 {
     public static class StaticModel
     {
-
+        public delegate void ItemExpand(IndxElementNew item);
+        public static event ItemExpand ItemIsExpandChange;
+        public static void InvokeItemIsExpandChange(IndxElementNew item)
+        {
+            ItemIsExpandChange?.Invoke(item);
+        }
         public delegate void LoadEnd();
         public static event LoadEnd LoadEndEvent;
         public static void InvokeLoadEndEvent()

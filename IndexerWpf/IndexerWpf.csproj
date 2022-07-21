@@ -5,12 +5,12 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
 	<UseWindowsForms>true</UseWindowsForms>
-	<ApplicationIcon>anchor.ico</ApplicationIcon>
+	<ApplicationIcon>1.ico</ApplicationIcon>
 	<Authors>BioYakor</Authors>
 	<Company>Yasma corp</Company>
-	<AssemblyVersion>1.1.0.0</AssemblyVersion>
-	<FileVersion>1.1.0.0</FileVersion>
-	<PackageIcon>anchor.ico</PackageIcon>
+	<AssemblyVersion>1.2.0.0</AssemblyVersion>
+	<FileVersion>1.2.0.0</FileVersion>
+	<PackageIcon>1.ico</PackageIcon>
 	<PackageIconUrl />
 	<PackageProjectUrl>https://github.com/BioNoob/IndexerWpf</PackageProjectUrl>
   </PropertyGroup>
@@ -20,6 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="anchor.psd" />
     <None Remove="Resources\frag_b.png" />
     <None Remove="Resources\frag_c.png" />
     <None Remove="Resources\frag_o.png" />
@@ -31,7 +32,7 @@
     <None Remove="Resources\папка.png" />
     <None Remove="Resources\папка_настрйока.png" />
     <None Remove="Resources\поиск.png" />
-    <None Include="anchor.ico">
+    <None Include="1.ico">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
