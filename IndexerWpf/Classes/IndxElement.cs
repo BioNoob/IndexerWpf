@@ -313,7 +313,15 @@ namespace IndexerWpf.Classes
         public WpfObservableRangeCollection<IndxElementNew> ChildElements { get => childElements; set => SetProperty(ref childElements, value); }
 
         [JsonIgnore]
-        public int CountElements { get => ChildElements != null ? ChildElements.Sum(t => t.CountElements) + 1 : 1; }
+        public int CountElements
+        {
+            get
+            {
+                if (ChildElements != null)
+                        return ChildElements.Sum(t => t.CountElements) + 1;
+                else return 1;
+            }
+        }
 
         [JsonIgnore]
         public bool IsSelected
@@ -357,12 +365,12 @@ namespace IndexerWpf.Classes
             get => getUriImg;
         }
         [JsonIgnore]
-        public string Name 
-        { 
-            get 
+        public string Name
+        {
+            get
             {
-                if(Tp == Type.file)
-                //if (string.IsNullOrEmpty(FullPath))
+                if (Tp == Type.file)
+                    //if (string.IsNullOrEmpty(FullPath))
                     return Path.GetFileNameWithoutExtension(FullPath);
                 else
                 {
@@ -371,7 +379,7 @@ namespace IndexerWpf.Classes
                 }
                 //var a = Path.GetPathRoot(RootFolderPath);
 
-            } 
+            }
         }
         [JsonIgnore]
         public string Extension
@@ -443,8 +451,6 @@ namespace IndexerWpf.Classes
                 );
             }
         }
-
-
         private IEnumerable<IndxElementNew> Descendants(/*this IndxElementNew root*/)
         {
             var nodes = new Stack<IndxElementNew>(new[] { this });
@@ -456,7 +462,6 @@ namespace IndexerWpf.Classes
                     foreach (var n in node.childElements) nodes.Push(n);
             }
         }
-
         public static bool operator ==(IndxElementNew a, IndxElementNew b)
         {
             if (a is null && b is null)
@@ -499,14 +504,12 @@ namespace IndexerWpf.Classes
                    this.FullPath == other.FullPath &&
                    this.Tp == other.Tp;
         }
-
         public bool Equals([AllowNull] IndxElementNew x, [AllowNull] IndxElementNew y)
         {
             return x.Id == y.Id &&
                    x.FullPath == y.FullPath &&
                    x.Tp == y.Tp;
         }
-
         public int GetHashCode([DisallowNull] IndxElementNew obj)
         {
             int w = Id.GetHashCode();

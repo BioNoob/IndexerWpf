@@ -211,7 +211,7 @@ namespace IndexerWpf.Models
                     {
                         var q = new IndxElements() { JsonFileName = item };
                         q.IsSelectedChangedEvent += Q_IsSelectedChangedEvent;
-                        q.CountFilesChangedEvent += Q_CountFilesChangedEvent;
+                        //q.CountFilesChangedEvent += Q_CountFilesChangedEvent;
                         ListOfIndexes.Add(q);
                     }
 
@@ -219,11 +219,11 @@ namespace IndexerWpf.Models
             }
         }
 
-        private void Q_CountFilesChangedEvent(int val)
-        {
-            Prog_value = val;
-            //SetProperty(nameof(Prog_value));
-        }
+        //private void Q_CountFilesChangedEvent(int val)
+        //{
+        //    Prog_value = val;
+        //    //SetProperty(nameof(Prog_value));
+        //}
 
         public void Q_IsSelectedChangedEvent(IndxElements sender, bool state)
         {
@@ -250,7 +250,7 @@ namespace IndexerWpf.Models
         {
             SetProperty(nameof(ListOfExtentionsSelectedIndexes));
             SetProperty(nameof(ListOfRootInSelectedIndexes));
-            //SetProperty(nameof(Prog_value));
+            Prog_value = ListOfSelectedIndexes.Sum(t => t.TotalFiles);
         }
 
         //https://docs.microsoft.com/en-us/dotnet/standard/parallel-programming/how-to-iterate-file-directories-with-the-parallel-class?redirectedfrom=MSDN ??
@@ -263,11 +263,29 @@ namespace IndexerWpf.Models
                 paths.Add(name_of);
             return paths;
         }
+        //public System.Timers.Timer StartCountWatcher()
+        //{
+        //    var a  = new System.Timers.Timer() { AutoReset = true, Interval = 10 };
+        //    a.Elapsed += A_Elapsed;
+        //    return a;
+        //}
+        public System.Threading.Timer StartCountWatcher(IndxElements elem = null)
+        {
+            var a = new System.Threading.Timer(A_Elapsed, elem, 10, 10);
+            return a;
+        }
 
+        private void A_Elapsed(object sender)
+        {
+            Prog_value = ListOfSelectedIndexes.Sum(t => t.TotalFiles);
+            if (sender != null)
+                Prog_value += (sender as IndxElements).SimpleCounter;
+        }
 
         public async void DoLoad()
         {
             //if (!ignore_scanned)
+            var timer = StartCountWatcher();
             Is_scanned = true;
             List<Task<bool>> TaskList = new List<Task<bool>>();
             Is_LongOperation = true;
@@ -293,6 +311,7 @@ namespace IndexerWpf.Models
                 }
                 catch (ProcessingFileException e)
                 {
+                    timer.Dispose();
                     switch (e.ErrorType)
                     {
                         case ProcessingFileException.TypeOfError.Deleted:
@@ -318,9 +337,13 @@ namespace IndexerWpf.Models
                     return;
                 }
             }
+            //timer.Start();
             var q = await Task.WhenAll(TaskList);
             //Task.WaitAll(TaskList.ToArray());
+
             StaticModel.InvokeLoadEndEvent();
+            //timer.Stop();
+            timer.Dispose();
             if (!string.IsNullOrEmpty(Search_text))
                 DoSearch(Search_text);
             //Prog_value = ListOfElementsInSelectedIndexes.Count;
@@ -358,10 +381,12 @@ namespace IndexerWpf.Models
         }
         private async void Worker(string path)
         {
+
             Is_LongOperation = true;
             Is_scanned = true;
             IndxElements indx = new IndxElements(path);
-            indx.CountFilesChangedEvent += Q_CountFilesChangedEvent;
+            var timer = StartCountWatcher(indx);
+            //indx.CountFilesChangedEvent += Q_CountFilesChangedEvent;
             if (CancelToken.IsCancellationRequested) CancelToken = new CancellationTokenSource();
             try
             {
@@ -371,10 +396,7 @@ namespace IndexerWpf.Models
             {
                 Prog_value -= indx.TotalFiles;
                 indx = null;
-            }
-
-            if (indx == null)
-            {
+                timer.Dispose();
                 Is_scanned = false;
                 StaticModel.InvokeLoadEndEvent();
                 Is_LongOperation = false;
@@ -389,6 +411,7 @@ namespace IndexerWpf.Models
             }
             indx.IsSelected = true;
             Is_scanned = false;
+            timer.Dispose();
             StaticModel.InvokeLoadEndEvent();
         }
     }

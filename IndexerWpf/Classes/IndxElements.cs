@@ -19,8 +19,8 @@ namespace IndexerWpf.Classes
 
         public event IsSelecetdChange IsSelectedChangedEvent;
         public delegate void IsSelecetdChange(IndxElements sender, bool state);
-        public event CountFilesChanged CountFilesChangedEvent;
-        public delegate void CountFilesChanged(int val);
+        //public event CountFilesChanged CountFilesChangedEvent;
+        //public delegate void CountFilesChanged(int val);
         [JsonIgnore]
         public string GetName
         {
@@ -97,7 +97,7 @@ namespace IndexerWpf.Classes
                 try
                 {
                     string json = await File.ReadAllTextAsync(JsonFileName);
-                    var a = JsonConvert.DeserializeObject<IndxElements>(json);
+                    var a = await Task.Run(() => JsonConvert.DeserializeObject<IndxElements>(json));
                     RootFolderPath = a.RootFolderPath;
                     DateOfLastChange = a.DateOfLastChange;
                     RootElement = a.RootElement;
@@ -111,7 +111,7 @@ namespace IndexerWpf.Classes
                             throw new ProcessingFileException(ProcessingFileException.TypeOfError.CancelTask, null);
                         if (elem.ChildElements != null)
                             elem.ChildElements.ToList().ForEach(t => t.Parent = elem);
-                        UpdateProgress();
+                        //UpdateProgress();
                     }
                    // UpdateProgress();
                     a.Dispose();
@@ -158,7 +158,7 @@ namespace IndexerWpf.Classes
             DateOfLastChange = null;
             RootFolderPath = null;
             IsSelectedChangedEvent = null;
-            CountFilesChangedEvent = null;
+            //CountFilesChangedEvent = null;
             GC.SuppressFinalize(this);
         }
         public bool Equals(IndxElements other)
@@ -187,18 +187,17 @@ namespace IndexerWpf.Classes
                     if (token.IsCancellationRequested)
                         throw new ProcessingFileException(ProcessingFileException.TypeOfError.CancelTask, null);
                     parfolder.ChildElements.Add(new IndxElementNew(Path.GetFullPath(file), IndxElementNew.Type.file, parfolder));
+                    SimpleCounter++;
                 }
 
             }
             catch (UnauthorizedAccessException)
             {
-
                 //return lie;
-
             }
-
            // return lie;
         }
+        public int SimpleCounter = 1;
         /// <summary>
         /// Парсим поддериктории (Рекурсивная штука)
         /// </summary>
@@ -217,6 +216,7 @@ namespace IndexerWpf.Classes
                         throw new ProcessingFileException(ProcessingFileException.TypeOfError.CancelTask, null);
                     IndxElementNew newparent = new IndxElementNew(Path.GetFullPath(subdirectory), IndxElementNew.Type.folder, parfolder);
                     parfolder.ChildElements.Add(newparent);
+                    SimpleCounter++;
                     LoadFiles(subdirectory, newparent, token);
                     LoadSubDirectories(subdirectory, newparent, token);
                     //UpdateProgress();
@@ -234,7 +234,7 @@ namespace IndexerWpf.Classes
         }
         private void UpdateProgress()
         {
-            CountFilesChangedEvent?.Invoke(TotalFiles);
+            //CountFilesChangedEvent?.Invoke(TotalFiles);
         }
         //Сохранение полюбому в конце парсинга. Нет ситуации где бы оно не сохранилось. Если только отказаться перезаписывать
         public bool DoSave(string folder_to_saave_path)

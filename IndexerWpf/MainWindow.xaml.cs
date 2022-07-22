@@ -161,10 +161,8 @@ namespace IndexerWpf
         private void Window_ContentRendered(object sender, EventArgs e)
         {
             MainViewModel dtx = DataContext as MainViewModel;
-
             dtx.Is_scanned = true;
             dtx.LoadListIndexes();
-
             var lds = dtx.GetSelectedIndexes(dtx.Sets.LastIndex);
             foreach (var item in lds)
             {
