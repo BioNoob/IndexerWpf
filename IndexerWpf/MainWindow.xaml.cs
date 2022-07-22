@@ -19,7 +19,6 @@ namespace IndexerWpf
             InitializeComponent();
             this.MouseLeftButtonDown += delegate { this.DragMove(); };
             (DataContext as MainViewModel).PropertyChanged += MainWindow_PropertyChanged;
-            StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
             StaticModel.ItemIsExpandChange += StaticModel_ItemIsExpandChange;
             //Toggle.IsChecked = false;
         }
@@ -29,19 +28,6 @@ namespace IndexerWpf
             //if(item.ChildElements == null)
             //folder_tree.FocusItem(item, true);
             needfocus = item;
-        }
-
-        private void StaticModel_LoadEndEvent()
-        {
-            MainViewModel dtx = DataContext as MainViewModel;
-            count_first_load--;
-            if (count_first_load == 0)
-            {
-                dtx.ignore_scanned = false;
-                dtx.Is_scanned = false;
-                StaticModel.LoadEndEvent -= StaticModel_LoadEndEvent;
-            }
-
         }
 
         bool fadeout = false;
@@ -172,25 +158,31 @@ namespace IndexerWpf
         {
             (this.DataContext as MainViewModel).ShowPopUp = false;
         }
-        int count_first_load = 0;
         private void Window_ContentRendered(object sender, EventArgs e)
         {
             MainViewModel dtx = DataContext as MainViewModel;
 
             dtx.Is_scanned = true;
-            dtx.ignore_scanned = true;
             dtx.LoadListIndexes();
 
             var lds = dtx.GetSelectedIndexes(dtx.Sets.LastIndex);
-            count_first_load = lds.Count;
             foreach (var item in lds)
             {
                 var a = dtx.ListOfIndexes.SingleOrDefault(t => Path.GetFileNameWithoutExtension(t.JsonFileName) == item);
                 if (a != null)
+                {
+                    a.IsSelectedChangedEvent -= dtx.Q_IsSelectedChangedEvent;
                     a.IsSelected = true;
+                    if (string.IsNullOrEmpty(dtx.SelectedIndexsString))
+                        dtx.SelectedIndexsString += a.GetName;
+                    else
+                        dtx.SelectedIndexsString += ", " + a.GetName;
+                    a.IsSelectedChangedEvent += dtx.Q_IsSelectedChangedEvent;
+                }
                 else
                     dtx.Is_scanned = false;
             }
+            dtx.DoLoad();
         }
 
         private void folder_tree_LayoutUpdated(object sender, EventArgs e)

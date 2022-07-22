@@ -63,6 +63,9 @@ namespace IndexerWpf.Classes
         public string DateOfLastChange { get => dateOfLastChange; set => SetProperty(ref dateOfLastChange, value); }
         public IndxElementNew RootElement { get => allFiles; set { SetProperty(ref allFiles, value); } }
 
+        [JsonIgnore]
+        public bool IsLoaded { get; set; }
+
         public IndxElements()
         {
             IsSelected = false;
@@ -72,6 +75,7 @@ namespace IndexerWpf.Classes
 
         private void Init()
         {
+            IsLoaded = false;
             RootElement = new IndxElementNew();
             IndxElementNew.Identificator = 0;
         }
@@ -107,9 +111,11 @@ namespace IndexerWpf.Classes
                             throw new ProcessingFileException(ProcessingFileException.TypeOfError.CancelTask, null);
                         if (elem.ChildElements != null)
                             elem.ChildElements.ToList().ForEach(t => t.Parent = elem);
+                        UpdateProgress();
                     }
                    // UpdateProgress();
                     a.Dispose();
+                    IsLoaded = true;
                     //Debug.WriteLine("DONE DESER");
                     return true;
                 }
@@ -213,7 +219,7 @@ namespace IndexerWpf.Classes
                     parfolder.ChildElements.Add(newparent);
                     LoadFiles(subdirectory, newparent, token);
                     LoadSubDirectories(subdirectory, newparent, token);
-                    UpdateProgress();
+                    //UpdateProgress();
                     //newparent.ChildElements.AddRange();
                     //newparent.ChildElements.AddRange(;
                     //ie.Add(newparent);

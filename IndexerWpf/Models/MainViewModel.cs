@@ -47,7 +47,6 @@ namespace IndexerWpf.Models
         private WpfObservableRangeCollection<IndxElementNew> searched;
         private bool is_scanned = false;
         private bool is_LongOperation = false;
-        public bool ignore_scanned = false;
         private bool showpopup = false;
         private double prog_val;
         private string search_text;
@@ -226,7 +225,7 @@ namespace IndexerWpf.Models
             //SetProperty(nameof(Prog_value));
         }
 
-        private void Q_IsSelectedChangedEvent(IndxElements sender, bool state)
+        public void Q_IsSelectedChangedEvent(IndxElements sender, bool state)
         {
             if (state)
             {
@@ -266,7 +265,7 @@ namespace IndexerWpf.Models
         }
 
 
-        private async void DoLoad()
+        public async void DoLoad()
         {
             //if (!ignore_scanned)
             Is_scanned = true;
@@ -305,16 +304,14 @@ namespace IndexerWpf.Models
                             //File.Delete(e.Path_to_Json);
                             break;
                         case ProcessingFileException.TypeOfError.CancelTask:
-                            if (!ignore_scanned)
-                                Is_scanned = false;
+                            Is_scanned = false;
                             item.IsSelected = false;
                             Prog_value -= item.TotalFiles;
                             item.Dispose();
                             Is_LongOperation = false;
                             return;
                     }
-                    if (!ignore_scanned)
-                        Is_scanned = false;
+                    Is_scanned = false;
                     ListOfIndexes.Remove(item);
                     item.IsSelected = false;
                     Is_LongOperation = false;
@@ -328,8 +325,7 @@ namespace IndexerWpf.Models
                 DoSearch(Search_text);
             //Prog_value = ListOfElementsInSelectedIndexes.Count;
             Is_LongOperation = false;
-            if (!ignore_scanned)
-                Is_scanned = false;
+            Is_scanned = false;
         }
         private void DoSearch(string text)
         {
