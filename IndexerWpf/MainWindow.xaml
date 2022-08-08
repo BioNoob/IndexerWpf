@@ -617,7 +617,7 @@
                                    BorderBrush="White" Background="White" Foreground="Black" FontFamily="Jura"/>
             </Grid>
 
-            <Border Background="#7F3F3F3F" Grid.ColumnSpan="2" Grid.RowSpan="3" ClipToBounds="True" CornerRadius="10" x:Name="borderspinner" Visibility="Visible" Opacity="100">
+            <Border Background="#7F3F3F3F" Grid.ColumnSpan="2" Grid.RowSpan="3" ClipToBounds="True" CornerRadius="10" x:Name="borderspinner" Visibility="Visible" Opacity="1">
                 <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
                     <Border BorderBrush="Transparent" Width="153" Height="153" VerticalAlignment="Center" HorizontalAlignment="Center" CornerRadius="100" Padding="0">
                         <Border.Background>
@@ -693,11 +693,11 @@
                             </Image.Triggers>
                         </Image>
                         <Border BorderBrush="Black" Width="153" Height="153" VerticalAlignment="Center" HorizontalAlignment="Center" BorderThickness="3" CornerRadius="100" Padding="0"/>
-                        <Border Background="#D7cc0000" CornerRadius="6" Width="30" Height="30" Padding="2" VerticalAlignment="Top" HorizontalAlignment="Right"
-                    Grid.ColumnSpan="2" Grid.RowSpan="3">
+                        <Border Background="#D7cc0000" CornerRadius="6" Width="30" Height="30" Padding="0" VerticalAlignment="Top" HorizontalAlignment="Right"
+                    Grid.ColumnSpan="2" Grid.RowSpan="3" BorderThickness="2" Margin="0,5,5,0">
                             <Button  ToolTip="Cancel scanning" Command="{Binding CancelActionCommand}" Style="{StaticResource ImgButton}"
                          VerticalAlignment="Center" HorizontalAlignment="Center"  Grid.ColumnSpan="2" Grid.RowSpan="3" Background="Transparent">
-                                <Image x:Name="sas" Source="Resources/закрыть.png"/>
+                                <Image x:Name="sas" Source="Resources/закрыть.png" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                 <!--<Button.Triggers>
                         <EventTrigger RoutedEvent="Button.Click">
                             <BeginStoryboard>

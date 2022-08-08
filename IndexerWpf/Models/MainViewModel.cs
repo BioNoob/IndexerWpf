@@ -238,6 +238,7 @@ namespace IndexerWpf.Models
             }
             else
             {
+                SetProperty(nameof(ListOfRootInSelectedIndexes));
                 var sselectedIndexsString = Regex.Replace(SelectedIndexsString, $@"(, )?{sender.GetName}", "");
                 sselectedIndexsString = Regex.Replace(sselectedIndexsString, $@"^(, )", "");
                 SelectedIndexsString = sselectedIndexsString;
