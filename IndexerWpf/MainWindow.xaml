@@ -569,13 +569,14 @@
                                                 <MenuItem Header="Open document" Command="{Binding OpenFileCommand}"/>
                                                 <MenuItem Command="{Binding OpenFileCommand}">
                                                     <MenuItem.Header>
-                                                        <Grid Background="Black">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="Auto"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="Open document" Grid.Column="0" Foreground="White"/>
-                                                            <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding FileFolderExistString}" Margin="5,0,0,0" Grid.Column="1" Foreground="White">
+                                                        <Grid>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="*"/>
+                                                                <RowDefinition Height="*"/>
+                                                            </Grid.RowDefinitions>
+                                                            <TextBlock HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="Open document" Grid.Row="0" Foreground="White"/>
+                                                            <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding FileFolderExistString}" Margin="5,0,0,0" Grid.Row="1" Foreground="White"
+                                                                       Background="Yellow">
                                                                 <TextBlock.ToolTip>
                                                                     <TextBlock Text="Other PC do this scan?"/>
                                                                 </TextBlock.ToolTip>
