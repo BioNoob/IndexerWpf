@@ -115,6 +115,8 @@ namespace IndexerWpf.Models
                     {
                         Sets.FolderIndexesDefPath = fbd.SelectedPath;
                         LoadListIndexes();
+                        SelectedIndexsString = "";
+                        StaticModel_LoadEndEvent();
                     }
                 },
                 (obj) => true
@@ -238,11 +240,12 @@ namespace IndexerWpf.Models
             }
             else
             {
-                SetProperty(nameof(ListOfRootInSelectedIndexes));
+                //SetProperty(nameof(ListOfRootInSelectedIndexes));
                 var sselectedIndexsString = Regex.Replace(SelectedIndexsString, $@"(, )?{sender.GetName}", "");
                 sselectedIndexsString = Regex.Replace(sselectedIndexsString, $@"^(, )", "");
                 SelectedIndexsString = sselectedIndexsString;
                 //Prog_value -= sender.TotalFiles;
+                StaticModel_LoadEndEvent();
             }
             Prog_value = ListOfSelectedIndexes.Sum(t => t.TotalFiles);
         }
@@ -293,53 +296,62 @@ namespace IndexerWpf.Models
             if (CancelToken.IsCancellationRequested) CancelToken = new CancellationTokenSource();
             foreach (var item in ListOfSelectedIndexes)
             {
-                try
+                //try
+                //{
+                if (item.RootElement.CountElements - 1 <= 0)
                 {
-                    if (item.RootElement.CountElements - 1 <= 0)
-                    {
-                        //var LastTask = new Task(() => item.LoadInexes(CancelToken));
-                        //LastTask.Start();
-                        TaskList.Add(item.LoadInexes(CancelToken));
-                    }
-                    //_ = await Task.Run(() => item.LoadInexes());
+                    //var LastTask = new Task(() => item.LoadInexes(CancelToken));
+                    //LastTask.Start();
+                    TaskList.Add(item.LoadInexes(CancelToken));
+                }
+                //_ = await Task.Run(() => item.LoadInexes());
 
-                    //    .ContinueWith(t =>
-                    //{
-                    //    if (t.Exception != null) throw t.Exception.InnerException;
-                    //}, default
-                    //  , TaskContinuationOptions.OnlyOnFaulted
-                    //  , TaskScheduler.FromCurrentSynchronizationContext());
-                }
-                catch (ProcessingFileException e)
-                {
-                    timer.Dispose();
-                    switch (e.ErrorType)
-                    {
-                        case ProcessingFileException.TypeOfError.Deleted:
-                            MessageBox.Show($"File {e.Path_to_Json} was deleted!", "Error load", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            break;
-                        case ProcessingFileException.TypeOfError.Invalid:
-                            if (MessageBox.Show($"File {e.Path_to_Json} load error\n{e.Message}\nDelete a file?", "Error load", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
-                                FileSystem.DeleteFile(e.Path_to_Json, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);
-                            //File.Delete(e.Path_to_Json);
-                            break;
-                        case ProcessingFileException.TypeOfError.CancelTask:
-                            Is_scanned = false;
-                            item.IsSelected = false;
-                            Prog_value -= item.TotalFiles;
-                            item.Dispose();
-                            Is_LongOperation = false;
-                            return;
-                    }
-                    Is_scanned = false;
-                    ListOfIndexes.Remove(item);
-                    item.IsSelected = false;
-                    Is_LongOperation = false;
-                    return;
-                }
+                //    .ContinueWith(t =>
+                //{
+                //    if (t.Exception != null) throw t.Exception.InnerException;
+                //}, default
+                //  , TaskContinuationOptions.OnlyOnFaulted
+                //  , TaskScheduler.FromCurrentSynchronizationContext());
+                //}
+
             }
+            //}
             //timer.Start();
-            var q = await Task.WhenAll(TaskList);
+
+            var tsj = Task.WhenAll(TaskList);
+            try
+            {
+                _ = await tsj;
+            }
+            catch (ProcessingFileException e)
+            {
+                timer.Dispose();
+                switch (e.ErrorType)
+                {
+                    case TypeOfError.Deleted:
+                        MessageBox.Show($"{e.GetMessage()}", "File deleted", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        break;
+                    case TypeOfError.Invalid:
+                        if (MessageBox.Show($"{e.GetMessage()}\nDelete a file?", "Error load", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
+                            FileSystem.DeleteFile(e.Path_to_Json, UIOption.AllDialogs, RecycleOption.SendToRecycleBin);
+                        //File.Delete(e.Path_to_Json);
+                        break;
+                    case TypeOfError.CancelTask:
+                        //Is_scanned = false;
+                        //(e.Source as IndxElements).IsSelected = false;
+                        Prog_value -= e.Source.TotalFiles;
+                        //(e.Source as IndxElements).Dispose();
+                        //Is_LongOperation = false;
+                        return;
+                }
+
+                Is_scanned = false;
+                ListOfIndexes.Remove(e.Source);
+                e.Source.IsSelected = false;
+                e.Source.Dispose();
+                Is_LongOperation = false;
+                return;
+            }
             //Task.WaitAll(TaskList.ToArray());
 
             StaticModel.InvokeLoadEndEvent();

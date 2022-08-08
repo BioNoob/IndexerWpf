@@ -318,11 +318,49 @@ namespace IndexerWpf.Classes
             get
             {
                 if (ChildElements != null)
-                        return ChildElements.Sum(t => t.CountElements) + 1;
+                    return ChildElements.Sum(t => t.CountElements) + 1;
                 else return 1;
             }
         }
-
+        [JsonIgnore]
+        public bool FileFolderExist
+        {
+            get
+            {
+                switch (Tp)
+                {
+                    case Type.folder:
+                        if (Directory.Exists(FullPath))
+                            return true;
+                        else
+                            return false;
+                    case Type.file:
+                        if (File.Exists(FullPath))
+                            return true;
+                        else
+                            return false;
+                }
+                return false;
+            }
+        }
+        [JsonIgnore]
+        public string FileFolderExistString 
+        {
+            get
+            {
+                if (FileFolderExist)
+                    return "";
+                else
+                    switch (Tp)
+                    {
+                        case Type.folder:
+                            return "(Folder not found)";
+                        case Type.file:
+                            return "(File not found)";
+                    }
+                return "";
+            }
+        }
         [JsonIgnore]
         public bool IsSelected
         {
@@ -412,11 +450,13 @@ namespace IndexerWpf.Classes
         public WpfObservableRangeCollection<IndxElementNew> AllLowerElements { get => allLowerElements ??= new WpfObservableRangeCollection<IndxElementNew>(Descendants()); }/*; set => SetProperty(ref allLowerElements, value); }*/
         public void OpenFolder()
         {
+            Directory.Exists(FullPath);
             Process.Start("explorer.exe", $"/select, {FullPath}");
         }
         public void OpenFile()
         {
             Process pr = new Process();
+            File.Exists(FullPath);
             pr.StartInfo.FileName = FullPath;
             pr.StartInfo.UseShellExecute = true;
             pr.Start();

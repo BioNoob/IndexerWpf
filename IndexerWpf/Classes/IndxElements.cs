@@ -102,18 +102,18 @@ namespace IndexerWpf.Classes
                     DateOfLastChange = a.DateOfLastChange;
                     RootElement = a.RootElement;
                     if (string.IsNullOrEmpty(RootElement.FullPath))
-                        throw new ProcessingFileException(ProcessingFileException.TypeOfError.Invalid, JsonFileName);
+                        throw new ProcessingFileException(TypeOfError.Invalid, JsonFileName, this);
                     //StaticModel.ElIndx.AddRange(AllFiles);
                     var all_elem = RootElement.AllLowerElements;//Descendants();
                     foreach (var elem in all_elem)
                     {
                         if (token.IsCancellationRequested)
-                            throw new ProcessingFileException(ProcessingFileException.TypeOfError.CancelTask, null);
+                            throw new ProcessingFileException(TypeOfError.CancelTask, null, this);
                         if (elem.ChildElements != null)
                             elem.ChildElements.ToList().ForEach(t => t.Parent = elem);
                         //UpdateProgress();
                     }
-                   // UpdateProgress();
+                    // UpdateProgress();
                     a.Dispose();
                     IsLoaded = true;
                     //Debug.WriteLine("DONE DESER");
@@ -127,7 +127,7 @@ namespace IndexerWpf.Classes
             }
             else
             {
-                throw new ProcessingFileException(ProcessingFileException.TypeOfError.Deleted, JsonFileName);
+                throw new ProcessingFileException(TypeOfError.Deleted, JsonFileName, this);
                 //return null;
             }
         }
@@ -185,7 +185,7 @@ namespace IndexerWpf.Classes
                 foreach (string file in Files)
                 {
                     if (token.IsCancellationRequested)
-                        throw new ProcessingFileException(ProcessingFileException.TypeOfError.CancelTask, null);
+                        throw new ProcessingFileException(TypeOfError.CancelTask, null, this);
                     parfolder.ChildElements.Add(new IndxElementNew(Path.GetFullPath(file), IndxElementNew.Type.file, parfolder));
                     SimpleCounter++;
                 }
@@ -195,7 +195,7 @@ namespace IndexerWpf.Classes
             {
                 //return lie;
             }
-           // return lie;
+            // return lie;
         }
         public int SimpleCounter = 1;
         /// <summary>
@@ -213,7 +213,7 @@ namespace IndexerWpf.Classes
                 foreach (string subdirectory in subs)
                 {
                     if (token.IsCancellationRequested)
-                        throw new ProcessingFileException(ProcessingFileException.TypeOfError.CancelTask, null);
+                        throw new ProcessingFileException(TypeOfError.CancelTask, null, this);
                     IndxElementNew newparent = new IndxElementNew(Path.GetFullPath(subdirectory), IndxElementNew.Type.folder, parfolder);
                     parfolder.ChildElements.Add(newparent);
                     SimpleCounter++;

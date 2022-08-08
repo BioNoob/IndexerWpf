@@ -788,39 +788,41 @@ namespace IndexerWpf.Classes
             _execute?.Invoke(parameter);
         }
     }
+    public enum TypeOfError
+    {
+        Deleted,
+        Invalid,
+        CancelTask,
+        SomeThing
+    }
     public class ProcessingFileException : Exception
     {
 
-        public ProcessingFileException(/*Exception innerException,*/ TypeOfError type, string path_to_Json)
+        public ProcessingFileException(/*Exception innerException,*/ TypeOfError type, string path_to_Json, IndxElements ien)
             //: base(GetMessage(type), innerException)
         {
             Path_to_Json = path_to_Json;
             ErrorType = type;
+            Source = ien;
         }
+        public new IndxElements Source;
         public string Path_to_Json = string.Empty;
         public TypeOfError ErrorType = TypeOfError.SomeThing;
-        public enum TypeOfError
-        {
-            Deleted,
-            Invalid,
-            CancelTask,
-            SomeThing
-        }
 
-        public string GetMessage(TypeOfError type)
+        public string GetMessage()
         {
-            switch (type)
+            switch (ErrorType)
             {
                 case TypeOfError.Deleted:
-                    return $"File {Path_to_Json} is deleted";
+                    return $"File {Path_to_Json} is deleted!";
 
                 case TypeOfError.Invalid:
-                    return $"File {Path_to_Json} is invalid";
+                    return $"File {Path_to_Json} is invalid!";
                 case TypeOfError.CancelTask:
-                    return $"Task was canceled";
+                    return $"Task was canceled!";
             }
 
-            return $"Unknown TypeOfService: {type}";
+            return $"Unknown TypeOfError: {ErrorType}";
         }
 
     }
