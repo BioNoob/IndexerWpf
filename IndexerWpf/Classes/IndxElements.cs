@@ -12,7 +12,7 @@ namespace IndexerWpf.Classes
 {
     public class IndxElements : Proper, IDisposable, IEquatable<IndxElements>
     {
-        private IndxElementNew allFiles;
+        private IndxElementNew rootElement;
         private string rootFolderPath;
         private string dateOfLastChange;
         private bool isSelected;
@@ -58,13 +58,16 @@ namespace IndexerWpf.Classes
         public bool IsSelected { get => isSelected; set { SetProperty(ref isSelected, value); IsSelectedChangedEvent?.Invoke(this, value); } }
         [JsonIgnore]
         public string JsonFileName { get; set; }
-
+        [JsonProperty(Order = -1)]
         public string RootFolderPath { get => rootFolderPath; set { SetProperty(ref rootFolderPath, value); } }
         public string DateOfLastChange { get => dateOfLastChange; set => SetProperty(ref dateOfLastChange, value); }
-        public IndxElementNew RootElement { get => allFiles; set { SetProperty(ref allFiles, value); } }
+        public IndxElementNew RootElement { get => rootElement; set { SetProperty(ref rootElement, value); } }
 
         [JsonIgnore]
         public bool IsLoaded { get; set; }
+
+        //public int ChildIdentificatorCouner = 0;
+        public int SimpleCounter = 0;
 
         public IndxElements()
         {
@@ -76,8 +79,10 @@ namespace IndexerWpf.Classes
         private void Init()
         {
             IsLoaded = false;
-            RootElement = new IndxElementNew();
-            IndxElementNew.Identificator = 0;
+            RootElement = null;
+            //RootElement = new IndxElementNew();
+            //RootElement.Id = 0;
+            SimpleCounter = 0;
         }
 
         public IndxElements(string path)
@@ -96,34 +101,41 @@ namespace IndexerWpf.Classes
             {
                 try
                 {
-                    string json = await File.ReadAllTextAsync(JsonFileName);
-                    var a = await Task.Run(() => JsonConvert.DeserializeObject<IndxElements>(json));
-                    RootFolderPath = a.RootFolderPath;
-                    DateOfLastChange = a.DateOfLastChange;
-                    RootElement = a.RootElement;
-                    if (string.IsNullOrEmpty(RootElement.FullPath))
-                        throw new ProcessingFileException(TypeOfError.Invalid, JsonFileName, this);
-                    //StaticModel.ElIndx.AddRange(AllFiles);
-                    var all_elem = RootElement.AllLowerElements;//Descendants();
-                    foreach (var elem in all_elem)
+                    //ПРОВЕРИТЬ НА КАНСЕЛ ТОКЕНЫ
+                    await Task.Run(async () =>
                     {
-                        if (token.IsCancellationRequested)
-                            throw new ProcessingFileException(TypeOfError.CancelTask, null, this);
-                        if (elem.ChildElements != null)
-                            elem.ChildElements.ToList().ForEach(t => t.Parent = elem);
-                        //UpdateProgress();
-                    }
-                    // UpdateProgress();
-                    a.Dispose();
+                        StaticModel.IdincreasedEvent += StaticModel_IdincreasedEvent;
+                        string json = await File.ReadAllTextAsync(JsonFileName);
+                        var a = await Task.Run(() => JsonConvert.DeserializeObject<IndxElements>(json));
+                        RootFolderPath = a.RootFolderPath;
+                        DateOfLastChange = a.DateOfLastChange;
+                        RootElement = a.RootElement;
+                        if (string.IsNullOrEmpty(RootElement.FullPath))
+                            throw new ProcessingFileException(TypeOfError.Invalid, JsonFileName, this);
+                        //StaticModel.ElIndx.AddRange(AllFiles);
+                        var all_elem = RootElement.AllLowerElements;//Descendants();
+                        foreach (var elem in all_elem)
+                        {
+                            if (token.IsCancellationRequested)
+                                throw new ProcessingFileException(TypeOfError.CancelTask, null, this);
+                            if (elem.ChildElements != null)
+                                elem.ChildElements.ToList().ForEach(t => t.Parent = elem);
+                            //UpdateProgress();
+                        }
+                        // UpdateProgress();
+                        a.Dispose();
+                    });
                     IsLoaded = true;
-                    //Debug.WriteLine("DONE DESER");
                     return true;
                 }
                 catch (ProcessingFileException e)
                 {
                     throw e;
                 }
-
+                finally
+                {
+                    StaticModel.IdincreasedEvent -= StaticModel_IdincreasedEvent;
+                }
             }
             else
             {
@@ -131,6 +143,16 @@ namespace IndexerWpf.Classes
                 //return null;
             }
         }
+
+        private void StaticModel_IdincreasedEvent(int val, string el)
+        {
+            //ЕСЛИ ПЕРЕИМЕНУЮТ JSON файл вся логика пойдет в пезду
+            if (val == 0 && el.Contains(GetName))
+                this.RootFolderPath = el;
+            if (string.IsNullOrEmpty(RootFolderPath) && el.Contains(RootFolderPath))
+                SimpleCounter = val;
+        }
+
         public bool DoScan(CancellationTokenSource token)
         {
             //var indexes = new IndxElements(path);
@@ -139,7 +161,7 @@ namespace IndexerWpf.Classes
             //создаем корневую ноду по корневому каталогу
             try
             {
-                RootElement = new IndxElementNew(Path.GetFullPath(RootFolderPath), IndxElementNew.Type.folder, null);
+                RootElement = new IndxElementNew(Path.GetFullPath(RootFolderPath), IndxElementNew.Type.folder, null, SimpleCounter);
                 LoadFiles(RootFolderPath, RootElement, token);
                 LoadSubDirectories(RootFolderPath, RootElement, token);
                 //RootElement.ChildElements.AddRange(LoadFiles(RootFolderPath, RootElement, token));
@@ -186,8 +208,8 @@ namespace IndexerWpf.Classes
                 {
                     if (token.IsCancellationRequested)
                         throw new ProcessingFileException(TypeOfError.CancelTask, null, this);
-                    parfolder.ChildElements.Add(new IndxElementNew(Path.GetFullPath(file), IndxElementNew.Type.file, parfolder));
-                    SimpleCounter++;
+                    parfolder.ChildElements.Add(new IndxElementNew(Path.GetFullPath(file), IndxElementNew.Type.file, parfolder, ++SimpleCounter));
+                    //SimpleCounter++;
                 }
 
             }
@@ -197,7 +219,6 @@ namespace IndexerWpf.Classes
             }
             // return lie;
         }
-        public int SimpleCounter = 1;
         /// <summary>
         /// Парсим поддериктории (Рекурсивная штука)
         /// </summary>
@@ -214,9 +235,9 @@ namespace IndexerWpf.Classes
                 {
                     if (token.IsCancellationRequested)
                         throw new ProcessingFileException(TypeOfError.CancelTask, null, this);
-                    IndxElementNew newparent = new IndxElementNew(Path.GetFullPath(subdirectory), IndxElementNew.Type.folder, parfolder);
+                    IndxElementNew newparent = new IndxElementNew(Path.GetFullPath(subdirectory), IndxElementNew.Type.folder, parfolder, ++SimpleCounter);
                     parfolder.ChildElements.Add(newparent);
-                    SimpleCounter++;
+                    //SimpleCounter++;
                     LoadFiles(subdirectory, newparent, token);
                     LoadSubDirectories(subdirectory, newparent, token);
                     //UpdateProgress();

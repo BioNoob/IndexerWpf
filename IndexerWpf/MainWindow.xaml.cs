@@ -30,18 +30,19 @@ namespace IndexerWpf
             needfocus = item;
         }
 
-        bool fadeout = false;
+        //bool fadeout = false;
         private void MainWindow_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "Is_scanned")
             {
                 DoubleAnimation opacityAnimation = new DoubleAnimation();
+                var storyboard = new Storyboard();
                 if ((DataContext as MainViewModel).Is_scanned)
                 {
                     opacityAnimation.From = 0.89;
                     opacityAnimation.To = 0;
                     opacityAnimation.Duration = TimeSpan.FromSeconds(1);
-                    fadeout = true;
+                    storyboard.Completed += Storyboard_Completed1;
 
                 }
                 else if (!(DataContext as MainViewModel).Is_scanned)
@@ -56,8 +57,8 @@ namespace IndexerWpf
                 Storyboard.SetTarget(opacityAnimation, borderspinner);
                 Storyboard.SetTargetProperty(opacityAnimation, new PropertyPath("(Border.Opacity)"));
 
-                var storyboard = new Storyboard();
-                storyboard.Completed += Storyboard_Completed1;
+
+
                 storyboard.Children.Add(opacityAnimation);
                 storyboard.Begin();
 
@@ -67,11 +68,11 @@ namespace IndexerWpf
 
         private void Storyboard_Completed1(object sender, EventArgs e)
         {
-            if (fadeout)
-            {
-                fadeout = false;
+            //if (fadeout)
+            //{
+                //fadeout = false;
                 borderspinner.Visibility = Visibility.Collapsed;
-            }
+            //}
         }
 
         private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)

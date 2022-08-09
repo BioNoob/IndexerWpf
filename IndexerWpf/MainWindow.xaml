@@ -494,6 +494,23 @@
                                     </TextBlock.ToolTip>
                                 <TextBlock.ContextMenu>
                                     <ContextMenu Closed="ContextMenu_Closed">
+                                        <Border>
+                                              <TextBlock HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding FileFolderExistString}" 
+                                              Grid.Row="1" Foreground="Red">
+                                                    <TextBlock.ToolTip>
+                                                        <TextBlock Text="Other PC do this scan?"/>
+                                                    </TextBlock.ToolTip>
+                                                  <TextBlock.Style>
+                                                      <Style TargetType="TextBlock">
+                                                          <Style.Triggers>
+                                                              <DataTrigger Binding="{Binding FileFolderExist}" Value="true">
+                                                                  <Setter Property="Height" Value="0"/>
+                                                              </DataTrigger>
+                                                          </Style.Triggers>
+                                                      </Style>
+                                                  </TextBlock.Style>
+                                              </TextBlock>
+                                        </Border>
                                         <MenuItem Header="Open document" Command="{Binding OpenFileCommand}"/>
                                         <Separator Style="{StaticResource MenuSeparatorStyle}"/>
                                         <MenuItem Header="Open document folder" Command="{Binding OpenFolderCommand}"/>
@@ -507,7 +524,6 @@
                                                 <TextBlock VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="{Binding Path=DataContext.Copyied_items, Source={x:Reference Name=Window}}" 
                                                        Foreground="White" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis" FontSize="9" /> 
                                             </StackPanel>
-
                                         <Border.Style>
                                             <Style TargetType="Border">
                                                 <Style.Triggers>
@@ -564,26 +580,26 @@
                                     <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
                                         <TextBlock.ContextMenu>
                                             <ContextMenu Closed="ContextMenu_Closed">
+                                                <Border>
+                                                    <TextBlock HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding FileFolderExistString}" 
+                                                                      Grid.Row="1" Foreground="Red">
+                                                        <TextBlock.ToolTip>
+                                                            <TextBlock Text="Other PC do this scan?"/>
+                                                        </TextBlock.ToolTip>
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding FileFolderExist}" Value="true">
+                                                                        <Setter Property="Height" Value="0"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                         </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Border>
                                                 <MenuItem Header="Show on tree" Command="{Binding Path=DataContext.ShowOnTreeCommand, Source={x:Reference Name=Window}}"/>
                                                 <Separator Style="{StaticResource MenuSeparatorStyle}"/>
                                                 <MenuItem Header="Open document" Command="{Binding OpenFileCommand}"/>
-                                                <MenuItem Command="{Binding OpenFileCommand}">
-                                                    <MenuItem.Header>
-                                                        <Grid>
-                                                            <Grid.RowDefinitions>
-                                                                <RowDefinition Height="*"/>
-                                                                <RowDefinition Height="*"/>
-                                                            </Grid.RowDefinitions>
-                                                            <TextBlock HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="Open document" Grid.Row="0" Foreground="White"/>
-                                                            <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Text="{Binding FileFolderExistString}" Margin="5,0,0,0" Grid.Row="1" Foreground="White"
-                                                                       Background="Yellow">
-                                                                <TextBlock.ToolTip>
-                                                                    <TextBlock Text="Other PC do this scan?"/>
-                                                                </TextBlock.ToolTip>
-                                                            </TextBlock>
-                                                        </Grid>
-                                                    </MenuItem.Header>
-                                                </MenuItem>
                                                 <Separator Style="{StaticResource MenuSeparatorStyle}"/>
                                                 <MenuItem Header="Open document folder" Command="{Binding OpenFolderCommand}"/>
                                                 <Separator Style="{StaticResource MenuSeparatorStyle}"/>
@@ -608,7 +624,6 @@
                                                         </Style>
                                                     </Border.Style>
                                                 </Border>
-
                                             </ContextMenu>
                                         </TextBlock.ContextMenu>
                                 </TextBlock>
@@ -634,7 +649,7 @@
                                    BorderBrush="White" Background="White" Foreground="Black" FontFamily="Jura"/>
             </Grid>
 
-            <Border Background="#7F3F3F3F" Grid.ColumnSpan="2" Grid.RowSpan="3" ClipToBounds="True" CornerRadius="10" x:Name="borderspinner" Visibility="Visible" Opacity="1">
+            <Border Background="#7F3F3F3F" Grid.ColumnSpan="2" Grid.RowSpan="3" ClipToBounds="True" CornerRadius="10" x:Name="borderspinner" Visibility="Collapsed" Opacity="0">
                 <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
                     <Border BorderBrush="Transparent" Width="153" Height="153" VerticalAlignment="Center" HorizontalAlignment="Center" CornerRadius="100" Padding="0">
                         <Border.Background>

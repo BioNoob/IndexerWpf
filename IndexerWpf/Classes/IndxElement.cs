@@ -264,24 +264,24 @@ namespace IndexerWpf.Classes
         }
         public IndxElementNew()
         {
-            Id = Identificator++;
+            //Id = Identificator++;
             allLowerElements = null;
+            Parent = null;
+            childElements = null;
         }
-        public IndxElementNew(string _fullpath, Type tp, IndxElementNew prnt)
+        public IndxElementNew(string _fullpath, Type tp, IndxElementNew prnt, int id)
         {
+            isScaned = true;
             if (tp != Type.file)
                 ChildElements = new WpfObservableRangeCollection<IndxElementNew>();
             else
                 ChildElements = null;
-
-            Tp = tp;
             FullPath = _fullpath;
-            Id = Identificator++;
+            Tp = tp;
+            Id = id;//Identificator++;
             Parent = prnt;
             allLowerElements = null;
         }
-
-        public static int Identificator = 0;
         private string fullPath;
         private Type tp;
         private int id;
@@ -291,7 +291,8 @@ namespace IndexerWpf.Classes
         private IndxElementNew parent;
         private bool isSelected;
         private bool isExpanded;
-
+        private bool isScaned = false;
+        [JsonProperty(Order = -2)]
         public int Id { get => id; set { SetProperty(ref id, value); } }
         public Type Tp
         {
@@ -299,17 +300,45 @@ namespace IndexerWpf.Classes
             set
             {
                 SetProperty(ref tp, value);
+                GetUriImg = value switch
                 {
-                    GetUriImg = value switch
-                    {
-                        Type.folder => "/Resources/папка.png",
-                        Type.file => "/Resources/док.png",
-                        _ => "",
-                    };
-                }
+                    Type.folder => "/Resources/папка.png",
+                    Type.file => "/Resources/док.png",
+                    _ => "",
+                };
             }
         }
-        public string FullPath { get => fullPath; set { SetProperty(ref fullPath, value); } }
+        [JsonProperty(Order = -1)]
+        public string FullPath
+        {
+            get => fullPath;
+            set
+            {
+                SetProperty(ref fullPath, value);
+                StaticModel.InvokeIdincreasedEvent(id, value);
+                if (isScaned)
+                {
+                    FileFolderExist = true;
+                    FileFolderExistString = "";
+                    return;
+                }
+                FileFolderExist = Tp switch
+                {
+                    Type.folder => Directory.Exists(FullPath),
+                    Type.file => File.Exists(FullPath),
+                    _ => false,
+                };
+                if (!FileFolderExist)
+                    FileFolderExistString = Tp switch
+                    {
+                        Type.folder => "Folder not found",
+                        Type.file => "File not found",
+                        _ => "",
+                    };
+                else
+                    FileFolderExistString = "";
+            }
+        }
         public WpfObservableRangeCollection<IndxElementNew> ChildElements { get => childElements; set => SetProperty(ref childElements, value); }
 
         [JsonIgnore]
@@ -322,44 +351,19 @@ namespace IndexerWpf.Classes
                 else return 1;
             }
         }
+        private bool fileFolderExist;
         [JsonIgnore]
         public bool FileFolderExist
         {
-            get
-            {
-                switch (Tp)
-                {
-                    case Type.folder:
-                        if (Directory.Exists(FullPath))
-                            return true;
-                        else
-                            return false;
-                    case Type.file:
-                        if (File.Exists(FullPath))
-                            return true;
-                        else
-                            return false;
-                }
-                return false;
-            }
+            get => fileFolderExist;
+            set => SetProperty(ref fileFolderExist, value);
         }
+        private string fileFolderExistString;
         [JsonIgnore]
-        public string FileFolderExistString 
+        public string FileFolderExistString
         {
-            get
-            {
-                if (FileFolderExist)
-                    return "";
-                else
-                    switch (Tp)
-                    {
-                        case Type.folder:
-                            return "(Folder not found)";
-                        case Type.file:
-                            return "(File not found)";
-                    }
-                return "";
-            }
+            get => fileFolderExistString;
+            set => SetProperty(ref fileFolderExistString, value);
         }
         [JsonIgnore]
         public bool IsSelected
@@ -409,7 +413,8 @@ namespace IndexerWpf.Classes
             {
                 if (Tp == Type.file)
                     //if (string.IsNullOrEmpty(FullPath))
-                    return Path.GetFileNameWithoutExtension(FullPath);
+                    //return Path.GetFileNameWithoutExtension(FullPath);
+                    return Path.GetFileName(FullPath);
                 else
                 {
                     //Regex pattern = new Regex(@":|\\+|\/+");
@@ -472,7 +477,7 @@ namespace IndexerWpf.Classes
                 {
                     OpenFolder();
                 },
-                (obj) => !string.IsNullOrEmpty(FullPath)
+                (obj) => FileFolderExist
                 );
             }
         }
@@ -487,7 +492,7 @@ namespace IndexerWpf.Classes
                 {
                     OpenFile();
                 },
-                (obj) => !string.IsNullOrEmpty(FullPath) && Tp == Type.file
+                (obj) => FileFolderExist && Tp == Type.file
                 );
             }
         }
