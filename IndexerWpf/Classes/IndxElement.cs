@@ -253,45 +253,43 @@ namespace IndexerWpf.Classes
     //    }
     //}
 
-
-
-    public class IndxElementNew : Proper, IEqualityComparer<IndxElementNew>, System.IEquatable<IndxElementNew>
+    public class IndxElementBase : Proper, IEqualityComparer<IndxElementBase>, System.IEquatable<IndxElementNew>
     {
+        public IndxElementBase()
+        {
+            isScaned = false;
+            isSelected = false;
+        }
+        public IndxElementBase(string _fullpath, Type tp, int id)
+        {
+            isScaned = true;
+            FullPath = _fullpath;
+            Tp = tp;
+            Id = id;//Identificator++;
+        }
+        public IndxElementBase(IndxElementBase elementBase)
+        {
+            isScaned = elementBase.isScaned;
+            FullPath = elementBase.FullPath;
+            Tp = elementBase.Tp;
+            Id = elementBase.Id;//Identificator++;
+            IsSelected = elementBase.IsSelected;
+            IsExpanded = elementBase.IsExpanded;
+        }
         public enum Type
         {
             folder,
             file
         }
-        public IndxElementNew()
-        {
-            //Id = Identificator++;
-            allLowerElements = null;
-            Parent = null;
-            childElements = null;
-        }
-        public IndxElementNew(string _fullpath, Type tp, IndxElementNew prnt, int id)
-        {
-            isScaned = true;
-            if (tp != Type.file)
-                ChildElements = new WpfObservableRangeCollection<IndxElementNew>();
-            else
-                ChildElements = null;
-            FullPath = _fullpath;
-            Tp = tp;
-            Id = id;//Identificator++;
-            Parent = prnt;
-            allLowerElements = null;
-        }
+        private bool isSelected;
+        private bool isExpanded;
+        private string getUriImg;
         private string fullPath;
         private Type tp;
         private int id;
-        private string getUriImg;
-        private WpfObservableRangeCollection<IndxElementNew> childElements;
-        private WpfObservableRangeCollection<IndxElementNew> allLowerElements;
-        private IndxElementNew parent;
-        private bool isSelected;
-        private bool isExpanded;
-        private bool isScaned = false;
+        private bool fileFolderExist;
+        private string fileFolderExistString;
+        protected bool isScaned;
         [JsonProperty(Order = -2)]
         public int Id { get => id; set { SetProperty(ref id, value); } }
         public Type Tp
@@ -339,32 +337,6 @@ namespace IndexerWpf.Classes
                     FileFolderExistString = "";
             }
         }
-        public WpfObservableRangeCollection<IndxElementNew> ChildElements { get => childElements; set => SetProperty(ref childElements, value); }
-
-        [JsonIgnore]
-        public int CountElements
-        {
-            get
-            {
-                if (ChildElements != null)
-                    return ChildElements.Sum(t => t.CountElements) + 1;
-                else return 1;
-            }
-        }
-        private bool fileFolderExist;
-        [JsonIgnore]
-        public bool FileFolderExist
-        {
-            get => fileFolderExist;
-            set => SetProperty(ref fileFolderExist, value);
-        }
-        private string fileFolderExistString;
-        [JsonIgnore]
-        public string FileFolderExistString
-        {
-            get => fileFolderExistString;
-            set => SetProperty(ref fileFolderExistString, value);
-        }
         [JsonIgnore]
         public bool IsSelected
         {
@@ -380,17 +352,7 @@ namespace IndexerWpf.Classes
                 if (value != isExpanded)
                 {
                     SetProperty(ref isExpanded, value);
-                    if (value && IsSelected)
-                        StaticModel.InvokeItemIsExpandChange(this);
                 }
-
-                // Expand all the way up to the root.
-
-                if (isExpanded && Parent != null)
-                    if (Parent.IsExpanded != value)
-                        Parent.IsExpanded = value;
-                if (!isExpanded && ChildElements != null)
-                    AllLowerElements.ToList().ForEach(t => { if (t.isExpanded != value) t.IsExpanded = value; });
                 if (Tp == Type.folder)
                     if (value)
                         GetUriImg = "/Resources/опен.png";
@@ -398,8 +360,6 @@ namespace IndexerWpf.Classes
                         GetUriImg = "/Resources/папка.png";
             }
         }
-        [JsonIgnore]
-        public IndxElementNew Parent { get => parent; set => SetProperty(ref parent, value); }
         [JsonIgnore]
         public string GetUriImg
         {
@@ -452,7 +412,19 @@ namespace IndexerWpf.Classes
         [JsonIgnore]
         public string DirPath => Path.GetDirectoryName(FullPath);
         [JsonIgnore]
-        public WpfObservableRangeCollection<IndxElementNew> AllLowerElements { get => allLowerElements ??= new WpfObservableRangeCollection<IndxElementNew>(Descendants()); }/*; set => SetProperty(ref allLowerElements, value); }*/
+        public bool FileFolderExist
+        {
+            get => fileFolderExist;
+            set => SetProperty(ref fileFolderExist, value);
+        }
+        [JsonIgnore]
+        public string FileFolderExistString
+        {
+            get => fileFolderExistString;
+            set => SetProperty(ref fileFolderExistString, value);
+        }
+
+
         public void OpenFolder()
         {
             Directory.Exists(FullPath);
@@ -496,18 +468,8 @@ namespace IndexerWpf.Classes
                 );
             }
         }
-        private IEnumerable<IndxElementNew> Descendants(/*this IndxElementNew root*/)
-        {
-            var nodes = new Stack<IndxElementNew>(new[] { this });
-            while (nodes.Any())
-            {
-                IndxElementNew node = nodes.Pop();
-                yield return node;
-                if (node.ChildElements != null)
-                    foreach (var n in node.childElements) nodes.Push(n);
-            }
-        }
-        public static bool operator ==(IndxElementNew a, IndxElementNew b)
+
+        public static bool operator ==(IndxElementBase a, IndxElementBase b)
         {
             if (a is null && b is null)
                 return true;
@@ -522,7 +484,7 @@ namespace IndexerWpf.Classes
 
 
         }
-        public static bool operator !=(IndxElementNew a, IndxElementNew b)
+        public static bool operator !=(IndxElementBase a, IndxElementBase b)
         {
             if (a is null && b is null)
                 return false;
@@ -549,13 +511,13 @@ namespace IndexerWpf.Classes
                    this.FullPath == other.FullPath &&
                    this.Tp == other.Tp;
         }
-        public bool Equals([AllowNull] IndxElementNew x, [AllowNull] IndxElementNew y)
+        public bool Equals([AllowNull] IndxElementBase x, [AllowNull] IndxElementBase y)
         {
             return x.Id == y.Id &&
                    x.FullPath == y.FullPath &&
                    x.Tp == y.Tp;
         }
-        public int GetHashCode([DisallowNull] IndxElementNew obj)
+        public int GetHashCode([DisallowNull] IndxElementBase obj)
         {
             int w = Id.GetHashCode();
             int a = FullPath == null ? 0 : FullPath.GetHashCode();
@@ -565,6 +527,106 @@ namespace IndexerWpf.Classes
         public override string ToString()
         {
             return Name;
+        }
+    }
+
+    public class IndxElementNew : IndxElementBase
+    {
+
+        public IndxElementNew()
+        {
+            init();
+        }
+        private void init()
+        {
+            allLowerElements = null;
+            Parent = null;
+            childElements = null;
+            isScaned = false;
+            this.PropertyChanged += IndxElementNew_PropertyChanged;
+        }
+
+
+        public IndxElementNew(string _fullpath, Type tp, IndxElementNew prnt, int id)
+        {
+            init();
+            isScaned = true;
+            if (tp != Type.file)
+                ChildElements = new WpfObservableRangeCollection<IndxElementNew>();
+            else
+                ChildElements = null;
+            FullPath = _fullpath;
+            Tp = tp;
+            Id = id;//Identificator++;
+            Parent = prnt;
+            allLowerElements = null;
+        }
+
+
+        private WpfObservableRangeCollection<IndxElementNew> childElements;
+        private WpfObservableRangeCollection<IndxElementNew> allLowerElements;
+        private IndxElementNew parent;
+
+        public WpfObservableRangeCollection<IndxElementNew> ChildElements { get => childElements; set => SetProperty(ref childElements, value); }
+
+        [JsonIgnore]
+        public int CountElements
+        {
+            get
+            {
+                if (ChildElements != null)
+                    return ChildElements.Sum(t => t.CountElements) + 1;
+                else return 1;
+            }
+        }
+        private IEnumerable<IndxElementNew> Descendants(/*this IndxElementNew root*/)
+        {
+            var nodes = new Stack<IndxElementNew>(new[] { this });
+            while (nodes.Any())
+            {
+                IndxElementNew node = nodes.Pop();
+                yield return node;
+                if (node.ChildElements != null)
+                    foreach (var n in node.childElements) nodes.Push(n);
+            }
+        }
+        //private IEnumerable<IndxElementBase> Descendants() https://stackoverflow.com/questions/7062882/searching-a-tree-using-linq
+        //{
+        //    var st = new List<IndxElementBase>();
+        //    if (ChildElements != null)
+        //        foreach (var item in ChildElements)
+        //        {
+        //            st.Add(new IndxElementBase(this));
+        //            st.AddRange(item.Descendants());
+
+        //        }
+        //    else
+        //        st.Add(new IndxElementBase(this));
+        //    return st;
+        //}
+
+        [JsonIgnore]
+        public IndxElementNew Parent { get => parent; set => SetProperty(ref parent, value); }
+
+        [JsonIgnore]
+        public WpfObservableRangeCollection<IndxElementNew> AllLowerElements { get => allLowerElements ??= new WpfObservableRangeCollection<IndxElementNew>(Descendants()); }/*; set => SetProperty(ref allLowerElements, value); }*/
+        private void IndxElementNew_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            switch (e.PropertyName)
+            {
+                case "IsExpanded":
+                    if (IsExpanded && IsSelected)
+                        StaticModel.InvokeItemIsExpandChange(this);
+                    if (IsExpanded && Parent != null)
+                        if (Parent.IsExpanded != IsExpanded)
+                            Parent.IsExpanded = IsExpanded;
+                    if (!IsExpanded && ChildElements != null)
+                        AllLowerElements.ToList().ForEach(t => { if (t.IsExpanded != IsExpanded) t.IsExpanded = IsExpanded; });
+                    return;
+                case "":
+                default:
+                    break;
+            }
         }
     }
 }

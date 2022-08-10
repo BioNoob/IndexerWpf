@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -26,29 +27,10 @@ namespace IndexerWpf.Classes
         {
             get
             {
-
-
-                if (string.IsNullOrEmpty(RootFolderPath))
-                    return Path.GetFileNameWithoutExtension(JsonFileName);
-
-                //var a = Path.GetPathRoot(RootFolderPath);
+                //if (string.IsNullOrEmpty(RootFolderPath))
+                //    return Path.GetFileNameWithoutExtension(JsonFileName);
                 Regex pattern = new Regex(@":|\\+|\/+");
                 return pattern.Replace(new DirectoryInfo(RootFolderPath).Name, "");
-
-                //var b = q.Name;
-                //return Path.GetDirectoryName(RootFolderPath);
-                //if (!string.IsNullOrEmpty(Path.GetDirectoryName(RootFolderPath)))
-                //{
-                //    var q = new DirectoryInfo(RootFolderPath);
-                //    var b = q.Name;
-                //    return Path.GetDirectoryName(RootFolderPath);
-                //}
-                //else
-                //{
-                //    var a = Path.GetPathRoot(RootFolderPath);
-                //    Regex pattern = new Regex(@":|\\+|\/+");
-                //    return pattern.Replace(a, "");
-                //}
             }
 
         }
@@ -65,7 +47,7 @@ namespace IndexerWpf.Classes
 
         [JsonIgnore]
         public bool IsLoaded { get; set; }
-
+        [JsonIgnore]
         //public int ChildIdentificatorCouner = 0;
         public int SimpleCounter = 0;
 
@@ -102,13 +84,29 @@ namespace IndexerWpf.Classes
                 try
                 {
                     //ПРОВЕРИТЬ НА КАНСЕЛ ТОКЕНЫ
-                    await Task.Run(async () =>
+                    await Task.Run(() =>
                     {
                         StaticModel.IdincreasedEvent += StaticModel_IdincreasedEvent;
-                        string json = await File.ReadAllTextAsync(JsonFileName);
-                        var a = await Task.Run(() => JsonConvert.DeserializeObject<IndxElements>(json));
-                        RootFolderPath = a.RootFolderPath;
-                        DateOfLastChange = a.DateOfLastChange;
+                        //var qq = File.ReadLines(JsonFileName); //вроде быстро
+                        //var watch = Stopwatch.StartNew();
+                        //Debug.WriteLine($"{JsonFileName} started {watch.ElapsedMilliseconds}");
+                        IndxElements a = null;
+                        using (StreamReader file = File.OpenText(JsonFileName))
+                        {
+                            JsonSerializer serializer = new JsonSerializer();
+                            a = (IndxElements)serializer.Deserialize(file, typeof(IndxElements));
+                            //Debug.WriteLine($"{JsonFileName} deserialize {watch.ElapsedMilliseconds}"); //25mb file done by 4sec
+                            file.Close();
+                        }
+
+                        //string json = await File.ReadAllTextAsync(JsonFileName);
+                        //Debug.WriteLine($"{JsonFileName} readed {watch.ElapsedMilliseconds}");
+                        //var a = await Task.Run(() => JsonConvert.DeserializeObject<IndxElements>(json)); //25mb file done by 12sec
+                        //Debug.WriteLine($"{JsonFileName} deserialize {watch.ElapsedMilliseconds}");
+                        //watch.Stop();
+                        
+                        //RootFolderPath = a.RootFolderPath;
+                        //DateOfLastChange = a.DateOfLastChange;
                         RootElement = a.RootElement;
                         if (string.IsNullOrEmpty(RootElement.FullPath))
                             throw new ProcessingFileException(TypeOfError.Invalid, JsonFileName, this);
@@ -146,10 +144,10 @@ namespace IndexerWpf.Classes
 
         private void StaticModel_IdincreasedEvent(int val, string el)
         {
-            //ЕСЛИ ПЕРЕИМЕНУЮТ JSON файл вся логика пойдет в пезду
-            if (val == 0 && el.Contains(GetName))
-                this.RootFolderPath = el;
-            if (string.IsNullOrEmpty(RootFolderPath) && el.Contains(RootFolderPath))
+            //ЕСЛИ ПЕРЕИМЕНУЮТ JSON файл вся логика пойдет в пезду (не пошла. Но элемент с неверным названием нужно удалить!
+            //if (val == 0 && el.Contains(GetName))
+            //    this.RootFolderPath = el;
+            if (!string.IsNullOrEmpty(RootFolderPath) && el.Contains(RootFolderPath))
                 SimpleCounter = val;
         }
 

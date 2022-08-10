@@ -1,5 +1,6 @@
 ﻿using IndexerWpf.Classes;
 using Microsoft.VisualBasic.FileIO;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -19,16 +20,16 @@ namespace IndexerWpf.Models
         public WpfObservableRangeCollection<IndxElements> ListOfIndexes { get => selectedIndexes; set => SetProperty(ref selectedIndexes, value); }
         public WpfObservableRangeCollection<IndxElements> ListOfSelectedIndexes { get => new WpfObservableRangeCollection<IndxElements>(ListOfIndexes.Where(t => t.IsSelected)); }
         public WpfObservableRangeCollection<string> ListOfExtentionsSelectedIndexes => new WpfObservableRangeCollection<string>(ListOfElementsInSelectedIndexes.Select(t => t.Extension).Distinct());
-        public WpfObservableRangeCollection<IndxElementNew> ListOfElementsInSelectedIndexes
+        public WpfObservableRangeCollection<IndxElementBase> ListOfElementsInSelectedIndexes
         {
             get
             {
-                List<IndxElementNew> list = new List<IndxElementNew>();
+                List<IndxElementBase> list = new List<IndxElementBase>();
                 foreach (var item in ListOfSelectedIndexes.SelectMany(t => t.RootElement.ChildElements))
                 {
                     list.AddRange(item.AllLowerElements);//Descendants());
                 }
-                return new WpfObservableRangeCollection<IndxElementNew>(list);
+                return new WpfObservableRangeCollection<IndxElementBase>(list);
             }
         }
         public WpfObservableRangeCollection<IndxElementNew> ListOfRootInSelectedIndexes => new WpfObservableRangeCollection<IndxElementNew>(ListOfSelectedIndexes.Select(t => t.RootElement));
@@ -37,7 +38,7 @@ namespace IndexerWpf.Models
         public double Prog_value { get => prog_val; set => SetProperty(ref prog_val, value); }
         public string Def_path { get => Sets.FolderIndexesDefPath; }
         public string Search_text { get => search_text; set { SetProperty(ref search_text, value); DoSearch(value); } }
-        public List<IndxElementNew> Searched { get => searched; set => SetProperty(ref searched, value); }
+        public IEnumerable<IndxElementBase> Searched { get => searched; set => SetProperty(ref searched, value); }
         public string SelectedFilter { get => selectedFilter; set { SetProperty(ref selectedFilter, value); DoSearch(Search_text); } }
         public bool Is_scanned { get => is_scanned; set { SetProperty(ref is_scanned, !value); } }
         public bool Is_LongOperation { get => is_LongOperation; set { SetProperty(ref is_LongOperation, value); } }
@@ -45,7 +46,7 @@ namespace IndexerWpf.Models
         public bool ShowPopUp { get => showpopup; set => SetProperty(ref showpopup, value); }
         private string copyieditems;
         private WpfObservableRangeCollection<IndxElements> selectedIndexes;
-        private List<IndxElementNew> searched;
+        private IEnumerable<IndxElementBase> searched;
         private bool is_scanned = false;
         private bool is_LongOperation = false;
         private bool showpopup = false;
@@ -212,10 +213,18 @@ namespace IndexerWpf.Models
                 {
                     foreach (var item in fls.Where(t => Path.GetExtension(t) == ".json"))
                     {
-                        var q = new IndxElements() { JsonFileName = item };
-                        q.IsSelectedChangedEvent += Q_IsSelectedChangedEvent;
+                        var qq = File.ReadLines(item).Take(3).ToList(); //вроде быстро
+                        qq.Add("}");
+                        var qqq = string.Join(Environment.NewLine, qq);
+                        var indx = JsonConvert.DeserializeObject<IndxElements>(qqq.TrimEnd(','));
+                        indx.JsonFileName = item;
+                        indx.IsSelectedChangedEvent += Q_IsSelectedChangedEvent;
+                        //var q = new IndxElements() { JsonFileName = item };
+                        //q.IsSelectedChangedEvent += Q_IsSelectedChangedEvent;
                         //q.CountFilesChangedEvent += Q_CountFilesChangedEvent;
-                        ListOfIndexes.Add(q);
+                        //ListOfIndexes.Add(q);
+                        if(!ListOfIndexes.Contains(indx))
+                        ListOfIndexes.Add(indx);
                     }
 
                 }
@@ -294,7 +303,7 @@ namespace IndexerWpf.Models
         public async void DoLoad()
         {
             //if (!ignore_scanned)
-
+            if(!Is_scanned)
             Is_scanned = true;
             List<Task<bool>> TaskList = new List<Task<bool>>();
             Is_LongOperation = true;
@@ -374,28 +383,45 @@ namespace IndexerWpf.Models
             if (ListOfElementsInSelectedIndexes != null)
                 if (!string.IsNullOrEmpty(text) && text.Length > 1)
                 {
-                    Searched.Clear();
-                    IEnumerable<IndxElementNew> res = new List<IndxElementNew>();
+                    var watch = Stopwatch.StartNew();
+                    Debug.WriteLine($"search started {watch.ElapsedMilliseconds}");
+                    //Searched.Clear();
+                    IEnumerable<IndxElementBase> res = new List<IndxElementBase>();
                     if (StaticModel.IsValidRegex(text))
                     {
                         var reg = new Regex(@$"{text}", RegexOptions.IgnoreCase);
                         res = ListOfElementsInSelectedIndexes.Where(t => reg.IsMatch(t.Name));//.ToList();
+                        Debug.WriteLine($"founded {watch.ElapsedMilliseconds}");
                     }
                     if (SelectedFilter != "*" && SelectedFilter != null)
                     {
-                        res.Concat(res.Where(t => t.Extension == SelectedFilter));  //= Searched.AddRange(res.Where(t => t.Extension == SelectedFilter));
-                        Searched.AddRange(ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) && t.Extension == SelectedFilter));
+                        res = res.Intersect(res.Where(t => t.Extension == SelectedFilter));  //= Searched.AddRange(res.Where(t => t.Extension == SelectedFilter));
+                                                                                             //res = res.Concat(ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) && t.Extension == SelectedFilter));
+                                                                                             //Searched.AddRange(ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) && t.Extension == SelectedFilter));
+                        Debug.WriteLine($"filtered {watch.ElapsedMilliseconds}");
                     }
-                    else
-                    {
-                        Searched.AddRange(res);
-                        var res_simple = ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase)).ToList();
-                        Searched.AddRange(res_simple);
-                    }
-                    Searched = Searched.Distinct().ToList();//new WpfObservableRangeCollection<IndxElementNew>(Searched.Distinct());
+                    //else
+                    //{
+                    //    //Searched.AddRange(res);
+                    //    var res_simple = ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase)).ToList();
+                    //    res.Concat(res_simple);
+                    //    //Searched.AddRange(res_simple);
+                    //}
+                    //Searched = Searched.Distinct().ToList();//new WpfObservableRangeCollection<IndxElementNew>(Searched.Distinct());
+                    
+                    Searched = res;//new List<IndxElementNew>(res.Count());
+                    var q = res.ToList();
+                    //Debug.WriteLine($"malloc {watch.ElapsedMilliseconds}");
+                    //Searched.AddRange(res);
+                    //(res as List<IndxElementNew>).ForEach(t => Searched.Add(t));
+                    //Searched = new HashSet<IndxElementNew>(res);
+                    Debug.WriteLine($"done {watch.ElapsedMilliseconds}");
+                    //Searched = new List<IndxElementNew>(res.Distinct());
+                    //Searched = res.Distinct().ToList();
                 }
                 else
-                    Searched.Clear();
+                    Searched = null;
+            //Searched.Clear();
         }
         private async void Worker(string path)
         {

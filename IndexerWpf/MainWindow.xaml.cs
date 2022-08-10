@@ -56,9 +56,6 @@ namespace IndexerWpf
 
                 Storyboard.SetTarget(opacityAnimation, borderspinner);
                 Storyboard.SetTargetProperty(opacityAnimation, new PropertyPath("(Border.Opacity)"));
-
-
-
                 storyboard.Children.Add(opacityAnimation);
                 storyboard.Begin();
 
@@ -72,39 +69,6 @@ namespace IndexerWpf
             //{
                 //fadeout = false;
                 borderspinner.Visibility = Visibility.Collapsed;
-            //}
-        }
-
-        private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            //var a = sender as ListView;
-            //var added = e.AddedItems.OfType<IndxElement>().ToList();
-            //added.FirstOrDefault().IsExpanded = true;
-            //var deleted = e.RemovedItems.OfType<IndxElement>().ToList();
-            //if (added != null)
-            //{
-            //    foreach (var item in added)
-            //    {
-            //        if (!SelectedElements.Contains(item))
-            //        {
-            //            SelectedElements.Add(item);
-            //            item.IsSelected = true;
-            //            item.IsExpanded = true;
-            //        }
-            //    }
-
-            //}
-            //if (deleted != null)
-            //{
-            //    foreach (var item in deleted)
-            //    {
-            //        if (SelectedElements.Contains(item))
-            //        {
-            //            SelectedElements.Remove(item);
-            //            item.IsSelected = false;
-            //            item.IsExpanded = false;
-            //        }
-            //    }
             //}
         }
 
@@ -167,7 +131,8 @@ namespace IndexerWpf
             var lds = dtx.GetSelectedIndexes(dtx.Sets.LastIndex);
             foreach (var item in lds)
             {
-                var a = dtx.ListOfIndexes.SingleOrDefault(t => Path.GetFileNameWithoutExtension(t.JsonFileName) == item);
+                //var a = dtx.ListOfIndexes.SingleOrDefault(t => Path.GetFileNameWithoutExtension(t.JsonFileName) == item);
+                var a = dtx.ListOfIndexes.SingleOrDefault(t => t.GetName == item);//.Distinct().SingleOrDefault();
                 if (a != null)
                 {
                     a.IsSelectedChangedEvent -= dtx.Q_IsSelectedChangedEvent;
