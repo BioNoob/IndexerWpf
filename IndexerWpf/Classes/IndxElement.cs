@@ -1,13 +1,11 @@
-﻿using IndexerWpf.Classes;
+﻿using IndexerWpf.Models;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using IndexerWpf.Models;
-using Newtonsoft.Json;
-using System.Windows.Input;
-using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 #pragma warning disable CS0660
@@ -252,7 +250,36 @@ namespace IndexerWpf.Classes
     //        get => getUriImg;
     //    }
     //}
+    //public class SimpleIndxElement
+    //{
+    //    //private Func<int> get_id;
+    //    ////private Action<int> set_id;
+    //    //public int Id { get => get_id.Invoke(); /*set { set_id.Invoke(value); SetProperty(); }*/}
+    //    private Func<bool> get_select;
+    //    private Action<bool> set_select;
+    //    private string extention;
+    //    private string name;
 
+    //    public bool IsSelected { get => get_select.Invoke(); set => set_select.Invoke(value); }
+    //    public string Extension { get => extention; set => extention = value; }
+    //    public string Name { get => name; set => name = value; }
+    //    //private Func<IndxElementNew> get_prnt;
+    //    //private Action<IndxElementNew> set_prnt;
+    //    //public IndxElementNew Parent { get => get_prnt.Invoke(); set { set_prnt.Invoke(value); SetProperty(); } }
+    //    //private Func<string> get_rootpath;
+    //    ////private Action<string> set_parpath;
+    //    //public string ParentPath { get => get_rootpath.Invoke(); /*set { set_parpath.Invoke(value); SetProperty(); }*/ }
+    //    public SimpleIndxElement(IndxElementNew elem/*, string _rootFolderPath*/) : this(() => elem.IsSelected, n => { elem.IsSelected = n; }, elem.Name, elem.Extension)
+    //    {
+    //    }
+    //    private SimpleIndxElement(Func<bool> get_s, Action<bool> set_s, string nm, string ext)
+    //    {
+    //        get_select = get_s;
+    //        set_select = set_s;
+    //        Name = nm;
+    //        Extension = ext;
+    //    }
+    //}
     public class IndxElementBase : Proper, IEqualityComparer<IndxElementBase>, System.IEquatable<IndxElementNew>
     {
         public IndxElementBase()
@@ -539,7 +566,7 @@ namespace IndexerWpf.Classes
         }
         private void init()
         {
-            allLowerElements = null;
+            //allLowerElements = null;
             Parent = null;
             childElements = null;
             isScaned = false;
@@ -559,12 +586,11 @@ namespace IndexerWpf.Classes
             Tp = tp;
             Id = id;//Identificator++;
             Parent = prnt;
-            allLowerElements = null;
+            //allLowerElements = null;
         }
 
 
         private WpfObservableRangeCollection<IndxElementNew> childElements;
-        private WpfObservableRangeCollection<IndxElementNew> allLowerElements;
         private IndxElementNew parent;
 
         public WpfObservableRangeCollection<IndxElementNew> ChildElements { get => childElements; set => SetProperty(ref childElements, value); }
@@ -579,17 +605,17 @@ namespace IndexerWpf.Classes
                 else return 1;
             }
         }
-        private IEnumerable<IndxElementNew> Descendants(/*this IndxElementNew root*/)
-        {
-            var nodes = new Stack<IndxElementNew>(new[] { this });
-            while (nodes.Any())
-            {
-                IndxElementNew node = nodes.Pop();
-                yield return node;
-                if (node.ChildElements != null)
-                    foreach (var n in node.childElements) nodes.Push(n);
-            }
-        }
+        //private IEnumerable<IndxElementNew> Descendants(/*this IndxElementNew root*/)
+        //{
+        //    var nodes = new Stack<IndxElementNew>(new[] { this });
+        //    while (nodes.Any())
+        //    {
+        //        IndxElementNew node = nodes.Pop();
+        //        yield return node;
+        //        if (node.ChildElements != null)
+        //            foreach (var n in node.childElements) nodes.Push(n);
+        //    }
+        //}
         //private IEnumerable<IndxElementBase> Descendants() https://stackoverflow.com/questions/7062882/searching-a-tree-using-linq
         //{
         //    var st = new List<IndxElementBase>();
@@ -608,8 +634,8 @@ namespace IndexerWpf.Classes
         [JsonIgnore]
         public IndxElementNew Parent { get => parent; set => SetProperty(ref parent, value); }
 
-        [JsonIgnore]
-        public WpfObservableRangeCollection<IndxElementNew> AllLowerElements { get => allLowerElements ??= new WpfObservableRangeCollection<IndxElementNew>(Descendants()); }/*; set => SetProperty(ref allLowerElements, value); }*/
+        //[JsonIgnore]
+        //public WpfObservableRangeCollection<IndxElementNew> AllLowerElements { get => allLowerElements ??= new WpfObservableRangeCollection<IndxElementNew>(Descendants()); }/*; set => SetProperty(ref allLowerElements, value); }*/
         private void IndxElementNew_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
@@ -621,7 +647,8 @@ namespace IndexerWpf.Classes
                         if (Parent.IsExpanded != IsExpanded)
                             Parent.IsExpanded = IsExpanded;
                     if (!IsExpanded && ChildElements != null)
-                        AllLowerElements.ToList().ForEach(t => { if (t.IsExpanded != IsExpanded) t.IsExpanded = IsExpanded; });
+                        ChildElements.ToList().ForEach(t => { if (t.IsExpanded != IsExpanded) t.IsExpanded = IsExpanded; });
+                        //AllLowerElements.ToList().ForEach(t => { if (t.IsExpanded != IsExpanded) t.IsExpanded = IsExpanded; });
                     return;
                 case "":
                 default:

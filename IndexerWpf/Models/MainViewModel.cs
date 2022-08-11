@@ -20,35 +20,48 @@ namespace IndexerWpf.Models
         public WpfObservableRangeCollection<IndxElements> ListOfIndexes { get => selectedIndexes; set => SetProperty(ref selectedIndexes, value); }
         public WpfObservableRangeCollection<IndxElements> ListOfSelectedIndexes { get => new WpfObservableRangeCollection<IndxElements>(ListOfIndexes.Where(t => t.IsSelected)); }
         public WpfObservableRangeCollection<string> ListOfExtentionsSelectedIndexes => new WpfObservableRangeCollection<string>(ListOfElementsInSelectedIndexes.Select(t => t.Extension).Distinct());
-        public WpfObservableRangeCollection<IndxElementBase> ListOfElementsInSelectedIndexes
+        public WpfObservableRangeCollection<IndxElementNew> ListOfElementsInSelectedIndexes// => listOfElementsInSelectedIndexes ??= new WpfObservableRangeCollection<IndxElementNew>(ListOfSelectedIndexes.SelectMany(t => t.AllLowerElements));
         {
             get
             {
-                List<IndxElementBase> list = new List<IndxElementBase>();
-                foreach (var item in ListOfSelectedIndexes.SelectMany(t => t.RootElement.ChildElements))
-                {
-                    list.AddRange(item.AllLowerElements);//Descendants());
-                }
-                return new WpfObservableRangeCollection<IndxElementBase>(list);
+                return new WpfObservableRangeCollection<IndxElementNew>(ListOfSelectedIndexes.SelectMany(t => t.AllLowerElements));
+                //List<IndxElementBase> list = new List<IndxElementBase>();
+                //foreach (var item in ListOfSelectedIndexes.SelectMany(t => t.RootElement.ChildElements))
+                //{
+                //    list.AddRange(item.AllLowerElements);//Descendants());
+                //}
+                //return new WpfObservableRangeCollection<IndxElementBase>(list);
             }
         }
+        //public WpfObservableRangeCollection<SimpleIndxElement> ListOfSimpleElementsInSelectedIndexes => listOfSimpleElementsInSelectedIndexes ??= new WpfObservableRangeCollection<SimpleIndxElement>(ListOfSelectedIndexes.SelectMany(t => t.AllSimpleLowerElements));
+        //{
+        //    get
+        //    {
+        //        return new WpfObservableRangeCollection<SimpleIndxElement>(ListOfSelectedIndexes.SelectMany(t => t.AllSimpleLowerElements));
+
+        //    }
+        //}
         public WpfObservableRangeCollection<IndxElementNew> ListOfRootInSelectedIndexes => new WpfObservableRangeCollection<IndxElementNew>(ListOfSelectedIndexes.Select(t => t.RootElement));
         public string Copyied_items { get => copyieditems; set => SetProperty(ref copyieditems, value); }
         public string SelectedIndexsString { get => selectedIndexsString; set { SetProperty(ref selectedIndexsString, value); /*if (!string.IsNullOrEmpty(value))*/  } }
         public double Prog_value { get => prog_val; set => SetProperty(ref prog_val, value); }
         public string Def_path { get => Sets.FolderIndexesDefPath; }
-        public string Search_text { get => search_text; set { SetProperty(ref search_text, value); DoSearch(value); } }
-        public IEnumerable<IndxElementBase> Searched { get => searched; set => SetProperty(ref searched, value); }
-        public string SelectedFilter { get => selectedFilter; set { SetProperty(ref selectedFilter, value); DoSearch(Search_text); } }
+        public string Search_text { get => search_text; set { SetProperty(ref search_text, value); SearchStarter(value); } }
+        public IEnumerable<IndxElementNew> Searched { get => searched; set => SetProperty(ref searched, value); }
+        public string SelectedFilter { get => selectedFilter; set { SetProperty(ref selectedFilter, value); SearchStarter(Search_text); } }
         public bool Is_scanned { get => is_scanned; set { SetProperty(ref is_scanned, !value); } }
         public bool Is_LongOperation { get => is_LongOperation; set { SetProperty(ref is_LongOperation, value); } }
+        public bool Is_Search { get => is_Search; set { SetProperty(ref is_Search, value); } }
         public Settings Sets { get => sets; set => SetProperty(ref sets, value); }
         public bool ShowPopUp { get => showpopup; set => SetProperty(ref showpopup, value); }
         private string copyieditems;
         private WpfObservableRangeCollection<IndxElements> selectedIndexes;
-        private IEnumerable<IndxElementBase> searched;
+        //private WpfObservableRangeCollection<IndxElementNew> listOfElementsInSelectedIndexes;
+        //private WpfObservableRangeCollection<SimpleIndxElement> listOfSimpleElementsInSelectedIndexes;
+        private IEnumerable<IndxElementNew> searched;
         private bool is_scanned = false;
         private bool is_LongOperation = false;
+        private bool is_Search = false;
         private bool showpopup = false;
         private double prog_val;
         private string search_text;
@@ -189,7 +202,7 @@ namespace IndexerWpf.Models
             ListOfIndexes = new WpfObservableRangeCollection<IndxElements>();
             //ListOfIndexes.CollectionChanged += ListOfIndexes_CollectionChanged;
             Copyied_items = string.Empty;
-            Searched = new List<IndxElementNew>();
+            Searched = new HashSet<IndxElementNew>();
 
             StaticModel.LoadEndEvent += StaticModel_LoadEndEvent;
             fbd = new FolderBrowserDialog
@@ -223,8 +236,8 @@ namespace IndexerWpf.Models
                         //q.IsSelectedChangedEvent += Q_IsSelectedChangedEvent;
                         //q.CountFilesChangedEvent += Q_CountFilesChangedEvent;
                         //ListOfIndexes.Add(q);
-                        if(!ListOfIndexes.Contains(indx))
-                        ListOfIndexes.Add(indx);
+                        if (!ListOfIndexes.Contains(indx))
+                            ListOfIndexes.Add(indx);
                     }
 
                 }
@@ -303,8 +316,8 @@ namespace IndexerWpf.Models
         public async void DoLoad()
         {
             //if (!ignore_scanned)
-            if(!Is_scanned)
-            Is_scanned = true;
+            if (!Is_scanned)
+                Is_scanned = true;
             List<Task<bool>> TaskList = new List<Task<bool>>();
             Is_LongOperation = true;
             if (CancelToken.IsCancellationRequested) CancelToken = new CancellationTokenSource();
@@ -372,34 +385,71 @@ namespace IndexerWpf.Models
             //timer.Stop();
             timer.Dispose();
             if (!string.IsNullOrEmpty(Search_text))
-                DoSearch(Search_text);
-            //Prog_value = ListOfElementsInSelectedIndexes.Count;
+                SearchStarter(Search_text);
+                //await DoSearch(Search_text);
+                //Prog_value = ListOfElementsInSelectedIndexes.Count;
             StaticModel.InvokeLoadEndEvent();
             Is_LongOperation = false;
             Is_scanned = false;
         }
-        private void DoSearch(string text)
+        //Stopwatch watch;
+        private void SearchStarter(string text)
+        {
+            
+            //watch = Stopwatch.StartNew();
+            Is_Search = true;
+            //Debug.WriteLine($"SearchStarter started");
+            DoSearch(text);//.ContinueWith((t=> Is_Search = false));
+            //Debug.WriteLine($"SearchStarter exit");
+        }
+        private async void DoSearch(string text)
+        {
+            IEnumerable<IndxElementNew> k = new List<IndxElementNew>(); 
+               await Task.Run(() =>
+            {
+                k = NewMethod(text);
+            }).ContinueWith(t =>
+            {
+                Searched = k;
+                Is_Search = false;
+                //watch.Stop();
+                //Debug.WriteLine($"done {watch.ElapsedMilliseconds}");
+            });
+            //return true;
+            //return;
+            //Is_Search = false;
+            //Searched.Clear();
+            //Debug.WriteLine($"exit {watch.ElapsedMilliseconds}");
+        }
+
+        private IEnumerable<IndxElementNew> NewMethod(string text)
         {
             if (ListOfElementsInSelectedIndexes != null)
+            {
+                List<IndxElementNew> res = new List<IndxElementNew>();
                 if (!string.IsNullOrEmpty(text) && text.Length > 1)
                 {
-                    var watch = Stopwatch.StartNew();
-                    Debug.WriteLine($"search started {watch.ElapsedMilliseconds}");
+
+                    Debug.WriteLine($"search started");
                     //Searched.Clear();
-                    IEnumerable<IndxElementBase> res = new List<IndxElementBase>();
+
                     if (StaticModel.IsValidRegex(text))
                     {
                         var reg = new Regex(@$"{text}", RegexOptions.IgnoreCase);
-                        res = ListOfElementsInSelectedIndexes.Where(t => reg.IsMatch(t.Name));//.ToList();
-                        Debug.WriteLine($"founded {watch.ElapsedMilliseconds}");
+                        //Searched = await Task.Run(() => ListOfElementsInSelectedIndexes.Where(t => reg.IsMatch(t.Name)));//.ToList();
+                        res = ListOfElementsInSelectedIndexes.Where(t => reg.IsMatch(t.Name)).ToList();//.ToList();
+
+                        //Debug.WriteLine($"founded {watch.ElapsedMilliseconds}");
                     }
                     if (SelectedFilter != "*" && SelectedFilter != null)
                     {
-                        res = res.Intersect(res.Where(t => t.Extension == SelectedFilter));  //= Searched.AddRange(res.Where(t => t.Extension == SelectedFilter));
-                                                                                             //res = res.Concat(ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) && t.Extension == SelectedFilter));
-                                                                                             //Searched.AddRange(ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) && t.Extension == SelectedFilter));
-                        Debug.WriteLine($"filtered {watch.ElapsedMilliseconds}");
+                        res = Searched.Intersect(Searched.Where(t => t.Extension == SelectedFilter)).ToList();  //= Searched.AddRange(res.Where(t => t.Extension == SelectedFilter));
+                                                                                                       //res = res.Concat(ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) && t.Extension == SelectedFilter));
+                                                                                                       //Searched.AddRange(ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) && t.Extension == SelectedFilter));
+
+                        //Debug.WriteLine($"filtered {watch.ElapsedMilliseconds}");
                     }
+                    //Debug.WriteLine($"task done {watch.ElapsedMilliseconds}");
                     //else
                     //{
                     //    //Searched.AddRange(res);
@@ -408,21 +458,18 @@ namespace IndexerWpf.Models
                     //    //Searched.AddRange(res_simple);
                     //}
                     //Searched = Searched.Distinct().ToList();//new WpfObservableRangeCollection<IndxElementNew>(Searched.Distinct());
-                    
-                    Searched = res;//new List<IndxElementNew>(res.Count());
-                    var q = res.ToList();
-                    //Debug.WriteLine($"malloc {watch.ElapsedMilliseconds}");
-                    //Searched.AddRange(res);
-                    //(res as List<IndxElementNew>).ForEach(t => Searched.Add(t));
-                    //Searched = new HashSet<IndxElementNew>(res);
-                    Debug.WriteLine($"done {watch.ElapsedMilliseconds}");
+                    //SetProperty(nameof(Searched));
+
                     //Searched = new List<IndxElementNew>(res.Distinct());
                     //Searched = res.Distinct().ToList();
                 }
                 else
-                    Searched = null;
-            //Searched.Clear();
+                    res = null;
+                return res;
+            }
+            return null;
         }
+
         private async void Worker(string path)
         {
 

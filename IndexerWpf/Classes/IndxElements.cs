@@ -17,6 +17,8 @@ namespace IndexerWpf.Classes
         private string rootFolderPath;
         private string dateOfLastChange;
         private bool isSelected;
+        private WpfObservableRangeCollection<IndxElementNew> allLowerElements;
+        //private WpfObservableRangeCollection<SimpleIndxElement> allSimpleLowerElements;
 
         public event IsSelecetdChange IsSelectedChangedEvent;
         public delegate void IsSelecetdChange(IndxElements sender, bool state);
@@ -44,7 +46,22 @@ namespace IndexerWpf.Classes
         public string RootFolderPath { get => rootFolderPath; set { SetProperty(ref rootFolderPath, value); } }
         public string DateOfLastChange { get => dateOfLastChange; set => SetProperty(ref dateOfLastChange, value); }
         public IndxElementNew RootElement { get => rootElement; set { SetProperty(ref rootElement, value); } }
-
+        [JsonIgnore]
+        public WpfObservableRangeCollection<IndxElementNew> AllLowerElements { get => allLowerElements ??= new WpfObservableRangeCollection<IndxElementNew>(Descendants()); }
+        //[JsonIgnore]
+       // public WpfObservableRangeCollection<SimpleIndxElement> AllSimpleLowerElements { get => allSimpleLowerElements ??= new WpfObservableRangeCollection<SimpleIndxElement>(AllLowerElements.ToList().Select(t => new SimpleIndxElement(t))); }
+        private IEnumerable<IndxElementNew> Descendants(/*this IndxElementNew root*/)
+        {
+            var nodes = new Stack<IndxElementNew>(new[] { RootElement });
+            while (nodes.Any())
+            {
+                IndxElementNew node = nodes.Pop();
+                //yield return new SimpleIndxElement(() => node.Id, () => node.IsSelected, n => { node.IsSelected = n; }, () => RootFolderPath, () => node.Parent, n => { node.Parent = n; });
+                yield return node;
+                if (node.ChildElements != null)
+                    foreach (var n in node.ChildElements) nodes.Push(n);
+            }
+        }
         [JsonIgnore]
         public bool IsLoaded { get; set; }
         [JsonIgnore]
@@ -104,14 +121,14 @@ namespace IndexerWpf.Classes
                         //var a = await Task.Run(() => JsonConvert.DeserializeObject<IndxElements>(json)); //25mb file done by 12sec
                         //Debug.WriteLine($"{JsonFileName} deserialize {watch.ElapsedMilliseconds}");
                         //watch.Stop();
-                        
+
                         //RootFolderPath = a.RootFolderPath;
                         //DateOfLastChange = a.DateOfLastChange;
                         RootElement = a.RootElement;
                         if (string.IsNullOrEmpty(RootElement.FullPath))
                             throw new ProcessingFileException(TypeOfError.Invalid, JsonFileName, this);
                         //StaticModel.ElIndx.AddRange(AllFiles);
-                        var all_elem = RootElement.AllLowerElements;//Descendants();
+                        var all_elem = AllLowerElements;//Descendants();
                         foreach (var elem in all_elem)
                         {
                             if (token.IsCancellationRequested)
@@ -121,6 +138,8 @@ namespace IndexerWpf.Classes
                             //UpdateProgress();
                         }
                         // UpdateProgress();
+                        _ = AllLowerElements;
+                        //_ = AllSimpleLowerElements;
                         a.Dispose();
                     });
                     IsLoaded = true;
