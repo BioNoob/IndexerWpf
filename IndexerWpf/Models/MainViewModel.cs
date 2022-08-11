@@ -449,19 +449,7 @@ namespace IndexerWpf.Models
 
                         //Debug.WriteLine($"filtered {watch.ElapsedMilliseconds}");
                     }
-                    //Debug.WriteLine($"task done {watch.ElapsedMilliseconds}");
-                    //else
-                    //{
-                    //    //Searched.AddRange(res);
-                    //    var res_simple = ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase)).ToList();
-                    //    res.Concat(res_simple);
-                    //    //Searched.AddRange(res_simple);
-                    //}
-                    //Searched = Searched.Distinct().ToList();//new WpfObservableRangeCollection<IndxElementNew>(Searched.Distinct());
-                    //SetProperty(nameof(Searched));
-
-                    //Searched = new List<IndxElementNew>(res.Distinct());
-                    //Searched = res.Distinct().ToList();
+                    //Debug.WriteLine($"task done {watch.ElapsedMilliseconds}");;
                 }
                 else
                     res = null;
