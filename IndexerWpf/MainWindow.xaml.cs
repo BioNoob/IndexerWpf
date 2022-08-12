@@ -1,10 +1,10 @@
 ﻿using IndexerWpf.Classes;
 using IndexerWpf.Models;
 using System;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Navigation;
 
@@ -58,8 +58,30 @@ namespace IndexerWpf
                 Storyboard.SetTargetProperty(opacityAnimation, new PropertyPath("(Border.Opacity)"));
                 storyboard.Children.Add(opacityAnimation);
                 storyboard.Begin();
+            }
+            else if (e.PropertyName == "Is_Search")
+            {
+                DoubleAnimation opacityAnimation = new DoubleAnimation();
+                var storyboard = new Storyboard();
+                if ((DataContext as MainViewModel).Is_Search)
+                {
+                    opacityAnimation.From = 0;
+                    opacityAnimation.To = 0.89;
+                    opacityAnimation.Duration = TimeSpan.FromSeconds(0.5);
+
+                }
+                else if (!(DataContext as MainViewModel).Is_Search)
+                {
+                    opacityAnimation.From = 0.89;
+                    opacityAnimation.To = 0;
+                    opacityAnimation.Duration = TimeSpan.FromSeconds(0.5);
+                }
 
 
+                Storyboard.SetTarget(opacityAnimation, minispinner);
+                Storyboard.SetTargetProperty(opacityAnimation, new PropertyPath("(Border.Opacity)"));
+                storyboard.Children.Add(opacityAnimation);
+                storyboard.Begin();
             }
         }
 
@@ -93,32 +115,6 @@ namespace IndexerWpf
         {
             FocusOnList = true;
         }
-
-        //private void Popup_Closed(object sender, EventArgs e)
-        //{
-        //    //Toggle.IsChecked = false;
-        //    //if (Toggle.IsChecked == true)
-        //    //    Toggle.IsChecked = false;
-        //    Debug.WriteLine("CLOSED");
-
-
-        //}
-
-        //private void TextBox_PreviewMouseDown(object sender, MouseButtonEventArgs e)
-        //{
-        //    //if (e.ChangedButton == MouseButton.Left)
-        //    //{
-        //    //    if (Toggle.IsChecked != true)
-        //    //        Toggle.IsChecked = true;
-        //    //    if (Toggle.IsChecked == true)
-        //    //        Toggle.IsChecked = false;
-        //    //}
-                
-        //    //e.Handled = true;
-        //    //Toggle.IsChecked = !Toggle.IsChecked;
-        //    //e.Handled = true;
-        //}
-
         private void ContextMenu_Closed(object sender, RoutedEventArgs e)
         {
             (this.DataContext as MainViewModel).ShowPopUp = false;
@@ -157,6 +153,15 @@ namespace IndexerWpf
                 needfocus = null;  
             }
                 
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as Button;
+            ContextMenu contextMenu = btn.ContextMenu;
+            contextMenu.PlacementTarget = btn;
+            contextMenu.IsOpen = true;
+            e.Handled = true;
         }
     }
 }

@@ -138,7 +138,7 @@ namespace IndexerWpf.Models
                 );
             }
         }
-        public CancellationTokenSource CancelToken { get; set; } = new CancellationTokenSource();
+
         private CommandHandler _cancelActionCommandn;
         public CommandHandler CancelActionCommand
         {
@@ -146,7 +146,7 @@ namespace IndexerWpf.Models
             {
                 return _cancelActionCommandn ??= new CommandHandler(obj =>
                 {
-                    CancelToken?.Cancel();
+                    StaticModel.CancelToken?.Cancel(true);
                 },
                 (obj) => true//Is_LongOperation
                 );
@@ -312,15 +312,19 @@ namespace IndexerWpf.Models
             else
                 Prog_value = ListOfSelectedIndexes.Sum(t => t.SimpleCounter);
         }
-
         public async void DoLoad()
         {
             //if (!ignore_scanned)
-            if (!Is_scanned)
+            if (Is_scanned)
                 Is_scanned = true;
             List<Task<bool>> TaskList = new List<Task<bool>>();
             Is_LongOperation = true;
-            if (CancelToken.IsCancellationRequested) CancelToken = new CancellationTokenSource();
+            //if (CancelToken.IsCancellationRequested)
+            {
+                StaticModel.CancelToken = new CancellationTokenSource();
+                //CancelToken.Token.Register(()=>tes(10));
+            }
+
             foreach (var item in ListOfSelectedIndexes)
             {
                 //try
@@ -328,8 +332,8 @@ namespace IndexerWpf.Models
                 if (item.RootElement == null || item.RootElement.CountElements - 1 <= 0)
                 {
                     //var LastTask = new Task(() => item.LoadInexes(CancelToken));
-                    //LastTask.Start();
-                    TaskList.Add(item.LoadInexes(CancelToken));
+                    //LastTask.Start();                    
+                    TaskList.Add(item.LoadInexes(StaticModel.CancelToken));
                 }
                 //_ = await Task.Run(() => item.LoadInexes());
 
@@ -366,28 +370,33 @@ namespace IndexerWpf.Models
                     case TypeOfError.CancelTask:
                         //Is_scanned = false;
                         //(e.Source as IndxElements).IsSelected = false;
-                        Prog_value -= e.Source.TotalFiles;
+                        //Prog_value -= e.Source.TotalFiles;
+                        e.Source.SimpleCounter = 0;
+                        e.Source.RootElement = null;
+                        e.Source.IsSelected = false;
+
                         //(e.Source as IndxElements).Dispose();
                         //Is_LongOperation = false;
                         return;
                 }
 
-                Is_scanned = false;
+
                 ListOfIndexes.Remove(e.Source);
-                e.Source.IsSelected = false;
                 e.Source.Dispose();
-                Is_LongOperation = false;
                 return;
             }
+            finally
+            {
+                Is_scanned = false;
+                Is_LongOperation = false;
+            }
             //Task.WaitAll(TaskList.ToArray());
-
-
             //timer.Stop();
             timer.Dispose();
             if (!string.IsNullOrEmpty(Search_text))
                 SearchStarter(Search_text);
-                //await DoSearch(Search_text);
-                //Prog_value = ListOfElementsInSelectedIndexes.Count;
+            //await DoSearch(Search_text);
+            //Prog_value = ListOfElementsInSelectedIndexes.Count;
             StaticModel.InvokeLoadEndEvent();
             Is_LongOperation = false;
             Is_scanned = false;
@@ -395,7 +404,6 @@ namespace IndexerWpf.Models
         //Stopwatch watch;
         private void SearchStarter(string text)
         {
-            
             //watch = Stopwatch.StartNew();
             Is_Search = true;
             //Debug.WriteLine($"SearchStarter started");
@@ -404,58 +412,53 @@ namespace IndexerWpf.Models
         }
         private async void DoSearch(string text)
         {
-            IEnumerable<IndxElementNew> k = new List<IndxElementNew>(); 
-               await Task.Run(() =>
-            {
-                k = NewMethod(text);
-            }).ContinueWith(t =>
-            {
-                Searched = k;
-                Is_Search = false;
-                //watch.Stop();
-                //Debug.WriteLine($"done {watch.ElapsedMilliseconds}");
-            });
+            //IEnumerable<IndxElementNew> k = new List<IndxElementNew>();
+            await Task.Run(() =>
+         {
+             if (ListOfElementsInSelectedIndexes != null)
+             {
+                 List<IndxElementNew> res = new List<IndxElementNew>();
+                 if (!string.IsNullOrEmpty(text) && text.Length > 1)
+                 {
+
+                     //Debug.WriteLine($"search started");
+                     //Searched.Clear();
+
+                     if (StaticModel.IsValidRegex(text))
+                     {
+                         var reg = new Regex(@$"{text}", RegexOptions.IgnoreCase);
+                         //Searched = await Task.Run(() => ListOfElementsInSelectedIndexes.Where(t => reg.IsMatch(t.Name)));//.ToList();
+                         Searched = ListOfElementsInSelectedIndexes.Where(t => reg.IsMatch(t.Name)).ToList();//.ToList();
+
+                         //Debug.WriteLine($"founded {watch.ElapsedMilliseconds}");
+                     }
+                     if (SelectedFilter != "*" && SelectedFilter != null)
+                     {
+                         Searched = Searched.Intersect(Searched.Where(t => t.Extension == SelectedFilter)).ToList();  //= Searched.AddRange(res.Where(t => t.Extension == SelectedFilter));
+                                                                                                                      //res = res.Concat(ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) && t.Extension == SelectedFilter));
+                                                                                                                      //Searched.AddRange(ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) && t.Extension == SelectedFilter));
+
+                         //Debug.WriteLine($"filtered {watch.ElapsedMilliseconds}");
+                     }
+                     //Debug.WriteLine($"task done {watch.ElapsedMilliseconds}");;
+                 }
+                 else
+                     Searched = null;
+             }
+         });
+            //}).ContinueWith(t =>
+            //{
+            //    //Searched = k;
+
+            //           //watch.Stop();
+            //           //Debug.WriteLine($"done {watch.ElapsedMilliseconds}");
+            //       });
             //return true;
             //return;
             //Is_Search = false;
             //Searched.Clear();
             //Debug.WriteLine($"exit {watch.ElapsedMilliseconds}");
-        }
-
-        private IEnumerable<IndxElementNew> NewMethod(string text)
-        {
-            if (ListOfElementsInSelectedIndexes != null)
-            {
-                List<IndxElementNew> res = new List<IndxElementNew>();
-                if (!string.IsNullOrEmpty(text) && text.Length > 1)
-                {
-
-                    Debug.WriteLine($"search started");
-                    //Searched.Clear();
-
-                    if (StaticModel.IsValidRegex(text))
-                    {
-                        var reg = new Regex(@$"{text}", RegexOptions.IgnoreCase);
-                        //Searched = await Task.Run(() => ListOfElementsInSelectedIndexes.Where(t => reg.IsMatch(t.Name)));//.ToList();
-                        res = ListOfElementsInSelectedIndexes.Where(t => reg.IsMatch(t.Name)).ToList();//.ToList();
-
-                        //Debug.WriteLine($"founded {watch.ElapsedMilliseconds}");
-                    }
-                    if (SelectedFilter != "*" && SelectedFilter != null)
-                    {
-                        res = Searched.Intersect(Searched.Where(t => t.Extension == SelectedFilter)).ToList();  //= Searched.AddRange(res.Where(t => t.Extension == SelectedFilter));
-                                                                                                       //res = res.Concat(ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) && t.Extension == SelectedFilter));
-                                                                                                       //Searched.AddRange(ListOfElementsInSelectedIndexes.Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) && t.Extension == SelectedFilter));
-
-                        //Debug.WriteLine($"filtered {watch.ElapsedMilliseconds}");
-                    }
-                    //Debug.WriteLine($"task done {watch.ElapsedMilliseconds}");;
-                }
-                else
-                    res = null;
-                return res;
-            }
-            return null;
+            Is_Search = false;
         }
 
         private async void Worker(string path)
@@ -466,10 +469,10 @@ namespace IndexerWpf.Models
             IndxElements indx = new IndxElements(path);
             var timer = StartCountWatcher(indx);
             //indx.CountFilesChangedEvent += Q_CountFilesChangedEvent;
-            if (CancelToken.IsCancellationRequested) CancelToken = new CancellationTokenSource();
+            if (StaticModel.CancelToken.IsCancellationRequested) StaticModel.CancelToken = new CancellationTokenSource();
             try
             {
-                bool t = await Task.Run(() => indx.DoScan(CancelToken));
+                bool t = await Task.Run(() => indx.DoScan(StaticModel.CancelToken));
             }
             catch (ProcessingFileException)
             {

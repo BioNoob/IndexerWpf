@@ -1,6 +1,7 @@
 ﻿using IndexerWpf.Classes;
 using System;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace IndexerWpf.Models
 {
@@ -44,6 +45,7 @@ namespace IndexerWpf.Models
 
             return true;
         }
+        public static CancellationTokenSource CancelToken { get; set; } = new CancellationTokenSource();
     }
 
 }

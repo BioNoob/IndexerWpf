@@ -45,8 +45,8 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
-                        <Border Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                        <Border Background="{TemplateBinding Background}" CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="1"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
@@ -131,7 +131,7 @@
                            CenterX="10" CenterY="10" Angle="0" />
                 </Setter.Value>
             </Setter>
-        </Style> 
+        </Style>
         <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="{x:Type ToggleButton}">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -626,7 +626,7 @@
                                                 </Border>
                                             </ContextMenu>
                                         </TextBlock.ContextMenu>
-                                </TextBlock>
+                                    </TextBlock>
                                     <StackPanel.ToolTip>
                                         <TextBlock Text="{Binding FullPath}" FontFamily="Jura"/>
                                     </StackPanel.ToolTip>
@@ -636,22 +636,41 @@
                     </ListView>
 
                     <Grid VerticalAlignment="Top" HorizontalAlignment="Right" Grid.ColumnSpan ="3" Grid.Row="2" Margin="0,10,30,0" >
-                        <Border BorderBrush="Black" Width="20" Height="20" CornerRadius="100" Padding="0" BorderThickness="1">
+                        <Border BorderBrush="Black" Width="20" Height="20" CornerRadius="100" Padding="0" BorderThickness="1" Opacity="0" x:Name="minispinner">
                             <Border.Background>
                                 <RadialGradientBrush>
                                     <GradientStop Color="#7F73FD38"/>
                                     <GradientStop Color="#7F3F3F3F" Offset="2"/>
                                 </RadialGradientBrush>
                             </Border.Background>
-                            <Border.Style>
+                            <!--<Border.Style>
                                 <Style TargetType="{x:Type Border}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding Path=DataContext.Is_Search, RelativeSource={RelativeSource AncestorType=Window}}" Value="false">
-                                            <Setter Property="Opacity" Value="0"/>
+                                            <DataTrigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard >
+                                                        <DoubleAnimation
+                        Storyboard.TargetProperty="(Border.Opacity)"
+                        From="1" To="0" Duration="0:0:0.5"/>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </DataTrigger.EnterActions>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=DataContext.Is_Search, RelativeSource={RelativeSource AncestorType=Window}}" Value="true">
+                                            <DataTrigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard >
+                                                        <DoubleAnimation
+                        Storyboard.TargetProperty="(Border.Opacity)"
+                        From="0" To="1" Duration="0:0:0.5"/>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </DataTrigger.EnterActions>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
-                            </Border.Style>
+                            </Border.Style>-->
                             <Grid>
                                 <Image HorizontalAlignment="Center" VerticalAlignment="Center"  Stretch="Fill" Source="Resources/frag_o.png" RenderTransformOrigin=".5,.5">
                                     <Image.RenderTransform>
@@ -727,16 +746,33 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Label HorizontalAlignment="Left" Content="Files count" Grid.Column="0"/>
-                <TextBox Margin="5,0,5,0" Text="{Binding Prog_value, Mode=OneWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Column="1" HorizontalAlignment="Left" Width="60" IsReadOnly="True"/>
-                <Button HorizontalAlignment="Right" Width="65" Content="Scan" Grid.Column="3" Command="{Binding StartScanCommand}" IsEnabled="{Binding Is_scanned}"
+                <Button Margin="0,0,10,0" Grid.Column="0" HorizontalAlignment="Stretch" Width="25" Style="{StaticResource ImgButton}"
+                        ToolTip="Show settings" Click="Button_Click">
+                    <Image Source="Resources/настройка.png"/>
+                    <Button.ContextMenu>
+                        <ContextMenu >
+                            <MenuItem Header="Change default folder" Command="{Binding ChangeDirCommand}"/>
+                            <Separator Style="{StaticResource MenuSeparatorStyle}"/>
+                            <MenuItem IsEnabled="False"  ToolTip="{Binding Def_path}" ToolTipService.ShowOnDisabled="True">
+                                <MenuItem.Header>
+                                    <TextBlock Text="{Binding Def_path}" TextTrimming="WordEllipsis" Width="{Binding Path=Width,RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type MenuItem}}}"
+                                               Foreground="#FF97A0A5" FontSize="10" />
+                                </MenuItem.Header>
+                            </MenuItem>
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
+                <Label HorizontalAlignment="Left" Content="Files count" Grid.Column="1"/>
+                <TextBox Margin="5,0,5,0" Text="{Binding Prog_value, Mode=OneWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Column="2" HorizontalAlignment="Left" Width="60" IsReadOnly="True"/>
+                <Button HorizontalAlignment="Right" Width="65" Content="Scan" Grid.Column="4" Command="{Binding StartScanCommand}" IsEnabled="{Binding Is_scanned}"
                                    BorderBrush="White" Background="White" Foreground="Black" FontFamily="Jura"/>
             </Grid>
 
-            <Border Background="#7F3F3F3F" Grid.ColumnSpan="2" Grid.RowSpan="3" ClipToBounds="True" CornerRadius="10" x:Name="borderspinner" Visibility="Collapsed" Opacity="0">
+            <Border Background="#7F3F3F3F" Grid.ColumnSpan="2" Grid.RowSpan="3" ClipToBounds="True" CornerRadius="10" x:Name="borderspinner" Visibility="Collapsed" Opacity="1">
                 <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
                     <Border BorderBrush="Transparent" Width="153" Height="153" VerticalAlignment="Center" HorizontalAlignment="Center" CornerRadius="100" Padding="0">
                         <Border.Background>
@@ -746,89 +782,89 @@
                             </RadialGradientBrush>
                         </Border.Background>
 
-                    <Grid>
-                        <Image Height="150" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center"  Stretch="Fill" Source="Resources/frag_o.png" RenderTransformOrigin=".5,.5">
-                            <Image.RenderTransform>
-                                <RotateTransform x:Name="noFreeze2" />
-                            </Image.RenderTransform>
-                            <Image.Triggers>
-                                <EventTrigger RoutedEvent="Loaded">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation
+                        <Grid>
+                            <Image Height="150" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center"  Stretch="Fill" Source="Resources/frag_o.png" RenderTransformOrigin=".5,.5">
+                                <Image.RenderTransform>
+                                    <RotateTransform x:Name="noFreeze2" />
+                                </Image.RenderTransform>
+                                <Image.Triggers>
+                                    <EventTrigger RoutedEvent="Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
                         Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)"
                         To="360" Duration="0:0:1" RepeatBehavior="Forever" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                            </Image.Triggers>
-                        </Image>
-                        <Image Height="150" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center"  Stretch="Fill" Source="Resources/frag_b.png" RenderTransformOrigin=".5,.5">
-                            <Image.RenderTransform>
-                                <RotateTransform x:Name="noFreeze" />
-                            </Image.RenderTransform>
-                            <Image.Triggers>
-                                <EventTrigger RoutedEvent="Loaded">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Image.Triggers>
+                            </Image>
+                            <Image Height="150" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center"  Stretch="Fill" Source="Resources/frag_b.png" RenderTransformOrigin=".5,.5">
+                                <Image.RenderTransform>
+                                    <RotateTransform x:Name="noFreeze" />
+                                </Image.RenderTransform>
+                                <Image.Triggers>
+                                    <EventTrigger RoutedEvent="Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
                         Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)"
                         To="360" Duration="0:0:2.5" RepeatBehavior="Forever" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                            </Image.Triggers>
-                        </Image>
-                        <Image Height="150" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center"  Stretch="Fill" Source="Resources/frag_c.png" RenderTransformOrigin=".5,.5">
-                            <Image.RenderTransform>
-                                <RotateTransform x:Name="noFreeze1" />
-                            </Image.RenderTransform>
-                            <Image.Triggers>
-                                <EventTrigger RoutedEvent="Loaded">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Image.Triggers>
+                            </Image>
+                            <Image Height="150" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center"  Stretch="Fill" Source="Resources/frag_c.png" RenderTransformOrigin=".5,.5">
+                                <Image.RenderTransform>
+                                    <RotateTransform x:Name="noFreeze1" />
+                                </Image.RenderTransform>
+                                <Image.Triggers>
+                                    <EventTrigger RoutedEvent="Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
                         Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)"
                         To="360" Duration="0:0:1.5" RepeatBehavior="Forever" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                            </Image.Triggers>
-                        </Image>
-                        <Image Height="150" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center"  Stretch="Fill" Source="Resources/frag_y.png" RenderTransformOrigin=".5,.5">
-                            <Image.RenderTransform>
-                                <RotateTransform x:Name="noFreeze3"/>
-                            </Image.RenderTransform>
-                            <Image.Triggers>
-                                <EventTrigger RoutedEvent="Loaded">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Image.Triggers>
+                            </Image>
+                            <Image Height="150" Width="150" HorizontalAlignment="Center" VerticalAlignment="Center"  Stretch="Fill" Source="Resources/frag_y.png" RenderTransformOrigin=".5,.5">
+                                <Image.RenderTransform>
+                                    <RotateTransform x:Name="noFreeze3"/>
+                                </Image.RenderTransform>
+                                <Image.Triggers>
+                                    <EventTrigger RoutedEvent="Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation
                         Storyboard.TargetProperty="(Image.RenderTransform).(RotateTransform.Angle)"
                         To="360" Duration="0:0:2" RepeatBehavior="Forever" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                            </Image.Triggers>
-                        </Image>
-                        <Border BorderBrush="Black" Width="153" Height="153" VerticalAlignment="Center" HorizontalAlignment="Center" BorderThickness="3" CornerRadius="100" Padding="0"/>
-                        <Border Background="#D7cc0000" CornerRadius="6" Width="30" Height="30" Padding="0" VerticalAlignment="Top" HorizontalAlignment="Right"
-                    Grid.ColumnSpan="2" Grid.RowSpan="3" BorderThickness="2" Margin="0,5,5,0">
-                            <Button  ToolTip="Cancel scanning" Command="{Binding CancelActionCommand}" Style="{StaticResource ImgButton}"
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Image.Triggers>
+                            </Image>
+                            <Border BorderBrush="Black" Width="153" Height="153" VerticalAlignment="Center" HorizontalAlignment="Center" BorderThickness="3" CornerRadius="100" Padding="0"/>
+                            <Border BorderBrush="Black" Width="32" Height="32" BorderThickness="2" CornerRadius="6" Padding="0" Background="#D7cc0000"
+                                        VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,5,5,0">
+                                <Button  ToolTip="Cancel scanning" Command="{Binding CancelActionCommand}" Style="{StaticResource ImgButton}"
                          VerticalAlignment="Center" HorizontalAlignment="Center"  Grid.ColumnSpan="2" Grid.RowSpan="3" Background="Transparent">
-                                <Image x:Name="sas" Source="Resources/закрыть.png" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
-                            </Button>
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Path=DataContext.Is_LongOperation, RelativeSource={RelativeSource AncestorType=Window}}" Value="false">
-                                            <Setter Property="Visibility" Value="Hidden"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                        </Border>
-                    </Grid>
+                                    <Image x:Name="sas" Source="Resources/закрыть.png" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                                </Button>
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Path=DataContext.Is_LongOperation, RelativeSource={RelativeSource AncestorType=Window}}" Value="false">
+                                                <Setter Property="Visibility" Value="Hidden"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                            </Border>
+                        </Grid>
                     </Border>
                 </Grid>
             </Border>

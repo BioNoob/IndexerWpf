@@ -28,6 +28,7 @@
     <None Remove="Resources\regex_shpora.jpg" />
     <None Remove="Resources\док.png" />
     <None Remove="Resources\закрыть.png" />
+    <None Remove="Resources\настройка.png" />
     <None Remove="Resources\опен.png" />
     <None Remove="Resources\папка.png" />
     <None Remove="Resources\папка_настрйока.png" />
@@ -54,6 +55,7 @@
 
   <ItemGroup>
     <Resource Include="Resources\закрыть.png" />
+    <Resource Include="Resources\настройка.png" />
     <Resource Include="Resources\опен.png" />
     <Resource Include="Resources\папка.png" />
     <Resource Include="Resources\папка_настрйока.png" />

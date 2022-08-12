@@ -45,11 +45,11 @@ namespace IndexerWpf.Classes
         [JsonProperty(Order = -1)]
         public string RootFolderPath { get => rootFolderPath; set { SetProperty(ref rootFolderPath, value); } }
         public string DateOfLastChange { get => dateOfLastChange; set => SetProperty(ref dateOfLastChange, value); }
-        public IndxElementNew RootElement { get => rootElement; set { SetProperty(ref rootElement, value); } }
+        public IndxElementNew RootElement { get => rootElement; set { SetProperty(ref rootElement, value); if (value == null) allLowerElements = null; } }
         [JsonIgnore]
         public WpfObservableRangeCollection<IndxElementNew> AllLowerElements { get => allLowerElements ??= new WpfObservableRangeCollection<IndxElementNew>(Descendants()); }
         //[JsonIgnore]
-       // public WpfObservableRangeCollection<SimpleIndxElement> AllSimpleLowerElements { get => allSimpleLowerElements ??= new WpfObservableRangeCollection<SimpleIndxElement>(AllLowerElements.ToList().Select(t => new SimpleIndxElement(t))); }
+        // public WpfObservableRangeCollection<SimpleIndxElement> AllSimpleLowerElements { get => allSimpleLowerElements ??= new WpfObservableRangeCollection<SimpleIndxElement>(AllLowerElements.ToList().Select(t => new SimpleIndxElement(t))); }
         private IEnumerable<IndxElementNew> Descendants(/*this IndxElementNew root*/)
         {
             var nodes = new Stack<IndxElementNew>(new[] { RootElement });
@@ -94,15 +94,17 @@ namespace IndexerWpf.Classes
             this.DateOfLastChange = DateTime.Now.ToString("G");
             File.WriteAllText(file_to_save, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
-        public async Task<bool> LoadInexes(CancellationTokenSource token)//string file_to_load)
+        public async Task<bool> LoadInexes(CancellationTokenSource cts)//string file_to_load)
         {
+            var token = cts.Token;
             if (File.Exists(JsonFileName))
             {
                 try
                 {
-                    //ПРОВЕРИТЬ НА КАНСЕЛ ТОКЕНЫ
+                    //ПРОВЕРИТЬ НА КАНСЕЛ ТОКЕН. DONE
                     await Task.Run(() =>
                     {
+                        //token.Register(() => token.ThrowIfCancellationRequested());//throw new ProcessingFileException(TypeOfError.CancelTask, null, this));
                         StaticModel.IdincreasedEvent += StaticModel_IdincreasedEvent;
                         //var qq = File.ReadLines(JsonFileName); //вроде быстро
                         //var watch = Stopwatch.StartNew();
@@ -111,6 +113,7 @@ namespace IndexerWpf.Classes
                         using (StreamReader file = File.OpenText(JsonFileName))
                         {
                             JsonSerializer serializer = new JsonSerializer();
+
                             a = (IndxElements)serializer.Deserialize(file, typeof(IndxElements));
                             //Debug.WriteLine($"{JsonFileName} deserialize {watch.ElapsedMilliseconds}"); //25mb file done by 4sec
                             file.Close();
@@ -131,8 +134,8 @@ namespace IndexerWpf.Classes
                         var all_elem = AllLowerElements;//Descendants();
                         foreach (var elem in all_elem)
                         {
-                            if (token.IsCancellationRequested)
-                                throw new ProcessingFileException(TypeOfError.CancelTask, null, this);
+                            //if (token.IsCancellationRequested)
+                            //    throw new ProcessingFileException(TypeOfError.CancelTask, null, this);
                             if (elem.ChildElements != null)
                                 elem.ChildElements.ToList().ForEach(t => t.Parent = elem);
                             //UpdateProgress();
@@ -141,13 +144,16 @@ namespace IndexerWpf.Classes
                         _ = AllLowerElements;
                         //_ = AllSimpleLowerElements;
                         a.Dispose();
-                    });
+                    }, token);
                     IsLoaded = true;
                     return true;
                 }
                 catch (ProcessingFileException e)
                 {
-                    throw e;
+                    if (e.ErrorType == TypeOfError.CancelTask)
+                        throw new ProcessingFileException(TypeOfError.CancelTask, null, this);
+                    else
+                        throw e;
                 }
                 finally
                 {

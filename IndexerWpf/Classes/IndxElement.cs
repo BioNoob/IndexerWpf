@@ -563,6 +563,8 @@ namespace IndexerWpf.Classes
         public IndxElementNew()
         {
             init();
+            if (StaticModel.CancelToken.IsCancellationRequested)
+                throw new ProcessingFileException(TypeOfError.CancelTask, null, null);
         }
         private void init()
         {
