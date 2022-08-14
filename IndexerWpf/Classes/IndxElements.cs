@@ -169,7 +169,7 @@ namespace IndexerWpf.Classes
 
         private void StaticModel_IdincreasedEvent(int val, string el)
         {
-            //ЕСЛИ ПЕРЕИМЕНУЮТ JSON файл вся логика пойдет в пезду (не пошла. Но элемент с неверным названием нужно удалить!
+            //ЕСЛИ ПЕРЕИМЕНУЮТ JSON файл вся логика пойдет в пезду (не пошла. Но элемент с неверным названием нужно удалить!// вроде все норм
             //if (val == 0 && el.Contains(GetName))
             //    this.RootFolderPath = el;
             if (!string.IsNullOrEmpty(RootFolderPath) && el.Contains(RootFolderPath))

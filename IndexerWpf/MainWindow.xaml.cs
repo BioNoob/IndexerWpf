@@ -157,11 +157,50 @@ namespace IndexerWpf
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            var btn = sender as Button;
-            ContextMenu contextMenu = btn.ContextMenu;
-            contextMenu.PlacementTarget = btn;
-            contextMenu.IsOpen = true;
-            e.Handled = true;
+            SetsPopUp.IsOpen = !SetsPopUp.IsOpen;
+            setsbtn.IsEnabled = false;
+        }
+
+        private void SetsPopUp_Closed(object sender, EventArgs e)
+        {
+            setsbtn.IsEnabled = true;
+        }
+
+        private void ContentControl_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            MainViewModel dtx = DataContext as MainViewModel;
+            var element = (IndxElementNew)(sender as ContentControl).Tag;
+            if(element != null)
+            {
+                switch (dtx.SelectedDoubleClickOptionTag)
+                {
+                    case DoubleClickAction.Folder:
+                        var t1 = element.OpenFolderCommand;
+                        if (t1.CanExecute(null))
+                        {
+                            t1.Execute(null);
+                            e.Handled = false;
+                        }
+                        return;
+                    case DoubleClickAction.File:
+                        var t = element.OpenFileCommand;
+                        if (t.CanExecute(null))
+                        {
+                            t.Execute(null);
+                            e.Handled = false;
+                        }
+                        return;
+                    case DoubleClickAction.Tree:
+                        var t2 = dtx.ShowOnTreeCommand;
+                        if (t2.CanExecute(null))
+                        {
+                            t2.Execute(null);
+                            e.Handled = false;
+                        }
+                        return;
+                }
+            }
+
         }
     }
 }

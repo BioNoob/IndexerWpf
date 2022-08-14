@@ -4,6 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:cm="clr-namespace:System.ComponentModel;assembly=System"
+        xmlns:System="clr-namespace:System;assembly=mscorlib"
         	xmlns:Controls="clr-namespace:System.Windows.Controls;assembly=MultiSelectTreeView" 
         mc:Ignorable="d"
         xmlns:local="clr-namespace:IndexerWpf.Models"
@@ -22,7 +23,13 @@
     <Window.DataContext>
         <local:MainViewModel/>
     </Window.DataContext>
+    <Window.InputBindings>
+        <KeyBinding Modifiers="Control"
+                    Key="S"
+                    Command="{Binding CopyFilesCommand}" />
+    </Window.InputBindings>
     <Window.Resources>
+        <local_cls:EnumItemsSource x:Key="ExampleEnumItemsSource" Type="{x:Type local:DoubleClickAction}"/>
         <Style x:Key="MenuSeparatorStyle" TargetType="{x:Type Separator}">
             <Setter Property="SnapsToDevicePixels" Value="True"/>
             <Setter Property="OverridesDefaultStyle" Value="True"/>
@@ -416,8 +423,8 @@
         CaptionHeight="0"
         ResizeBorderThickness="10" />
     </WindowChrome.WindowChrome>
-    <Border CornerRadius="10" BorderBrush="#FF3F3F3F" Background="#FF3F3F3F" BorderThickness="5" Padding="0" SnapsToDevicePixels="True">
-        <Grid Margin="0,0,0,0">
+    <Border CornerRadius="2" BorderBrush="#FF3F3F3F" Background="#FF3F3F3F" BorderThickness="0" Padding="0" SnapsToDevicePixels="True">
+        <Grid Margin="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -426,6 +433,17 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
+            <Popup Placement="MousePoint" StaysOpen="False" PopupAnimation="Slide" Focusable="False" VerticalOffset="1.5" IsOpen="{Binding ShowPopUp}"
+                   AllowsTransparency="True">
+                <Border Width="150" BorderBrush="#7F888888" BorderThickness="1.5" Background="#FF3F3F3F" CornerRadius="5" Padding="5">
+                    <StackPanel Orientation="Vertical">
+                        <Label Content="Copied.." FontSize="9" HorizontalContentAlignment="Left" VerticalContentAlignment="Stretch"
+                                                       HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="0"/>
+                        <TextBlock VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="{Binding Copyied_items}" 
+                                                       Foreground="White" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis" FontSize="9" />
+                    </StackPanel>
+                </Border>
+            </Popup>
             <Grid Grid.Row="0" Margin="10,5,10,0" ClipToBounds="True">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -438,7 +456,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Button Margin="0,0,10,0" Grid.Column="0" ClipToBounds="True"  HorizontalAlignment="Stretch" Width="25" Command="{Binding OpenIndexFolderCommand}" Style="{StaticResource ImgButton}"
-                        ToolTip="Show indexes folder">
+                        ToolTip="Show indexes folder" VerticalAlignment="Center">
                     <Image Source="Resources/папка_настрйока.png"/>
                     <Button.ContextMenu>
                         <ContextMenu >
@@ -486,20 +504,21 @@
                     </Controls:MultiSelectTreeView.ItemContainerStyle>
                     <Controls:MultiSelectTreeView.Resources>
                         <HierarchicalDataTemplate DataType="{x:Type local_cls:IndxElementNew}" ItemsSource="{Binding ChildElements}">
-                            <StackPanel Orientation="Horizontal">
-                                <Image x:Name="treeImg"  Width="16" Height="16" Source="{Binding GetUriImg}" />
-                                <TextBlock Text="{Binding Name}" TextWrapping="Wrap" TextTrimming="WordEllipsis" Margin="5,0,0,0">
-                                    <TextBlock.ToolTip>
-                                        <TextBlock Text="{Binding FullPath}" FontFamily="Jura"/>
-                                    </TextBlock.ToolTip>
+                            <ContentControl MouseDoubleClick="ContentControl_MouseDoubleClick" Tag="{Binding }" >
+                                <StackPanel Orientation="Horizontal">
+                                    <Image x:Name="treeImg"  Width="16" Height="16" Source="{Binding GetUriImg}" />
+                                    <TextBlock Text="{Binding Name}" TextWrapping="Wrap" TextTrimming="WordEllipsis" Margin="5,0,0,0">
+                                        <TextBlock.ToolTip>
+                                            <TextBlock Text="{Binding FullPath}" FontFamily="Jura"/>
+                                        </TextBlock.ToolTip>
                                 <TextBlock.ContextMenu>
                                     <ContextMenu Closed="ContextMenu_Closed">
                                         <Border>
                                               <TextBlock HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding FileFolderExistString}" 
                                               Grid.Row="1" Foreground="Red">
-                                                    <TextBlock.ToolTip>
-                                                        <TextBlock Text="Other PC do this scan?"/>
-                                                    </TextBlock.ToolTip>
+                                                        <TextBlock.ToolTip>
+                                                            <TextBlock Text="Other PC do this scan?"/>
+                                                        </TextBlock.ToolTip>
                                                   <TextBlock.Style>
                                                       <Style TargetType="TextBlock">
                                                           <Style.Triggers>
@@ -515,7 +534,7 @@
                                         <Separator Style="{StaticResource MenuSeparatorStyle}"/>
                                         <MenuItem Header="Open document folder" Command="{Binding OpenFolderCommand}"/>
                                         <Separator Style="{StaticResource MenuSeparatorStyle}"/>
-                                        <MenuItem Header="Copy Selected Files" Command="{Binding Path=DataContext.SaveFilesCommand, Source={x:Reference Name=Window}}" StaysOpenOnClick="True"/>
+                                        <MenuItem Header="Copy Selected Files" Command="{Binding Path=DataContext.CopyFilesCommand, Source={x:Reference Name=Window}}" StaysOpenOnClick="True"/>
                                         <Border BorderBrush="#7F888888" BorderThickness="1.5" Background="Transparent" CornerRadius="5" Padding="5"
                                                     Width="150">
                                             <StackPanel Orientation="Vertical">
@@ -541,6 +560,7 @@
                                 </TextBlock.ContextMenu>
                             </TextBlock>
                             </StackPanel>
+                            </ContentControl>
                         </HierarchicalDataTemplate>
                     </Controls:MultiSelectTreeView.Resources>
                 </Controls:MultiSelectTreeView>
@@ -567,7 +587,7 @@
 
                     <ComboBox Grid.Row="0" Grid.Column="2" Margin="10,0,0,0" ItemsSource="{Binding ListOfExtentionsSelectedIndexes, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"  SelectedValue="{Binding SelectedFilter}" IsEnabled="{Binding Is_scanned}"/>
                     <ListView Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,3,0,0" ItemsSource="{Binding Searched}" SelectionMode="Extended"
-                          x:Name="SearchResult" IsEnabled="{Binding Is_scanned}">
+                          x:Name="SearchResult" IsEnabled="{Binding Is_scanned}" HorizontalContentAlignment="Stretch">
                         <ListView.ItemContainerStyle>
                             <Style TargetType="{x:Type ListViewItem}">
                                 <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
@@ -575,17 +595,18 @@
                         </ListView.ItemContainerStyle>
                         <ListView.ItemTemplate>
                             <DataTemplate DataType="{x:Type local_cls:IndxElementNew}">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch">
-                                    <Image Source="{Binding GetUriImg}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,0,5,0"/>
-                                    <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
-                                        <TextBlock.ContextMenu>
-                                            <ContextMenu Closed="ContextMenu_Closed">
-                                                <Border>
-                                                    <TextBlock HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding FileFolderExistString}" 
+                                <ContentControl MouseDoubleClick="ContentControl_MouseDoubleClick" Tag="{Binding }" >
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch">
+                                        <Image Source="{Binding GetUriImg}" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,0,5,0"/>
+                                        <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                                            <TextBlock.ContextMenu>
+                                                <ContextMenu Closed="ContextMenu_Closed">
+                                                    <Border>
+                                                        <TextBlock HorizontalAlignment="Stretch" VerticalAlignment="Center" Text="{Binding FileFolderExistString}" 
                                                                       Grid.Row="1" Foreground="Red">
-                                                        <TextBlock.ToolTip>
-                                                            <TextBlock Text="Other PC do this scan?"/>
-                                                        </TextBlock.ToolTip>
+                                                            <TextBlock.ToolTip>
+                                                                <TextBlock Text="Other PC do this scan?"/>
+                                                            </TextBlock.ToolTip>
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock">
                                                                 <Style.Triggers>
@@ -596,41 +617,42 @@
                                                             </Style>
                                                          </TextBlock.Style>
                                                     </TextBlock>
-                                                </Border>
-                                                <MenuItem Header="Show on tree" Command="{Binding Path=DataContext.ShowOnTreeCommand, Source={x:Reference Name=Window}}"/>
-                                                <Separator Style="{StaticResource MenuSeparatorStyle}"/>
-                                                <MenuItem Header="Open document" Command="{Binding OpenFileCommand}"/>
-                                                <Separator Style="{StaticResource MenuSeparatorStyle}"/>
-                                                <MenuItem Header="Open document folder" Command="{Binding OpenFolderCommand}"/>
-                                                <Separator Style="{StaticResource MenuSeparatorStyle}"/>
-                                                <MenuItem Header="Copy Selected Files" Command="{Binding Path=DataContext.SaveFilesCommand, Source={x:Reference Name=Window}}" StaysOpenOnClick="True"/>
-                                                <Border Width="150" BorderBrush="#7F888888" BorderThickness="1.5" Background="Transparent" CornerRadius="5" Padding="5">
-                                                    <StackPanel Orientation="Vertical">
-                                                        <Label Content="Copied.." FontSize="9" HorizontalContentAlignment="Left" VerticalContentAlignment="Stretch"
+                                                    </Border>
+                                                    <MenuItem Header="Show on tree" Command="{Binding Path=DataContext.ShowOnTreeCommand, Source={x:Reference Name=Window}}"/>
+                                                    <Separator Style="{StaticResource MenuSeparatorStyle}"/>
+                                                    <MenuItem Header="Open document" Command="{Binding OpenFileCommand}"/>
+                                                    <Separator Style="{StaticResource MenuSeparatorStyle}"/>
+                                                    <MenuItem Header="Open document folder" Command="{Binding OpenFolderCommand}"/>
+                                                    <Separator Style="{StaticResource MenuSeparatorStyle}"/>
+                                                    <MenuItem Header="Copy Selected Files" Command="{Binding Path=DataContext.CopyFilesCommand, Source={x:Reference Name=Window}}" StaysOpenOnClick="True"/>
+                                                    <Border Width="150" BorderBrush="#7F888888" BorderThickness="1.5" Background="Transparent" CornerRadius="5" Padding="5">
+                                                        <StackPanel Orientation="Vertical">
+                                                            <Label Content="Copied.." FontSize="9" HorizontalContentAlignment="Left" VerticalContentAlignment="Stretch"
                                                        HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="0"/>
-                                                        <TextBlock VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="{Binding Path=DataContext.Copyied_items, Source={x:Reference Name=Window}}" 
+                                                            <TextBlock VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Text="{Binding Path=DataContext.Copyied_items, Source={x:Reference Name=Window}}" 
                                                        Foreground="White" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis" FontSize="9" />
-                                                    </StackPanel>
-                                                    <Border.Style>
-                                                        <Style TargetType="Border">
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Path=DataContext.ShowPopUp, Source={x:Reference Name=Window}}" Value="false">
-                                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding Path=DataContext.ShowPopUp, Source={x:Reference Name=Window}}" Value="true">
-                                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Border.Style>
-                                                </Border>
-                                            </ContextMenu>
-                                        </TextBlock.ContextMenu>
-                                    </TextBlock>
+                                                        </StackPanel>
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Path=DataContext.ShowPopUp, Source={x:Reference Name=Window}}" Value="false">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Path=DataContext.ShowPopUp, Source={x:Reference Name=Window}}" Value="true">
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                    </Border>
+                                                </ContextMenu>
+                                            </TextBlock.ContextMenu>
+                                        </TextBlock>
                                     <StackPanel.ToolTip>
                                         <TextBlock Text="{Binding FullPath}" FontFamily="Jura"/>
                                     </StackPanel.ToolTip>
                                 </StackPanel>
+                                </ContentControl>
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
@@ -751,21 +773,62 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Button Margin="0,0,10,0" Grid.Column="0" HorizontalAlignment="Stretch" Width="25" Style="{StaticResource ImgButton}"
-                        ToolTip="Show settings" Click="Button_Click">
+                        ToolTip="Show settings" Click="Button_Click" x:Name="setsbtn">
                     <Image Source="Resources/настройка.png"/>
-                    <Button.ContextMenu>
-                        <ContextMenu >
-                            <MenuItem Header="Change default folder" Command="{Binding ChangeDirCommand}"/>
-                            <Separator Style="{StaticResource MenuSeparatorStyle}"/>
-                            <MenuItem IsEnabled="False"  ToolTip="{Binding Def_path}" ToolTipService.ShowOnDisabled="True">
+                    <!--<Button.ContextMenu>
+                        <ContextMenu Width="300" StaysOpen="True">
+                            -->
+                    <!--<MenuItem Header="Change default folder" Command="{Binding ChangeDirCommand}" {Binding ShowPopUpSettings}/>-->
+                    <!--<Separator Style="{StaticResource MenuSeparatorStyle}"/>-->
+                    <!--
+                            <MenuItem IsEnabled="True"  ToolTipService.ShowOnDisabled="True" Width="auto"  HorizontalContentAlignment="Stretch"
+                                       StaysOpenOnClick="True" HorizontalAlignment="Stretch">
                                 <MenuItem.Header>
-                                    <TextBlock Text="{Binding Def_path}" TextTrimming="WordEllipsis" Width="{Binding Path=Width,RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type MenuItem}}}"
-                                               Foreground="#FF97A0A5" FontSize="10" />
+                                    <Grid HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Double click action" Foreground="White"  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   />
+                                        <ComboBox SelectedIndex="{Binding SelectedDoubleClickOptionTag}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                                  Margin="10,0,0,0" IsEnabled="True" Grid.Column="1">
+                                            <ComboBoxItem Content="Open folder" Tag="0"/>
+                                            <ComboBoxItem Content="Open file" Tag="1"/>
+                                            <ComboBoxItem Content="Show on tree sssss" Tag="2"/>
+                                        </ComboBox>
+                                    </Grid>
                                 </MenuItem.Header>
                             </MenuItem>
                         </ContextMenu>
-                    </Button.ContextMenu>
+                    </Button.ContextMenu>-->
                 </Button>
+                <Popup x:Name="SetsPopUp" Placement="Bottom" Grid.Column="0" 
+                            IsOpen="False" Closed="SetsPopUp_Closed"
+                            AllowsTransparency="True" 
+                            Focusable="False" VerticalOffset="1.5"
+                            PopupAnimation="Slide" Width="270" StaysOpen="False">
+                    <Border Background="#FF3F3F3F" BorderBrush="#FF97A0A5" BorderThickness="1.2" CornerRadius="2" HorizontalAlignment="Stretch">
+                        <Grid HorizontalAlignment="Stretch" Margin="2.5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Double click action" Foreground="White"  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Margin="5,0,5,2"/>
+                            <ComboBox HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                                  Margin="5,0,5,2" IsEnabled="True" Grid.Column="1"
+                                        ItemsSource="{StaticResource ExampleEnumItemsSource}"
+                                        SelectedValue="{Binding SelectedDoubleClickOptionTag, Converter={StaticResource ExampleEnumItemsSource}}">
+
+                                <!--<ComboBoxItem Content="Open folder" Tag="0"/>
+                                <ComboBoxItem Content="Open file" Tag="1"/>
+                                <ComboBoxItem Content="Show on tree" Tag="2"/>-->
+                            </ComboBox>
+                        </Grid>
+                    </Border>
+
+                </Popup>
                 <Label HorizontalAlignment="Left" Content="Files count" Grid.Column="1"/>
                 <TextBox Margin="5,0,5,0" Text="{Binding Prog_value, Mode=OneWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Column="2" HorizontalAlignment="Left" Width="60" IsReadOnly="True"/>
                 <Button HorizontalAlignment="Right" Width="65" Content="Scan" Grid.Column="4" Command="{Binding StartScanCommand}" IsEnabled="{Binding Is_scanned}"

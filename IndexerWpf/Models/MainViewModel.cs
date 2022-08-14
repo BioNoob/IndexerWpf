@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +17,15 @@ using System.Windows.Forms;
 
 namespace IndexerWpf.Models
 {
+    public enum DoubleClickAction
+    {
+        [Description("Open Folder")]
+        Folder,
+        [Description("Open File")]
+        File,
+        [Description("Show on tree")]
+        Tree
+    }
     public class MainViewModel : Proper
     {
         public WpfObservableRangeCollection<IndxElements> ListOfIndexes { get => selectedIndexes; set => SetProperty(ref selectedIndexes, value); }
@@ -54,10 +65,22 @@ namespace IndexerWpf.Models
         public bool Is_Search { get => is_Search; set { SetProperty(ref is_Search, value); } }
         public Settings Sets { get => sets; set => SetProperty(ref sets, value); }
         public bool ShowPopUp { get => showpopup; set => SetProperty(ref showpopup, value); }
+        public DoubleClickAction SelectedDoubleClickOptionTag { get => selectedDoubleClickOptionTag; set => SetProperty(ref selectedDoubleClickOptionTag, value); }
+        //public IEnumerable<DoubleClickAction> DoubleClickActionValues
+        //{
+        //    get
+        //    {
+        //        var z = Enum.GetNames(typeof(DoubleClickAction));
+        //        return Enum.GetValues(typeof(DoubleClickAction)).Cast<DoubleClickAction>();
+        //    }
+        //}
+
+
         private string copyieditems;
         private WpfObservableRangeCollection<IndxElements> selectedIndexes;
         //private WpfObservableRangeCollection<IndxElementNew> listOfElementsInSelectedIndexes;
         //private WpfObservableRangeCollection<SimpleIndxElement> listOfSimpleElementsInSelectedIndexes;
+        private DoubleClickAction selectedDoubleClickOptionTag;
         private IEnumerable<IndxElementNew> searched;
         private bool is_scanned = false;
         private bool is_LongOperation = false;
@@ -91,6 +114,8 @@ namespace IndexerWpf.Models
                 return _closewindow ??= new CommandHandler(obj =>
                 {
                     Sets.LastIndex = SelectedIndexsString;
+                    Sets.LastSavedActionOnDoubleClick = SelectedDoubleClickOptionTag;
+                    //Sets.LastIndex = string.Join(", ",ListOfSelectedIndexes.Select(t => Path.GetFileNameWithoutExtension(t.JsonFileName)));
                     Sets.SaveSettings();
                     Environment.Exit(0);
                 },
@@ -98,12 +123,12 @@ namespace IndexerWpf.Models
                 );
             }
         }
-        private CommandHandler _savefiles;
-        public CommandHandler SaveFilesCommand
+        private CommandHandler _copyfiles;
+        public CommandHandler CopyFilesCommand
         {
             get
             {
-                return _savefiles ??= new CommandHandler(obj =>
+                return _copyfiles ??= new CommandHandler(obj =>
                 {
                     StringCollection paths = new StringCollection();
                     var buf = ListOfElementsInSelectedIndexes.Where(t => t.IsSelected).Select(t => t.Name).ToArray();
@@ -198,8 +223,9 @@ namespace IndexerWpf.Models
             Sets.LoadSettings();
             if (string.IsNullOrEmpty(Sets.FolderIndexesDefPath))
                 Sets.FolderIndexesDefPath = Directory.GetCurrentDirectory() + "\\indexes";
-
+            
             ListOfIndexes = new WpfObservableRangeCollection<IndxElements>();
+            SelectedDoubleClickOptionTag = sets.LastSavedActionOnDoubleClick;
             //ListOfIndexes.CollectionChanged += ListOfIndexes_CollectionChanged;
             Copyied_items = string.Empty;
             Searched = new HashSet<IndxElementNew>();
