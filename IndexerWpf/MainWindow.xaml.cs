@@ -202,5 +202,11 @@ namespace IndexerWpf
             }
 
         }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            MainViewModel dtx = DataContext as MainViewModel;
+            dtx.CloseWindowCommand.Execute(null);
+        }
     }
 }

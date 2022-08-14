@@ -16,7 +16,7 @@
         ResizeMode="CanResize"
         AllowsTransparency="True"  Background="Transparent"
         MinHeight="350" MinWidth="550"
-        Name="Window"
+        Name="Window" Closing="Window_Closing"
         Height="{Binding Sets.WindowSise.X, Mode=TwoWay}" Width="{Binding Sets.WindowSise.Y, Mode=TwoWay}"
         Top="{Binding Sets.WindowLastPos.Y, Mode=TwoWay}" Left="{Binding Sets.WindowLastPos.X, Mode=TwoWay}" ContentRendered="Window_ContentRendered" 
         >
