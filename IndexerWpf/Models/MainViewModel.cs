@@ -223,7 +223,7 @@ namespace IndexerWpf.Models
             Sets.LoadSettings();
             if (string.IsNullOrEmpty(Sets.FolderIndexesDefPath))
                 Sets.FolderIndexesDefPath = Directory.GetCurrentDirectory() + "\\indexes";
-            
+
             ListOfIndexes = new WpfObservableRangeCollection<IndxElements>();
             SelectedDoubleClickOptionTag = sets.LastSavedActionOnDoubleClick;
             //ListOfIndexes.CollectionChanged += ListOfIndexes_CollectionChanged;
@@ -327,14 +327,23 @@ namespace IndexerWpf.Models
             var a = new System.Threading.Timer(A_Elapsed, elem, 10, 10);
             return a;
         }
-
+          
         private void A_Elapsed(object sender)
         {
             //Prog_value = ListOfSelectedIndexes.Sum(t => t.TotalFiles);
             //Prog_value = IndxElementNew.Identificator;
             //Debug.WriteLine(IndxElementNew.Identificator);
             if (sender != null)
-                Prog_value += (sender as IndxElements).SimpleCounter;
+            {
+                //if (Prog_value != Prog_value + (sender as IndxElements).SimpleCounter)
+                if((sender as IndxElements).IsCounterChange)
+                {
+                    Prog_value = ListOfSelectedIndexes.Sum(t => t.SimpleCounter) + (sender as IndxElements).SimpleCounter;
+                    (sender as IndxElements).IsCounterChange = false;
+                }
+                    
+            }
+            //Prog_value = (sender as IndxElements).SimpleCounter;
             else
                 Prog_value = ListOfSelectedIndexes.Sum(t => t.SimpleCounter);
         }

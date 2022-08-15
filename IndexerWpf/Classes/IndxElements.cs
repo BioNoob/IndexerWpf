@@ -18,6 +18,8 @@ namespace IndexerWpf.Classes
         private string dateOfLastChange;
         private bool isSelected;
         private WpfObservableRangeCollection<IndxElementNew> allLowerElements;
+        private int simpleCounter = 0;
+
         //private WpfObservableRangeCollection<SimpleIndxElement> allSimpleLowerElements;
 
         public event IsSelecetdChange IsSelectedChangedEvent;
@@ -63,11 +65,12 @@ namespace IndexerWpf.Classes
             }
         }
         [JsonIgnore]
+        public bool IsCounterChange { get; set; }
+        [JsonIgnore]
         public bool IsLoaded { get; set; }
         [JsonIgnore]
         //public int ChildIdentificatorCouner = 0;
-        public int SimpleCounter = 0;
-
+        public int SimpleCounter { get => simpleCounter; set { simpleCounter = value; IsCounterChange = true; } }
         public IndxElements()
         {
             IsSelected = false;
@@ -173,6 +176,7 @@ namespace IndexerWpf.Classes
             //if (val == 0 && el.Contains(GetName))
             //    this.RootFolderPath = el;
             if (!string.IsNullOrEmpty(RootFolderPath) && el.Contains(RootFolderPath))
+                if(SimpleCounter <= val)
                 SimpleCounter = val;
         }
 
