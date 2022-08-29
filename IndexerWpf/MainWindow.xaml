@@ -829,8 +829,8 @@
                     </Border>
 
                 </Popup>
-                <Label HorizontalAlignment="Left" Content="Files count" Grid.Column="1"/>
-                <TextBox Margin="5,0,5,0" Text="{Binding Prog_value, Mode=OneWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Column="2" HorizontalAlignment="Left" Width="60" IsReadOnly="True"/>
+                <!--<Label HorizontalAlignment="Left" Content="Files count" Grid.Column="1"/>
+                <TextBox Margin="5,0,5,0" Text="{Binding Prog_value, Mode=OneWay}" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Column="2" HorizontalAlignment="Left" Width="60" IsReadOnly="True"/>-->
                 <Button HorizontalAlignment="Right" Width="65" Content="Scan" Grid.Column="4" Command="{Binding StartScanCommand}" IsEnabled="{Binding Is_scanned}"
                                    BorderBrush="White" Background="White" Foreground="Black" FontFamily="Jura"/>
             </Grid>

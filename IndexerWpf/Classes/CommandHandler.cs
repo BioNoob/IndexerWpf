@@ -8,14 +8,58 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Markup;
 
 namespace IndexerWpf.Classes
 {
+    public static class Voyadger1
+    {
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        public struct SHELLEXECUTEINFO
+        {
+            public int cbSize;
+            public uint fMask;
+            public IntPtr hwnd;
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string lpVerb;
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string lpFile;
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string lpParameters;
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string lpDirectory;
+            public int nShow;
+            public IntPtr hInstApp;
+            public IntPtr lpIDList;
+            [MarshalAs(UnmanagedType.LPTStr)]
+            public string lpClass;
+            public IntPtr hkeyClass;
+            public uint dwHotKey;
+            public IntPtr hIcon;
+            public IntPtr hProcess;
+        }
+
+        [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO lpExecInfo);
+
+        private const int SW_SHOW = 5;
+
+        public static bool OpenFolderInExplorer(string path)
+        {
+            var info = new SHELLEXECUTEINFO();
+            info.cbSize = Marshal.SizeOf<SHELLEXECUTEINFO>();
+            info.lpVerb = "explore";
+            info.lpParameters = "/n,/select";
+            info.nShow = SW_SHOW;
+            info.lpFile = path;
+            return ShellExecuteEx(ref info);
+        }
+    }
+
     public class ObservableRangeCollection<T> : ObservableCollection<T>
     {
         //------------------------------------------------------

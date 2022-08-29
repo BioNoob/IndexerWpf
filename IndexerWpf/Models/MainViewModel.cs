@@ -55,7 +55,7 @@ namespace IndexerWpf.Models
         public WpfObservableRangeCollection<IndxElementNew> ListOfRootInSelectedIndexes => new WpfObservableRangeCollection<IndxElementNew>(ListOfSelectedIndexes.Select(t => t.RootElement));
         public string Copyied_items { get => copyieditems; set => SetProperty(ref copyieditems, value); }
         public string SelectedIndexsString { get => selectedIndexsString; set { SetProperty(ref selectedIndexsString, value); /*if (!string.IsNullOrEmpty(value))*/  } }
-        public double Prog_value { get => prog_val; set => SetProperty(ref prog_val, value); }
+        //public double Prog_value { get => prog_val; set => SetProperty(ref prog_val, value); }
         public string Def_path { get => Sets.FolderIndexesDefPath; }
         public string Search_text { get => search_text; set { SetProperty(ref search_text, value); SearchStarter(value); } }
         public IEnumerable<IndxElementNew> Searched { get => searched; set => SetProperty(ref searched, value); }
@@ -86,7 +86,7 @@ namespace IndexerWpf.Models
         private bool is_LongOperation = false;
         private bool is_Search = false;
         private bool showpopup = false;
-        private double prog_val;
+        //private double prog_val;
         private string search_text;
         private string selectedFilter;
         private string selectedIndexsString;
@@ -100,7 +100,7 @@ namespace IndexerWpf.Models
             {
                 return _openfolder ??= new CommandHandler(obj =>
                 {
-                    Process.Start("explorer.exe", $"{Def_path}");
+                    Process.Start("explorer.exe", $"/select, \"{Def_path}\"");
                 },
                 (obj) => !string.IsNullOrEmpty(Def_path)
                 );
@@ -244,7 +244,26 @@ namespace IndexerWpf.Models
         {
             ListOfIndexes.Clear();
             if (!Directory.Exists(Def_path))
-                Directory.CreateDirectory(Def_path);
+                try
+                {
+                    Directory.CreateDirectory(Def_path);
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show($"Can't found and create folder in saved directory{Environment.NewLine} {Def_path}{Environment.NewLine}" +
+                        $"Will be used default directory...", "Directory not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    try
+                    {
+                        Sets.FolderIndexesDefPath = Directory.GetCurrentDirectory() + "\\indexes";
+                        Directory.CreateDirectory(Def_path);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "Directory not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+
+                }
+
             else
             {
                 var fls = Directory.GetFiles(Def_path);
@@ -295,6 +314,8 @@ namespace IndexerWpf.Models
                 SelectedIndexsString = sselectedIndexsString;
                 //Prog_value -= sender.TotalFiles;
                 StaticModel_LoadEndEvent();
+                if (!string.IsNullOrEmpty(Search_text))
+                    SearchStarter(Search_text);
             }
             //Prog_value = ListOfSelectedIndexes.Sum(t => t.TotalFiles);
         }
@@ -303,7 +324,7 @@ namespace IndexerWpf.Models
         {
             SetProperty(nameof(ListOfExtentionsSelectedIndexes));
             SetProperty(nameof(ListOfRootInSelectedIndexes));
-            Prog_value = ListOfSelectedIndexes.Sum(t => t.TotalFiles);
+            //Prog_value = ListOfSelectedIndexes.Sum(t => t.TotalFiles);
         }
 
         //https://docs.microsoft.com/en-us/dotnet/standard/parallel-programming/how-to-iterate-file-directories-with-the-parallel-class?redirectedfrom=MSDN ??
@@ -322,31 +343,31 @@ namespace IndexerWpf.Models
         //    a.Elapsed += A_Elapsed;
         //    return a;
         //}
-        public System.Threading.Timer StartCountWatcher(IndxElements elem = null)
-        {
-            var a = new System.Threading.Timer(A_Elapsed, elem, 10, 10);
-            return a;
-        }
+        //public System.Threading.Timer StartCountWatcher(IndxElements elem = null)
+        //{
+        //    var a = new System.Threading.Timer(A_Elapsed, elem, 10, 10);
+        //    return a;
+        //}
           
-        private void A_Elapsed(object sender)
-        {
-            //Prog_value = ListOfSelectedIndexes.Sum(t => t.TotalFiles);
-            //Prog_value = IndxElementNew.Identificator;
-            //Debug.WriteLine(IndxElementNew.Identificator);
-            if (sender != null)
-            {
-                //if (Prog_value != Prog_value + (sender as IndxElements).SimpleCounter)
-                if((sender as IndxElements).IsCounterChange)
-                {
-                    Prog_value = ListOfSelectedIndexes.Sum(t => t.SimpleCounter) + (sender as IndxElements).SimpleCounter;
-                    (sender as IndxElements).IsCounterChange = false;
-                }
+        //private void A_Elapsed(object sender)
+        //{
+        //    //Prog_value = ListOfSelectedIndexes.Sum(t => t.TotalFiles);
+        //    //Prog_value = IndxElementNew.Identificator;
+        //    //Debug.WriteLine(IndxElementNew.Identificator);
+        //    if (sender != null)
+        //    {
+        //        //if (Prog_value != Prog_value + (sender as IndxElements).SimpleCounter)
+        //        if((sender as IndxElements).IsCounterChange)
+        //        {
+        //            Prog_value = ListOfSelectedIndexes.Sum(t => t.SimpleCounter) + (sender as IndxElements).SimpleCounter;
+        //            (sender as IndxElements).IsCounterChange = false;
+        //        }
                     
-            }
-            //Prog_value = (sender as IndxElements).SimpleCounter;
-            else
-                Prog_value = ListOfSelectedIndexes.Sum(t => t.SimpleCounter);
-        }
+        //    }
+        //    //Prog_value = (sender as IndxElements).SimpleCounter;
+        //    else
+        //        Prog_value = ListOfSelectedIndexes.Sum(t => t.SimpleCounter);
+        //}
         public async void DoLoad()
         {
             //if (!ignore_scanned)
@@ -364,7 +385,7 @@ namespace IndexerWpf.Models
             {
                 //try
                 //{
-                if (item.RootElement == null || item.RootElement.CountElements - 1 <= 0)
+                if (item.RootElement == null /*|| item.RootElement.CountElements - 1 <= 0*/)
                 {
                     //var LastTask = new Task(() => item.LoadInexes(CancelToken));
                     //LastTask.Start();                    
@@ -383,7 +404,7 @@ namespace IndexerWpf.Models
             }
             //}
             //timer.Start();
-            var timer = StartCountWatcher();
+            //var timer = StartCountWatcher();
             var tsj = Task.WhenAll(TaskList);
             try
             {
@@ -391,7 +412,7 @@ namespace IndexerWpf.Models
             }
             catch (ProcessingFileException e)
             {
-                timer.Dispose();
+                //timer.Dispose();
                 switch (e.ErrorType)
                 {
                     case TypeOfError.Deleted:
@@ -406,7 +427,7 @@ namespace IndexerWpf.Models
                         //Is_scanned = false;
                         //(e.Source as IndxElements).IsSelected = false;
                         //Prog_value -= e.Source.TotalFiles;
-                        e.Source.SimpleCounter = 0;
+                        //e.Source.SimpleCounter = 0;
                         e.Source.RootElement = null;
                         e.Source.IsSelected = false;
 
@@ -427,7 +448,7 @@ namespace IndexerWpf.Models
             }
             //Task.WaitAll(TaskList.ToArray());
             //timer.Stop();
-            timer.Dispose();
+            //timer.Dispose();
             if (!string.IsNullOrEmpty(Search_text))
                 SearchStarter(Search_text);
             //await DoSearch(Search_text);
@@ -502,7 +523,7 @@ namespace IndexerWpf.Models
             Is_LongOperation = true;
             Is_scanned = true;
             IndxElements indx = new IndxElements(path);
-            var timer = StartCountWatcher(indx);
+            //var timer = StartCountWatcher(indx);
             //indx.CountFilesChangedEvent += Q_CountFilesChangedEvent;
             if (StaticModel.CancelToken.IsCancellationRequested) StaticModel.CancelToken = new CancellationTokenSource();
             try
@@ -511,9 +532,9 @@ namespace IndexerWpf.Models
             }
             catch (ProcessingFileException)
             {
-                Prog_value -= indx.TotalFiles;
+                //Prog_value -= indx.TotalFiles;
                 indx = null;
-                timer.Dispose();
+                //timer.Dispose();
                 Is_scanned = false;
                 StaticModel.InvokeLoadEndEvent();
                 Is_LongOperation = false;
@@ -528,7 +549,7 @@ namespace IndexerWpf.Models
             }
             indx.IsSelected = true;
             Is_scanned = false;
-            timer.Dispose();
+            //timer.Dispose();
             StaticModel.InvokeLoadEndEvent();
         }
     }

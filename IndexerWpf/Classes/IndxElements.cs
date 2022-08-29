@@ -18,7 +18,7 @@ namespace IndexerWpf.Classes
         private string dateOfLastChange;
         private bool isSelected;
         private WpfObservableRangeCollection<IndxElementNew> allLowerElements;
-        private int simpleCounter = 0;
+        //private int simpleCounter = 0;
 
         //private WpfObservableRangeCollection<SimpleIndxElement> allSimpleLowerElements;
 
@@ -38,8 +38,8 @@ namespace IndexerWpf.Classes
             }
 
         }
-        [JsonIgnore]
-        public int TotalFiles { get => RootElement.CountElements - 1; }//-1 = self; }
+        //[JsonIgnore]
+        //public int TotalFiles { get => RootElement.CountElements - 1; }//-1 = self; }
         [JsonIgnore]
         public bool IsSelected { get => isSelected; set { SetProperty(ref isSelected, value); IsSelectedChangedEvent?.Invoke(this, value); } }
         [JsonIgnore]
@@ -64,13 +64,13 @@ namespace IndexerWpf.Classes
                     foreach (var n in node.ChildElements) nodes.Push(n);
             }
         }
-        [JsonIgnore]
-        public bool IsCounterChange { get; set; }
+        //[JsonIgnore]
+        //public bool IsCounterChange { get; set; }
         [JsonIgnore]
         public bool IsLoaded { get; set; }
-        [JsonIgnore]
+        //[JsonIgnore]
         //public int ChildIdentificatorCouner = 0;
-        public int SimpleCounter { get => simpleCounter; set { simpleCounter = value; IsCounterChange = true; } }
+        //public int SimpleCounter { get => simpleCounter; set { simpleCounter = value; IsCounterChange = true; } }
         public IndxElements()
         {
             IsSelected = false;
@@ -84,7 +84,7 @@ namespace IndexerWpf.Classes
             RootElement = null;
             //RootElement = new IndxElementNew();
             //RootElement.Id = 0;
-            SimpleCounter = 0;
+            //SimpleCounter = 0;
         }
 
         public IndxElements(string path)
@@ -108,7 +108,7 @@ namespace IndexerWpf.Classes
                     await Task.Run(() =>
                     {
                         //token.Register(() => token.ThrowIfCancellationRequested());//throw new ProcessingFileException(TypeOfError.CancelTask, null, this));
-                        StaticModel.IdincreasedEvent += StaticModel_IdincreasedEvent;
+                        //StaticModel.IdincreasedEvent += StaticModel_IdincreasedEvent;
                         //var qq = File.ReadLines(JsonFileName); //вроде быстро
                         //var watch = Stopwatch.StartNew();
                         //Debug.WriteLine($"{JsonFileName} started {watch.ElapsedMilliseconds}");
@@ -160,7 +160,7 @@ namespace IndexerWpf.Classes
                 }
                 finally
                 {
-                    StaticModel.IdincreasedEvent -= StaticModel_IdincreasedEvent;
+                    //StaticModel.IdincreasedEvent -= StaticModel_IdincreasedEvent;
                 }
             }
             else
@@ -170,15 +170,15 @@ namespace IndexerWpf.Classes
             }
         }
 
-        private void StaticModel_IdincreasedEvent(int val, string el)
-        {
-            //ЕСЛИ ПЕРЕИМЕНУЮТ JSON файл вся логика пойдет в пезду (не пошла. Но элемент с неверным названием нужно удалить!// вроде все норм
-            //if (val == 0 && el.Contains(GetName))
-            //    this.RootFolderPath = el;
-            if (!string.IsNullOrEmpty(RootFolderPath) && el.Contains(RootFolderPath))
-                if(SimpleCounter <= val)
-                SimpleCounter = val;
-        }
+        //private void StaticModel_IdincreasedEvent(int val, string el)
+        //{
+        //    //ЕСЛИ ПЕРЕИМЕНУЮТ JSON файл вся логика пойдет в пезду (не пошла. Но элемент с неверным названием нужно удалить!// вроде все норм
+        //    //if (val == 0 && el.Contains(GetName))
+        //    //    this.RootFolderPath = el;
+        //    if (!string.IsNullOrEmpty(RootFolderPath) && el.Contains(RootFolderPath))
+        //        if(SimpleCounter <= val)
+        //        SimpleCounter = val;
+        //}
 
         public bool DoScan(CancellationTokenSource token)
         {
@@ -188,7 +188,7 @@ namespace IndexerWpf.Classes
             //создаем корневую ноду по корневому каталогу
             try
             {
-                RootElement = new IndxElementNew(Path.GetFullPath(RootFolderPath), IndxElementNew.Type.folder, null, SimpleCounter);
+                RootElement = new IndxElementNew(Path.GetFullPath(RootFolderPath), IndxElementBase.Type.folder, null/*, SimpleCounter*/);
                 LoadFiles(RootFolderPath, RootElement, token);
                 LoadSubDirectories(RootFolderPath, RootElement, token);
                 //RootElement.ChildElements.AddRange(LoadFiles(RootFolderPath, RootElement, token));
@@ -235,7 +235,7 @@ namespace IndexerWpf.Classes
                 {
                     if (token.IsCancellationRequested)
                         throw new ProcessingFileException(TypeOfError.CancelTask, null, this);
-                    parfolder.ChildElements.Add(new IndxElementNew(Path.GetFullPath(file), IndxElementNew.Type.file, parfolder, ++SimpleCounter));
+                    parfolder.ChildElements.Add(new IndxElementNew(Path.GetFullPath(file), IndxElementBase.Type.file, parfolder/*, ++SimpleCounter*/));
                     //SimpleCounter++;
                 }
 
@@ -262,7 +262,7 @@ namespace IndexerWpf.Classes
                 {
                     if (token.IsCancellationRequested)
                         throw new ProcessingFileException(TypeOfError.CancelTask, null, this);
-                    IndxElementNew newparent = new IndxElementNew(Path.GetFullPath(subdirectory), IndxElementNew.Type.folder, parfolder, ++SimpleCounter);
+                    IndxElementNew newparent = new IndxElementNew(Path.GetFullPath(subdirectory), IndxElementBase.Type.folder, parfolder/*, ++SimpleCounter*/);
                     parfolder.ChildElements.Add(newparent);
                     //SimpleCounter++;
                     LoadFiles(subdirectory, newparent, token);

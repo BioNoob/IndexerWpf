@@ -1,6 +1,5 @@
 ﻿using IndexerWpf.Models;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -284,22 +283,24 @@ namespace IndexerWpf.Classes
     {
         public IndxElementBase()
         {
-            isScaned = false;
+            //isScaned = false;
             isSelected = false;
+            IsWasChecked = false;
+            FileFolderExist = true;
         }
-        public IndxElementBase(string _fullpath, Type tp, int id)
+        public IndxElementBase(string _fullpath, Type tp) : this()//, int id)
         {
-            isScaned = true;
+            //isScaned = true;
             FullPath = _fullpath;
             Tp = tp;
-            Id = id;//Identificator++;
+            //Id = id;//Identificator++;
         }
-        public IndxElementBase(IndxElementBase elementBase)
+        public IndxElementBase(IndxElementBase elementBase) : this()
         {
-            isScaned = elementBase.isScaned;
+            // isScaned = elementBase.isScaned;
             FullPath = elementBase.FullPath;
             Tp = elementBase.Tp;
-            Id = elementBase.Id;//Identificator++;
+            //Id = elementBase.Id;//Identificator++;
             IsSelected = elementBase.IsSelected;
             IsExpanded = elementBase.IsExpanded;
         }
@@ -313,12 +314,15 @@ namespace IndexerWpf.Classes
         private string getUriImg;
         private string fullPath;
         private Type tp;
-        private int id;
+        //private int id;
         private bool fileFolderExist;
         private string fileFolderExistString;
-        protected bool isScaned;
-        [JsonProperty(Order = -2)]
-        public int Id { get => id; set { SetProperty(ref id, value); } }
+
+        protected bool IsWasChecked { get; set; }
+
+        //protected bool isScaned;
+        //[JsonProperty(Order = -2)]
+        //public int Id { get => id; set { SetProperty(ref id, value); } }
         public Type Tp
         {
             get => tp;
@@ -340,28 +344,15 @@ namespace IndexerWpf.Classes
             set
             {
                 SetProperty(ref fullPath, value);
-                StaticModel.InvokeIdincreasedEvent(id, value);
-                if (isScaned)
-                {
-                    FileFolderExist = true;
-                    FileFolderExistString = "";
-                    return;
-                }
-                FileFolderExist = Tp switch
-                {
-                    Type.folder => Directory.Exists(FullPath),
-                    Type.file => File.Exists(FullPath),
-                    _ => false,
-                };
-                if (!FileFolderExist)
-                    FileFolderExistString = Tp switch
-                    {
-                        Type.folder => "Folder not found",
-                        Type.file => "File not found",
-                        _ => "",
-                    };
-                else
-                    FileFolderExistString = "";
+                //StaticModel.InvokeIdincreasedEvent(id, value);
+                //if (isScaned)
+                //{
+                //    FileFolderExist = true;
+                //    FileFolderExistString = "";
+                //    return;
+                //}
+
+
             }
         }
         [JsonIgnore]
@@ -442,7 +433,20 @@ namespace IndexerWpf.Classes
         public bool FileFolderExist
         {
             get => fileFolderExist;
-            set => SetProperty(ref fileFolderExist, value);
+            set
+            {
+
+                SetProperty(ref fileFolderExist, value);
+                if (!value)
+                    FileFolderExistString = Tp switch
+                    {
+                        Type.folder => "Folder not found",
+                        Type.file => "File not found",
+                        _ => "",
+                    };
+                else
+                    FileFolderExistString = "";
+            }
         }
         [JsonIgnore]
         public string FileFolderExistString
@@ -450,17 +454,33 @@ namespace IndexerWpf.Classes
             get => fileFolderExistString;
             set => SetProperty(ref fileFolderExistString, value);
         }
+        private void CheckAvalibility()
+        {
+            if (!IsWasChecked)
+            {
+                FileFolderExist = Tp switch
+                {
+                    Type.folder => Directory.Exists(FullPath),
+                    Type.file => File.Exists(FullPath),
+                    _ => false,
+                };
+                IsWasChecked = true;
+            }
+        }
 
 
         public void OpenFolder()
         {
-            Directory.Exists(FullPath);
-            Process.Start("explorer.exe", $"/select, {FullPath}");
+            //Directory.Exists(FullPath);
+            //if(Tp != Type.folder)
+            //Voyadger1.OpenFolderInExplorer(DirPath);
+            Process.Start("explorer.exe", $"/select, \"{FullPath}\"");
+            //Process.Start("explorer.exe", $"/select, {FullPath}");
         }
         public void OpenFile()
         {
             Process pr = new Process();
-            File.Exists(FullPath);
+            //File.Exists(FullPath);
             pr.StartInfo.FileName = FullPath;
             pr.StartInfo.UseShellExecute = true;
             pr.Start();
@@ -474,9 +494,11 @@ namespace IndexerWpf.Classes
             {
                 return _openfolder ??= new CommandHandler(obj =>
                 {
-                    OpenFolder();
+                    //CheckAvalibility();
+                    //if (FileFolderExist)
+                        OpenFolder();
                 },
-                (obj) => FileFolderExist
+                (obj) => { CheckAvalibility(); return FileFolderExist;/* && Tp == Type.file;*/ }
                 );
             }
         }
@@ -489,9 +511,11 @@ namespace IndexerWpf.Classes
             {
                 return _openfile ??= new CommandHandler(obj =>
                 {
-                    OpenFile();
+                    //CheckAvalibility();
+                    //if (FileFolderExist)
+                        OpenFile();
                 },
-                (obj) => FileFolderExist && Tp == Type.file
+                (obj) => { if (Tp == Type.file) { CheckAvalibility(); return FileFolderExist;/* && Tp == Type.file;*/ } else return false; } 
                 );
             }
         }
@@ -504,7 +528,7 @@ namespace IndexerWpf.Classes
                 return false;
             if (b is null)
                 return false;
-            if (a.FullPath == b.FullPath && a.Tp == b.Tp && a.Id == b.Id)
+            if (a.FullPath == b.FullPath && a.Tp == b.Tp)/* && a.Id == b.Id)*/
                 return true;
             else
                 return false;
@@ -519,37 +543,37 @@ namespace IndexerWpf.Classes
                 return true;
             if (b is null)
                 return true;
-            if (a.FullPath == b.FullPath && a.Tp == b.Tp && a.Id == b.Id)
+            if (a.FullPath == b.FullPath && a.Tp == b.Tp) /*&& a.Id == b.Id)*/
                 return false;
             else
                 return true;
         }
         public override int GetHashCode()
         {
-            int w = Id.GetHashCode();
+            // int w = Id.GetHashCode();
             int a = FullPath == null ? 0 : FullPath.GetHashCode();
             int s = Tp.GetHashCode();
-            return w ^ a ^ s;
+            return /*w ^*/ a ^ s;
         }
         public bool Equals(IndxElementNew other)
         {
             // Would still want to check for null etc. first.
-            return this.Id == other.Id &&
+            return /*this.Id == other.Id &&*/
                    this.FullPath == other.FullPath &&
                    this.Tp == other.Tp;
         }
         public bool Equals([AllowNull] IndxElementBase x, [AllowNull] IndxElementBase y)
         {
-            return x.Id == y.Id &&
+            return /*x.Id == y.Id &&*/
                    x.FullPath == y.FullPath &&
                    x.Tp == y.Tp;
         }
         public int GetHashCode([DisallowNull] IndxElementBase obj)
         {
-            int w = Id.GetHashCode();
+            //int w = Id.GetHashCode();
             int a = FullPath == null ? 0 : FullPath.GetHashCode();
             int s = Tp.GetHashCode();
-            return w ^ a ^ s;
+            return /*w ^*/ a ^ s;
         }
         public override string ToString()
         {
@@ -571,23 +595,24 @@ namespace IndexerWpf.Classes
             //allLowerElements = null;
             Parent = null;
             childElements = null;
-            isScaned = false;
+            //isScaned = false;
             this.PropertyChanged += IndxElementNew_PropertyChanged;
         }
 
-
-        public IndxElementNew(string _fullpath, Type tp, IndxElementNew prnt, int id)
+        //Конструктор при сканировании
+        public IndxElementNew(string _fullpath, Type tp, IndxElementNew prnt)/*, int id)*/
         {
             init();
-            isScaned = true;
+            //isScaned = true;
             if (tp != Type.file)
                 ChildElements = new WpfObservableRangeCollection<IndxElementNew>();
             else
                 ChildElements = null;
             FullPath = _fullpath;
             Tp = tp;
-            Id = id;//Identificator++;
+            // Id = id;//Identificator++;
             Parent = prnt;
+            IsWasChecked = true; 
             //allLowerElements = null;
         }
 
@@ -597,16 +622,16 @@ namespace IndexerWpf.Classes
 
         public WpfObservableRangeCollection<IndxElementNew> ChildElements { get => childElements; set => SetProperty(ref childElements, value); }
 
-        [JsonIgnore]
-        public int CountElements
-        {
-            get
-            {
-                if (ChildElements != null)
-                    return ChildElements.Sum(t => t.CountElements) + 1;
-                else return 1;
-            }
-        }
+        //[JsonIgnore]
+        //public int CountElements
+        //{
+        //    get
+        //    {
+        //        if (ChildElements != null)
+        //            return ChildElements.Sum(t => t.CountElements) + 1;
+        //        else return 1;
+        //    }
+        //}
         //private IEnumerable<IndxElementNew> Descendants(/*this IndxElementNew root*/)
         //{
         //    var nodes = new Stack<IndxElementNew>(new[] { this });
@@ -650,7 +675,7 @@ namespace IndexerWpf.Classes
                             Parent.IsExpanded = IsExpanded;
                     if (!IsExpanded && ChildElements != null)
                         ChildElements.ToList().ForEach(t => { if (t.IsExpanded != IsExpanded) t.IsExpanded = IsExpanded; });
-                        //AllLowerElements.ToList().ForEach(t => { if (t.IsExpanded != IsExpanded) t.IsExpanded = IsExpanded; });
+                    //AllLowerElements.ToList().ForEach(t => { if (t.IsExpanded != IsExpanded) t.IsExpanded = IsExpanded; });
                     return;
                 case "":
                 default:

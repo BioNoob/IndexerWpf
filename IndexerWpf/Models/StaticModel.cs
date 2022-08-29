@@ -15,16 +15,16 @@ namespace IndexerWpf.Models
         }
         public delegate void LoadEnd();
         public static event LoadEnd LoadEndEvent;
-        public delegate void Idincreased(int val, string path);
-        public static event Idincreased IdincreasedEvent;
+        //public delegate void Idincreased(int val, string path);
+        //public static event Idincreased IdincreasedEvent;
         public static void InvokeLoadEndEvent()
         {
             LoadEndEvent?.Invoke();
         }
-        public static void InvokeIdincreasedEvent(int val, string path)
-        {
-            IdincreasedEvent?.Invoke(val, path);
-        }
+        //public static void InvokeIdincreasedEvent(int val, string path)
+        //{
+        //    IdincreasedEvent?.Invoke(val, path);
+        //}
         public static event LoadEnd WindowClosing;
         public static void InvokeWindowClosing()
         {
